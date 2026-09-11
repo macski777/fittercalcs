@@ -19,13 +19,28 @@
       --ok: #7dcea0;
     }
     * { box-sizing: border-box; }
+    @font-face {
+      font-family: "JetBrains Mono";
+      src: url("fonts/JetBrainsMono-Regular.woff2") format("woff2");
+      font-weight: 100 500;
+      font-style: normal;
+      font-display: swap;
+    }
+    @font-face {
+      font-family: "JetBrains Mono";
+      src: url("fonts/JetBrainsMono-Bold.woff2") format("woff2");
+      font-weight: 600 900;
+      font-style: normal;
+      font-display: swap;
+    }
     html, body {
       margin: 0;
       background: var(--bg);
       color: var(--text);
-      font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+      font-family: "JetBrains Mono", "JetBrainsMono Nerd Font", ui-monospace, monospace;
       min-height: 100%;
     }
+    svg text { font-family: "JetBrains Mono", "JetBrainsMono Nerd Font", ui-monospace, monospace; }
     body {
       padding: calc(12px + env(safe-area-inset-top)) 14px calc(24px + env(safe-area-inset-bottom));
       max-width: 720px;
@@ -632,7 +647,7 @@
       </div>
     </div>
     <div class="header-right">
-      <div class="build" id="appBuild" title="Check for update">v2.19</div>
+      <div class="build" id="appBuild" title="Check for update">v2.20</div>
       <div class="units" id="pipeUnits" role="group" aria-label="Units">
         <button id="btnIn" type="button">in</button>
         <button id="btnMm" class="on" type="button">mm</button>
@@ -1046,8 +1061,8 @@
   </div>
 
 <script>
-const APP_VERSION = "2.19";
-const APP_BUILD = 30;
+const APP_VERSION = "2.20";
+const APP_BUILD = 31;
 
 const DATA = {
   sch10: {
@@ -3104,6 +3119,9 @@ function monotoneSpline(pts) {
 const brandLogo = new Image();
 brandLogo.src = "logo.png";
 brandLogo.onload = () => { try { drawPump(); } catch (e) {} };
+if (document.fonts && document.fonts.ready) {
+  document.fonts.ready.then(() => { try { drawPump(); } catch (e) {} });
+}
 let skipBrandLogo = false;
 
 function fillTracked(ctx, text, x, y, extra) {
@@ -3151,26 +3169,26 @@ function drawBrandHeader(ctx, w, hBar) {
   ctx.textAlign = "left";
   ctx.textBaseline = "alphabetic";
   ctx.fillStyle = "#d1243a";
-  ctx.font = "800 11px sans-serif";
+  ctx.font = "800 11px \"JetBrains Mono\", monospace";
   fillTracked(ctx, "FIRE PROTECTION", tx, y + 13, 2.4);
-  ctx.font = "800 26px sans-serif";
+  ctx.font = "800 26px \"JetBrains Mono\", monospace";
   ctx.fillStyle = "#e8b86d";
   let cx = fillTracked(ctx, "FITTER", tx, y + 44, 1.2);
   ctx.fillStyle = "#d1243a";
-  ctx.font = "400 26px sans-serif";
+  ctx.font = "400 26px \"JetBrains Mono\", monospace";
   ctx.fillText(" · ", cx, y + 44);
   cx += ctx.measureText(" · ").width;
   ctx.fillStyle = "#f4ede4";
-  ctx.font = "800 26px sans-serif";
+  ctx.font = "800 26px \"JetBrains Mono\", monospace";
   fillTracked(ctx, "CALCS", cx, y + 44, 1.6);
   ctx.fillStyle = "#e8b86d";
-  ctx.font = "800 12px sans-serif";
+  ctx.font = "800 12px \"JetBrains Mono\", monospace";
   const tag = "PUMP CURVE";
   let tagW = 0;
   for (let i = 0; i < tag.length; i++) tagW += ctx.measureText(tag[i]).width + 2.2;
   fillTracked(ctx, tag, w - 20 - tagW, y + 16, 2.2);
   ctx.fillStyle = "#a89b8c";
-  ctx.font = "800 12px sans-serif";
+  ctx.font = "800 12px \"JetBrains Mono\", monospace";
   const ver = "v" + APP_VERSION;
   ctx.fillText(ver, w - 20 - ctx.measureText(ver).width, y + 38);
   ctx.restore();
@@ -3228,20 +3246,20 @@ function drawPumpOn(ctx, w, h, pts, job, year, pump, forExport, req) {
     ctx.textAlign = "left";
     ctx.textBaseline = "alphabetic";
     ctx.fillStyle = "#14110f";
-    ctx.font = "800 22px sans-serif";
+    ctx.font = "800 22px \"JetBrains Mono\", monospace";
     ctx.fillText(job || "Pump test curve", padL, hBar + 28);
-    ctx.font = "700 16px sans-serif";
+    ctx.font = "700 16px \"JetBrains Mono\", monospace";
     ctx.fillText("Year of test: " + (year || "") + (pump ? "    Pump: " + pump : "") + "    kPa vs L/s", padL, hBar + 50);
     if (hasReq) {
       ctx.fillStyle = "#6a4208";
-      ctx.font = "800 16px sans-serif";
+      ctx.font = "800 16px \"JetBrains Mono\", monospace";
       const reqLine = "System req: " + req.q + " L/s @ " + req.p + " kPa" + (req.note ? "    " + req.note : "");
       ctx.fillText(reqLine, padL, hBar + 72);
     }
   }
   if (pts.length < 1 && !hasReq) {
     ctx.fillStyle = "#14110f";
-    ctx.font = "700 20px sans-serif";
+    ctx.font = "700 20px \"JetBrains Mono\", monospace";
     ctx.fillText("Add flow and pressure points", padL, h / 2);
     return;
   }
@@ -3271,7 +3289,7 @@ function drawPumpOn(ctx, w, h, pts, job, year, pump, forExport, req) {
   ctx.strokeStyle = "#d7cbbd";
   ctx.lineWidth = 1;
   ctx.fillStyle = "#14110f";
-  ctx.font = "800 16px sans-serif";
+  ctx.font = "800 16px \"JetBrains Mono\", monospace";
   for (let q = xmin; q <= xmax + 1e-9; q += lsStep) {
     const x = xOf(q);
     ctx.beginPath(); ctx.moveTo(x, padT); ctx.lineTo(x, h - padB); ctx.stroke();
@@ -3289,7 +3307,7 @@ function drawPumpOn(ctx, w, h, pts, job, year, pump, forExport, req) {
   ctx.beginPath(); ctx.moveTo(padL, padT); ctx.lineTo(padL, h - padB); ctx.lineTo(w - padR, h - padB); ctx.stroke();
   ctx.save();
   ctx.fillStyle = "#14110f";
-  ctx.font = "800 18px sans-serif";
+  ctx.font = "800 18px \"JetBrains Mono\", monospace";
   ctx.textAlign = "center";
   ctx.fillText("Flow (L/s)", w / 2, h - 16);
   ctx.translate(18, (padT + h - padB) / 2);
@@ -3346,7 +3364,7 @@ function drawPumpOn(ctx, w, h, pts, job, year, pump, forExport, req) {
     ctx.fill();
     ctx.stroke();
     ctx.fillStyle = "#6a4208";
-    ctx.font = "800 16px sans-serif";
+    ctx.font = "800 16px \"JetBrains Mono\", monospace";
     ctx.textAlign = X > (padL + w - padR) / 2 ? "right" : "left";
     ctx.textBaseline = "bottom";
     let tag = "Req " + req.q + " L/s @ " + req.p + " kPa";

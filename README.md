@@ -2,13 +2,13 @@
 
 Field calculator for fire protection fitters. Pipe sizes, Annubar flow, flanges, pump curves, hydro losses, tanks, and AS 1851 lookup — on your phone.
 
-**Current version: 2.19**
+**Current version: 2.20**
 
 [Download FitterCalcs.apk](https://github.com/macski777/fittercalcs/releases/latest)
 
 ## Install on Android
 
-1. Download [FitterCalcs.apk](https://github.com/macski777/fittercalcs/releases/download/v2.19/FitterCalcs.apk).
+1. Download [FitterCalcs.apk](https://github.com/macski777/fittercalcs/releases/download/v2.20/FitterCalcs.apk).
 2. Open the file on the phone.
 3. Allow install from this source if Android asks.
 4. Open **FitterCalcs**.
@@ -24,7 +24,11 @@ From **2.18** onward the app checks this repo when it opens.
 - Tap **Update** to download and install.
 - Tap the version number (top right) to check by hand.
 
-Phones on **2.17 or older** need a one-time install of 2.18 or 2.19 (USB or this page). After that they update themselves.
+Phones on **2.17 or older** need a one-time install of 2.18 or later (USB or this page). After that they update themselves.
+
+## Font
+
+FitterCalcs uses **JetBrains Mono**, the same typeface Omarchy uses (`omarchy font current`). Regular and Bold are bundled in the app so phones match the Linux desktop, including tables, inputs, and the pump chart.
 
 ## What’s in the app
 
