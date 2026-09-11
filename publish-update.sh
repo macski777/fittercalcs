@@ -19,7 +19,7 @@ cat > "$ROOT/update.json" <<EOF
 {
   "versionCode": $CODE,
   "versionName": "$NAME",
-  "apkUrl": "https://github.com/macski777/fittercalcs/releases/latest/download/FitterCalcs.apk",
+  "apkUrl": "https://github.com/macski777/fittercalcs/releases/download/v$NAME/FitterCalcs.apk",
   "notes": $(python3 -c "import json,sys; print(json.dumps(sys.argv[1]))" "$NOTES")
 }
 EOF
