@@ -80,27 +80,14 @@
       margin: 0 0 4px;
     }
     h1 {
-      font-size: 1.48rem;
-      letter-spacing: 0.13em;
-      margin: 0 0 3px;
-      font-weight: 800;
+      margin: 0 0 4px;
       line-height: 1;
-      text-transform: uppercase;
     }
-    .brand-fit {
-      color: var(--gold);
-      text-shadow: 0 1px 0 #0008, 0 0 18px #e8b86d55;
-    }
-    .brand-sep {
-      color: var(--red);
-      margin: 0 0.04em;
-      letter-spacing: 0;
-      font-weight: 400;
-      text-shadow: 0 0 10px #d1243a99;
-    }
-    .brand-calcs {
-      color: #fff;
-      letter-spacing: 0.16em;
+    .wordmark {
+      display: block;
+      height: 36px;
+      width: auto;
+      max-width: 100%;
     }
     .sub {
       color: var(--muted);
@@ -642,12 +629,12 @@
       <img class="logo" src="logo.png" width="52" height="52" alt="FitterCalcs" />
       <div class="brand-text">
         <div class="brand-kicker">FIRE PROTECTION</div>
-        <h1 id="appTitle"><span class="brand-fit">FITTER</span><span class="brand-sep">·</span><span class="brand-calcs">CALCS</span></h1>
+        <h1 id="appTitle"><img class="wordmark" src="wordmark.svg" alt="FitterCalcs" /></h1>
         <div class="sub" id="appSub">Fire protection pipe OD, wall, and ID<br>Sch 10 mill • Sch 40 • Sch 5 • CPVC SDR 13.5</div>
       </div>
     </div>
     <div class="header-right">
-      <div class="build" id="appBuild" title="Check for update">v2.20</div>
+      <div class="build" id="appBuild" title="Check for update">v2.21</div>
       <div class="units" id="pipeUnits" role="group" aria-label="Units">
         <button id="btnIn" type="button">in</button>
         <button id="btnMm" class="on" type="button">mm</button>
@@ -1061,8 +1048,8 @@
   </div>
 
 <script>
-const APP_VERSION = "2.20";
-const APP_BUILD = 31;
+const APP_VERSION = "2.21";
+const APP_BUILD = 32;
 
 const DATA = {
   sch10: {
@@ -3119,6 +3106,9 @@ function monotoneSpline(pts) {
 const brandLogo = new Image();
 brandLogo.src = "logo.png";
 brandLogo.onload = () => { try { drawPump(); } catch (e) {} };
+const brandWord = new Image();
+brandWord.src = "wordmark.png";
+brandWord.onload = () => { try { drawPump(); } catch (e) {} };
 if (document.fonts && document.fonts.ready) {
   document.fonts.ready.then(() => { try { drawPump(); } catch (e) {} });
 }
@@ -3170,17 +3160,12 @@ function drawBrandHeader(ctx, w, hBar) {
   ctx.textBaseline = "alphabetic";
   ctx.fillStyle = "#d1243a";
   ctx.font = "800 11px \"JetBrains Mono\", monospace";
-  fillTracked(ctx, "FIRE PROTECTION", tx, y + 13, 2.4);
-  ctx.font = "800 26px \"JetBrains Mono\", monospace";
-  ctx.fillStyle = "#e8b86d";
-  let cx = fillTracked(ctx, "FITTER", tx, y + 44, 1.2);
-  ctx.fillStyle = "#d1243a";
-  ctx.font = "400 26px \"JetBrains Mono\", monospace";
-  ctx.fillText(" · ", cx, y + 44);
-  cx += ctx.measureText(" · ").width;
-  ctx.fillStyle = "#f4ede4";
-  ctx.font = "800 26px \"JetBrains Mono\", monospace";
-  fillTracked(ctx, "CALCS", cx, y + 44, 1.6);
+  fillTracked(ctx, "FIRE PROTECTION", tx, y + 12, 2.4);
+  if (brandWord.complete && brandWord.naturalWidth) {
+    const wh = Math.round(logo * 0.7);
+    const ww = Math.round(wh * (brandWord.naturalWidth / brandWord.naturalHeight));
+    ctx.drawImage(brandWord, tx, y + 16, ww, wh);
+  }
   ctx.fillStyle = "#e8b86d";
   ctx.font = "800 12px \"JetBrains Mono\", monospace";
   const tag = "PUMP CURVE";
