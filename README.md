@@ -1,14 +1,34 @@
 # FitterCalcs
 
-Field calculator for fire protection fitters. Pipe sizes, Annubar flow, flanges, pump curves, hydro losses, tanks, and AS 1851 lookup — on your phone.
+<p align="center">
+  <img src="docs/logo.png" width="112" alt="FitterCalcs FC logo">
+  <br>
+  <img src="docs/wordmark.svg" width="320" alt="FitterCalcs">
+</p>
 
-**Current version: 2.21**
+<p align="center">
+  Field calculator for fire protection fitters.<br>
+  Pipe sizes, Annubar flow, flanges, pump curves, hydro losses, tanks, and AS 1851 lookup.
+</p>
 
-[Download FitterCalcs.apk](https://github.com/macski777/fittercalcs/releases/latest)
+<p align="center">
+  <strong>Current version: 2.22</strong><br>
+  <a href="https://github.com/macski777/fittercalcs/releases/latest">Download FitterCalcs.apk</a>
+</p>
+
+## Logo
+
+The launcher icon and the **FITTER / CALCS** wordmark use **Delta Corps Priest 1** (CoSMiC cHiLD / FIGlet). Body text in the app is the original system sans font.
+
+<p align="center">
+  <img src="docs/logo.png" width="88" alt="FC logo">
+  &nbsp;&nbsp;
+  <img src="docs/wordmark.png" width="240" alt="FITTER CALCS wordmark">
+</p>
 
 ## Install on Android
 
-1. Download [FitterCalcs.apk](https://github.com/macski777/fittercalcs/releases/download/v2.21/FitterCalcs.apk).
+1. Download [FitterCalcs.apk](https://github.com/macski777/fittercalcs/releases/download/v2.22/FitterCalcs.apk).
 2. Open the file on the phone.
 3. Allow install from this source if Android asks.
 4. Open **FitterCalcs**.
@@ -26,11 +46,6 @@ From **2.18** onward the app checks this repo when it opens.
 
 Phones on **2.17 or older** need a one-time install of 2.18 or later (USB or this page). After that they update themselves.
 
-## Font
-
-- **App name and logo** use **Delta Corps Priest 1** (CoSMiC cHiLD / FIGlet). That is the stacked **FITTER / CALCS** wordmark and the **F / C** launcher icon.
-- **Everything else** uses **JetBrains Mono**, the same typeface Omarchy uses (`omarchy font current`). Regular and Bold are bundled so phones match the Linux desktop.
-
 ## What’s in the app
 
 | Tab | What it does |
@@ -42,6 +57,36 @@ Phones on **2.17 or older** need a one-time install of 2.18 or later (USB or thi
 | **Hydro-Calcs** | Hazen-Williams friction + static rise. Steel C=120, stainless and CPVC C=150. |
 | **Tanks** | Cylindrical / rectangular volume, effective kL. |
 | **AS-1851** | Field lookup for AS 1851-2012 routine service. Not a substitute for the Standard. |
+
+### Pipe
+
+Sch 10 mill, stainless, Sch 40, Sch 5, and CPVC. Cross-section, OD / wall / ID, mm or inch.
+
+<p align="center"><img src="docs/pipe.png" width="320" alt="Pipe tab — 4 in Sch 10"></p>
+
+### Annubar
+
+3/8", 20T, and 21T. Type a K from the probe card, or use the formula K.
+
+<p align="center"><img src="docs/annubar.png" width="320" alt="Annubar tab — DN50 Sch 10"></p>
+
+### Flange
+
+AS 2129 tables, ANSI, and PN16 — OD, PCD, bolts, hole size.
+
+<p align="center"><img src="docs/flange.png" width="320" alt="Flange tab — DN100 Table D"></p>
+
+### Pump
+
+kPa vs L/s curve, job autosave, save/email PNG, large chart.
+
+<p align="center"><img src="docs/pump.png" width="320" alt="Pump tab — test curve"></p>
+
+### Hydro-Calcs
+
+Hazen-Williams friction plus static rise.
+
+<p align="center"><img src="docs/hydro.png" width="320" alt="Hydro-Calcs tab"></p>
 
 ### Annubar K
 
