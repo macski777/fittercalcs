@@ -1,0 +1,3593 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>FitterCalcs</title>
+  <style>
+    :root {
+      --bg: #14110f;
+      --bg2: #1c1815;
+      --card: #241f1b;
+      --line: #3a322c;
+      --text: #f4ede4;
+      --muted: #a89b8c;
+      --red: #d1243a;
+      --red-dim: #8b1e2d;
+      --gold: #e8b86d;
+      --steel: #9aa8b5;
+      --ok: #7dcea0;
+    }
+    * { box-sizing: border-box; }
+    html, body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+      min-height: 100%;
+    }
+    body {
+      padding: calc(12px + env(safe-area-inset-top)) 14px calc(24px + env(safe-area-inset-bottom));
+      max-width: 720px;
+      margin: 0 auto;
+    }
+    header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 14px;
+    }
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 11px;
+      min-width: 0;
+    }
+    .logo {
+      width: 52px;
+      height: 52px;
+      border-radius: 16px;
+      flex-shrink: 0;
+      background: #1a1613;
+      box-shadow:
+        0 0 0 1px #5a2a22,
+        0 0 18px #d1243a55,
+        0 8px 18px #0008;
+    }
+    .brand-text { min-width: 0; }
+    .brand-kicker {
+      color: var(--red);
+      font-size: 0.58rem;
+      font-weight: 800;
+      letter-spacing: 0.28em;
+      line-height: 1;
+      margin: 0 0 4px;
+    }
+    h1 {
+      font-size: 1.48rem;
+      letter-spacing: 0.13em;
+      margin: 0 0 3px;
+      font-weight: 800;
+      line-height: 1;
+      text-transform: uppercase;
+    }
+    .brand-fit {
+      color: var(--gold);
+      text-shadow: 0 1px 0 #0008, 0 0 18px #e8b86d55;
+    }
+    .brand-sep {
+      color: var(--red);
+      margin: 0 0.04em;
+      letter-spacing: 0;
+      font-weight: 400;
+      text-shadow: 0 0 10px #d1243a99;
+    }
+    .brand-calcs {
+      color: #fff;
+      letter-spacing: 0.16em;
+    }
+    .sub {
+      color: var(--muted);
+      font-size: 0.78rem;
+      line-height: 1.35;
+    }
+    .header-right {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      justify-content: flex-start;
+      gap: 8px;
+      flex-shrink: 0;
+    }
+    .build {
+      color: var(--gold);
+      font-size: 0.72rem;
+      font-weight: 800;
+      letter-spacing: 0.16em;
+      line-height: 1;
+      text-shadow: 0 0 12px #e8b86d55;
+      font-variant-numeric: tabular-nums;
+    }
+    .units {
+      display: flex;
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      overflow: hidden;
+      flex-shrink: 0;
+    }
+    .units button, .chips button {
+      appearance: none;
+      border: 0;
+      background: transparent;
+      color: var(--muted);
+      font: inherit;
+      font-weight: 650;
+      font-size: 0.78rem;
+      padding: 8px 12px;
+    }
+    .units button.on, .chips button.on {
+      background: var(--red);
+      color: white;
+    }
+    .chips {
+      display: flex;
+      gap: 8px;
+      overflow-x: auto;
+      padding-bottom: 4px;
+      margin-bottom: 14px;
+      -webkit-overflow-scrolling: touch;
+    }
+    .chips button {
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      white-space: nowrap;
+    }
+    .visual {
+      background: linear-gradient(180deg, #2a2420, var(--card));
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      padding: 14px 12px 16px;
+      margin-bottom: 12px;
+    }
+    .visual-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      margin-bottom: 8px;
+    }
+    .visual-top strong { font-size: 1.05rem; }
+    .visual-top span { color: var(--muted); font-size: 0.75rem; }
+    .stage {
+      display: grid;
+      grid-template-columns: 1.15fr 0.85fr;
+      gap: 8px;
+      align-items: center;
+    }
+    svg { width: 100%; height: auto; display: block; }
+    .stats {
+      display: grid;
+      gap: 8px;
+    }
+    .stat {
+      background: #1a1613;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 8px 10px;
+    }
+    .stat label {
+      display: block;
+      color: var(--muted);
+      font-size: 0.68rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+    .stat b {
+      font-variant-numeric: tabular-nums;
+      font-size: 1.12rem;
+      letter-spacing: -0.03em;
+    }
+    .stat small { color: var(--gold); font-size: 0.72rem; }
+    .table-wrap {
+      overflow-x: auto;
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      background: var(--card);
+      margin-bottom: 12px;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-variant-numeric: tabular-nums;
+      font-size: 0.82rem;
+    }
+    th, td {
+      padding: 9px 8px;
+      text-align: right;
+      border-bottom: 1px solid var(--line);
+      white-space: nowrap;
+    }
+    th:first-child, td:first-child { text-align: left; }
+    th {
+      color: var(--muted);
+      font-weight: 650;
+      font-size: 0.68rem;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      background: #1a1613;
+      position: sticky;
+      top: 0;
+    }
+    tr.sel td { background: rgba(209, 36, 58, 0.18); }
+    tr:active td { background: rgba(232, 184, 109, 0.12); }
+    .compare {
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      padding: 12px;
+      margin-bottom: 12px;
+    }
+    .compare h2 {
+      margin: 0 0 10px;
+      font-size: 0.88rem;
+    }
+    .bar-row {
+      display: grid;
+      grid-template-columns: 76px 1fr 72px;
+      gap: 8px;
+      align-items: center;
+      margin: 7px 0;
+      font-size: 0.78rem;
+    }
+    .bar-row span:last-child {
+      text-align: right;
+      font-variant-numeric: tabular-nums;
+      color: var(--gold);
+    }
+    .track {
+      height: 10px;
+      background: #1a1613;
+      border-radius: 99px;
+      overflow: hidden;
+    }
+    .fill { height: 100%; border-radius: 99px; background: var(--red); }
+    .fill.s10 { background: #d1243a; }
+    .fill.s40 { background: #e8b86d; }
+    .fill.s5 { background: #9aa8b5; }
+    .fill.ss10 { background: #c5d0dc; }
+    .fill.ss40 { background: #8fa0b3; }
+    .fill.cpvc { background: #7dcea0; }
+    .notes {
+      color: var(--muted);
+      font-size: 0.72rem;
+      line-height: 1.45;
+    }
+    .notes strong { color: var(--text); }
+    .nav {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin: 0 0 14px;
+    }
+    .nav button {
+      flex: 1 1 28%;
+      appearance: none;
+      border: 1px solid var(--line);
+      background: var(--card);
+      color: var(--muted);
+      font: inherit;
+      font-weight: 700;
+      font-size: 0.7rem;
+      padding: 10px 4px;
+      border-radius: 12px;
+    }
+    .nav button.on { background: var(--red); color: #fff; border-color: var(--red); }
+    .page { display: none; }
+    .page.on { display: block; }
+    .lookup {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+    .lookup label {
+      display: block;
+      color: var(--muted);
+      font-size: 0.68rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      margin-bottom: 4px;
+    }
+    .lookup input {
+      width: 100%;
+      background: #1a1613;
+      border: 1px solid var(--line);
+      color: var(--text);
+      font: inherit;
+      font-size: 1.1rem;
+      font-variant-numeric: tabular-nums;
+      padding: 10px;
+      border-radius: 12px;
+    }
+    .warn { color: #e8b86d; }
+    .actions { display: flex; gap: 8px; margin: 12px 0; }
+    .actions button, .addpt {
+      appearance: none;
+      flex: 1;
+      border: 0;
+      border-radius: 12px;
+      padding: 12px 10px;
+      font: inherit;
+      font-weight: 700;
+      background: var(--red);
+      color: #fff;
+    }
+    .actions button.ghost, .addpt {
+      background: var(--card);
+      color: var(--text);
+      border: 1px solid var(--line);
+    }
+    .addpt { width: 100%; margin-bottom: 12px; }
+    .ptrow {
+      display: grid;
+      grid-template-columns: 1fr 1fr 40px;
+      gap: 8px;
+      margin-bottom: 8px;
+      align-items: center;
+    }
+    .ptrow input, .field input {
+      width: 100%;
+      background: #1a1613;
+      border: 1px solid var(--line);
+      color: var(--text);
+      font: inherit;
+      font-variant-numeric: tabular-nums;
+      padding: 10px;
+      border-radius: 12px;
+    }
+    .field { margin-bottom: 10px; }
+    .field label {
+      display: block;
+      color: var(--muted);
+      font-size: 0.68rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      margin-bottom: 4px;
+    }
+    .delpt {
+      appearance: none;
+      border: 0;
+      background: transparent;
+      color: var(--muted);
+      font-size: 1.2rem;
+      height: 42px;
+    }
+    #pumpChart {
+      width: 100%;
+      height: auto;
+      display: block;
+      background: #f4ede4;
+      border-radius: 12px;
+      cursor: pointer;
+    }
+    .chart-expand {
+      appearance: none;
+      width: 100%;
+      margin-top: 10px;
+      border: 1px solid var(--line);
+      background: var(--card);
+      color: var(--text);
+      font: inherit;
+      font-weight: 700;
+      font-size: 0.82rem;
+      padding: 12px 10px;
+      border-radius: 12px;
+    }
+    .chart-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 80;
+      background: #14110f;
+      display: flex;
+      flex-direction: column;
+      padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+    }
+    .chart-overlay.hidden { display: none !important; }
+    .chart-overlay-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 12px;
+      flex-shrink: 0;
+    }
+    .chart-overlay-bar span {
+      font-weight: 800;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      font-size: 0.82rem;
+    }
+    .chart-overlay-bar button {
+      appearance: none;
+      border: 0;
+      border-radius: 10px;
+      padding: 10px 14px;
+      font: inherit;
+      font-weight: 700;
+      background: var(--red);
+      color: #fff;
+    }
+    #pumpChartBig {
+      flex: 1;
+      width: calc(100% - 16px);
+      min-height: 0;
+      margin: 0 8px 8px;
+      background: #f4ede4;
+      border-radius: 12px;
+      display: block;
+    }
+    html.overlay-open, html.overlay-open body { overflow: hidden; }
+    .jobs-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      gap: 8px;
+      margin: 0 0 10px;
+    }
+    .jobs-head h2 { margin: 0; font-size: 1.1rem; }
+    #pumpSaveStatus { color: var(--ok); font-size: 0.72rem; }
+    .jobcard {
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 10px 12px;
+      margin-bottom: 8px;
+    }
+    .jobcard.on { border-color: var(--gold); }
+    .jobcard h3 { margin: 0 0 2px; font-size: 0.95rem; }
+    .jobcard .meta { color: var(--muted); font-size: 0.72rem; }
+    .jobcard .rowbtns { display: flex; gap: 8px; margin-top: 8px; }
+    .jobcard .rowbtns button {
+      flex: 1;
+      appearance: none;
+      border: 0;
+      border-radius: 10px;
+      padding: 8px;
+      font: inherit;
+      font-weight: 700;
+      background: var(--red);
+      color: #fff;
+    }
+    .jobcard .rowbtns button.ghost {
+      background: transparent;
+      color: var(--muted);
+      border: 1px solid var(--line);
+    }
+    .sysbox {
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      padding: 12px;
+      margin-bottom: 12px;
+    }
+    .sysbox b {
+      display: block;
+      font-size: 0.88rem;
+      margin-bottom: 8px;
+    }
+    #asSearch {
+      width: 100%;
+      background: #1a1613;
+      border: 1px solid var(--line);
+      color: var(--text);
+      font: inherit;
+      padding: 10px 12px;
+      border-radius: 12px;
+      margin-bottom: 10px;
+    }
+    .as-count { color: var(--muted); font-size: 0.75rem; margin-bottom: 10px; }
+    .as-intro {
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      padding: 12px 14px;
+      margin-bottom: 12px;
+    }
+    .as-intro summary {
+      cursor: pointer;
+      font-weight: 700;
+      font-size: 0.95rem;
+      color: var(--text);
+    }
+    .as-intro summary::-webkit-details-marker { color: var(--gold); }
+    .as-intro p {
+      color: var(--muted);
+      font-size: 0.8rem;
+      line-height: 1.45;
+      margin: 10px 0 0;
+    }
+    .as-intro p strong { color: var(--text); }
+    .as-secs {
+      display: grid;
+      grid-template-columns: 2.6rem 1fr;
+      gap: 4px 10px;
+      margin: 10px 0 0;
+      font-size: 0.78rem;
+      line-height: 1.35;
+    }
+    .as-secs dt { color: var(--gold); font-weight: 700; margin: 0; }
+    .as-secs dd { margin: 0; color: var(--muted); }
+    .as-card {
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 12px;
+      margin-bottom: 8px;
+    }
+    .as-card h3 { margin: 0 0 4px; font-size: 0.95rem; }
+    .as-card .meta { color: var(--gold); font-size: 0.72rem; margin-bottom: 6px; }
+    .as-card p { margin: 0; color: var(--muted); font-size: 0.8rem; line-height: 1.4; }
+    .as-card .as-why { color: var(--text); margin-bottom: 6px; }
+    .as-card ul {
+      margin: 6px 0 0;
+      padding-left: 1.15rem;
+    }
+    .as-card li {
+      color: var(--text);
+      font-size: 0.8rem;
+      line-height: 1.4;
+      margin-bottom: 5px;
+    }
+    .as-card .as-also {
+      margin-top: 8px;
+      color: var(--muted);
+      font-size: 0.75rem;
+      line-height: 1.4;
+    }
+    .as-card mark { background: var(--gold); color: #14110f; border-radius: 3px; padding: 0 2px; }
+    .hc-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+    .hc-out {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin: 12px 0;
+    }
+    .hc-out .stat b { font-size: 1.15rem; }
+    .hc-total {
+      grid-column: 1 / -1;
+      background: var(--red);
+      color: #fff;
+      border: 0;
+    }
+    .hc-total label { color: #ffd4d8; }
+    .hc-total b { color: #fff; }
+    .hidden { display: none !important; }
+    html.pc .chips { padding: 6px 2px 8px; }
+    html.pc .nav { padding: 4px 2px; }
+    html.pc .units { overflow: visible; }
+    html.pc button.kbd-on,
+    html.pc input.kbd-on,
+    html.pc summary.kbd-on {
+      outline: 2px solid var(--gold);
+      outline-offset: 3px;
+      box-shadow: 0 0 0 3px var(--bg), 0 0 16px #e8b86d88;
+    }
+    html.pc .units button.kbd-on {
+      outline-offset: -2px;
+      box-shadow: inset 0 0 0 2px var(--gold), 0 0 12px #e8b86d88;
+    }
+    html.pc tbody tr.kbd-on td {
+      background: rgba(232, 184, 109, 0.16);
+    }
+    html.pc tbody tr.kbd-on td:first-child {
+      box-shadow: inset 3px 0 0 var(--gold);
+    }
+    html.pc tbody tr.kbd-on {
+      outline: 2px solid var(--gold);
+      outline-offset: -2px;
+    }
+    .update-banner {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      background: var(--red);
+      color: #fff;
+      border-radius: 14px;
+      padding: 10px 12px;
+      margin-bottom: 12px;
+    }
+    .update-banner.hidden { display: none !important; }
+    .update-banner b { display: block; font-size: 0.9rem; }
+    .update-banner span { display: block; font-size: 0.72rem; color: #ffd4d8; margin-top: 2px; }
+    .update-banner button {
+      appearance: none;
+      border: 0;
+      background: #fff;
+      color: var(--red);
+      font: inherit;
+      font-weight: 800;
+      padding: 10px 12px;
+      border-radius: 10px;
+      flex-shrink: 0;
+    }
+    .build { cursor: pointer; }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="brand">
+      <img class="logo" src="logo.png" width="52" height="52" alt="FitterCalcs" />
+      <div class="brand-text">
+        <div class="brand-kicker">FIRE PROTECTION</div>
+        <h1 id="appTitle"><span class="brand-fit">FITTER</span><span class="brand-sep">·</span><span class="brand-calcs">CALCS</span></h1>
+        <div class="sub" id="appSub">Fire protection pipe OD, wall, and ID<br>Sch 10 mill • Sch 40 • Sch 5 • CPVC SDR 13.5</div>
+      </div>
+    </div>
+    <div class="header-right">
+      <div class="build" id="appBuild" title="Check for update">v2.18</div>
+      <div class="units" id="pipeUnits" role="group" aria-label="Units">
+        <button id="btnIn" type="button">in</button>
+        <button id="btnMm" class="on" type="button">mm</button>
+      </div>
+    </div>
+  </header>
+
+  <div id="updateBanner" class="update-banner hidden">
+    <div>
+      <b id="updateTitle">Update available</b>
+      <span id="updateNotes"></span>
+    </div>
+    <button type="button" id="updateNow">Update</button>
+  </div>
+
+  <div class="nav">
+    <button type="button" class="on" data-page="pipe">Pipe</button>
+    <button type="button" data-page="annubar">Annubar</button>
+    <button type="button" data-page="flange">Flange</button>
+    <button type="button" data-page="pump">Pump</button>
+    <button type="button" data-page="hydro">Hydro-Calcs</button>
+    <button type="button" data-page="tanks">Tanks</button>
+    <button type="button" data-page="as1851">AS-1851</button>
+  </div>
+
+  <div id="page-pipe" class="page on">
+  <div class="chips" id="schedules"></div>
+
+  <section class="visual">
+    <div class="visual-top">
+      <strong id="titleSize">2 mm Sch 10</strong>
+      <span id="titleMat">Steel • C=120</span>
+    </div>
+    <div class="stage">
+      <svg id="pipe" viewBox="0 0 200 200" aria-label="Pipe cross section"></svg>
+      <div class="stats">
+        <div class="stat"><label>Outside dia</label><b id="vOd"></b> <small id="uOd"></small></div>
+        <div class="stat"><label>Wall thickness</label><b id="vWall"></b> <small id="uWall"></small></div>
+        <div class="stat"><label>Inside dia</label><b id="vId"></b> <small id="uId"></small></div>
+        <div class="stat"><label>Weight</label><b id="vWt"></b> <small id="uWt"></small></div>
+      </div>
+    </div>
+  </section>
+
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>NPS</th>
+          <th>OD</th>
+          <th>Wall</th>
+          <th>ID</th>
+        </tr>
+      </thead>
+      <tbody id="rows"></tbody>
+    </table>
+  </div>
+
+  <section class="compare">
+    <h2 id="compareTitle">Wall thickness at 2 in</h2>
+    <div id="bars"></div>
+  </section>
+
+  <p class="notes">
+    <strong>Steel dimensions</strong> follow UL/FM listed fire-sprinkler mill data (ASTM A135 / A795) used with NFPA 13.
+    8 in and 10 in Schedule 10 fire pipe is commonly <strong>0.188 in wall</strong>, heavier than ASME B36.10 Schedule 10.
+    <strong>SS 10S / SS 40S</strong> follow ASME B36.19 (ASTM A312). 8 in and 10 in 10S is thinner than fire Sch 10 mill steel. Stainless C-factor 150.
+    <strong>CPVC</strong> is SDR 13.5 (ASTM F442 / BlazeMaster), C-factor 150.
+    Steel C-factor 120. ID is what hydraulics use. Confirm against the mill cut sheet and the adopted code edition before you cut or calc.
+  </p>
+  </div>
+
+  <div id="page-annubar" class="page">
+    <div class="chips" id="annuProbe"></div>
+    <div class="chips" id="annuPipe"></div>
+    <div class="chips" id="annuSize"></div>
+    <section class="visual">
+      <div class="visual-top">
+        <strong id="annuTitle">DN50 Sch 10</strong>
+        <span id="annuProbeLabel">3/8 in OD probe • water</span>
+      </div>
+      <div class="stats" style="grid-template-columns:1fr 1fr;grid-auto-flow:row;">
+        <div class="stat"><label>Pipe ID</label><b id="annuId"></b> <small>mm</small></div>
+        <div class="stat"><label>Probe K</label><b id="annuKCalc"></b></div>
+        <div class="stat"><label>Probe</label><b id="annuProbeOd">9.53</b> <small>mm OD</small></div>
+        <div class="stat"><label>Range</label><b>0–30</b> <small>inHg</small></div>
+      </div>
+    </section>
+    <div class="lookup">
+      <div>
+        <label for="inHg">DP (inHg)</label>
+        <input id="inHg" type="number" inputmode="decimal" min="0" max="30" step="0.1" value="5" />
+      </div>
+      <div>
+        <label for="annuKIn">K factor</label>
+        <input id="annuKIn" type="number" inputmode="decimal" min="0.05" max="2" step="0.001" value="0.600" />
+      </div>
+    </div>
+    <div class="lookup">
+      <div>
+        <label>Flow</label>
+        <div class="stat" style="margin:0;padding:10px;">
+          <b id="annuLs"></b> <small>L/s</small><br>
+          <small id="annuLpm"></small>
+        </div>
+      </div>
+      <div>
+        <label>&nbsp;</label>
+        <button type="button" class="chart-expand" id="annuKAuto" style="margin:0">Use probe K</button>
+      </div>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>inHg</th>
+            <th>L/s</th>
+            <th>L/min</th>
+            <th>m/s</th>
+          </tr>
+        </thead>
+        <tbody id="annuRows"></tbody>
+      </table>
+    </div>
+    <section class="compare">
+      <h2>Rosemount 485 probe by pipe size</h2>
+      <div class="table-wrap" style="margin:0;border:0;">
+        <table>
+          <thead>
+            <tr>
+              <th>NPS</th>
+              <th>Sensor</th>
+              <th>Width</th>
+              <th>Drill</th>
+              <th>Use</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td>2–5"</td><td>Size 1</td><td>0.590 in</td><td>3/4 in</td><td>50–125 mm</td></tr>
+            <tr><td>6–8"</td><td>1 or 2</td><td>0.590 / 1.060</td><td>3/4 or 1-5/16</td><td>150–200 mm</td></tr>
+            <tr><td>10–12"</td><td>Size 2</td><td>1.060 in</td><td>1-5/16 in</td><td>250–300 mm</td></tr>
+            <tr><td>&gt;12"</td><td>Size 2 or 3</td><td>1.060 / 1.935</td><td>1-5/16 or 2-1/2</td><td>300 mm+</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+    <p class="notes">
+      Probe sizes: <strong>3/8 in</strong> (9.53 mm), <strong>20T</strong> (20.0 mm), and <strong>21T</strong> (21.0 mm).
+      DP is inches of mercury (inHg). <strong>20T K = 0.637 at DN50 Sch 40</strong>; <strong>21T K = 0.672 at DN100 Sch 40</strong>. Other sizes and walls use the same blockage formula on the mill ID (thinner wall → bigger ID → higher K).
+      3/8 in uses Diamond II 15/16 constants. Type a <strong>K factor</strong> to match the laminated card; <strong>Use probe K</strong> puts the formula back.
+      Sch 10/40 are carbon mill IDs; SS 10S/40S are ASME B36.19; Class B copper is AS 1432 Type B.
+      High blockage on a fat probe in a small pipe is flagged. <strong>Use the laminated chart that shipped with the probe for a certified test.</strong>
+    </p>
+  </div>
+
+  <div id="page-flange" class="page">
+    <div class="chips" id="flStd"></div>
+    <div class="chips" id="flSize"></div>
+    <section class="visual">
+      <div class="visual-top">
+        <strong id="flTitle">DN50 Table D</strong>
+        <span id="flNote">AS 2129 • ~700 kPa</span>
+      </div>
+      <div class="stage">
+        <svg id="flSvg" viewBox="0 0 200 200" aria-label="Flange bolt pattern"></svg>
+        <div class="stats">
+          <div class="stat"><label>Flange OD</label><b id="flOd"></b> <small>mm</small></div>
+          <div class="stat"><label>PCD</label><b id="flPcd"></b> <small>mm</small></div>
+          <div class="stat"><label>Bolts</label><b id="flBolts"></b></div>
+          <div class="stat"><label>Hole / thick</label><b id="flHole"></b></div>
+        </div>
+      </div>
+    </section>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>DN</th>
+            <th>OD</th>
+            <th>PCD</th>
+            <th>n</th>
+            <th>Hole</th>
+            <th>Bolt</th>
+          </tr>
+        </thead>
+        <tbody id="flRows"></tbody>
+      </table>
+    </div>
+    <section class="compare">
+      <h2 id="flMatchTitle">Same size, other standards</h2>
+      <div id="flMatch"></div>
+    </section>
+    <p class="notes">
+      <strong>AS 2129</strong> Table D (~700 kPa), E (~1400 kPa), F (~2100 kPa), H (~3500 kPa).
+      Table D and E often share OD/PCD on small sizes; from about DN90/100, Table E has more bolts and/or is thicker — they do not always mate.
+      <strong>ANSI / ASME B16.5</strong> Class 150 and 300. <strong>PN16</strong> is EN 1092-1.
+      Field ID: count the bolts, measure OD and PCD. Confirm against the current standard before you drill or bolt up.
+    </p>
+  </div>
+
+  <div id="page-pump" class="page">
+    <div class="field">
+      <label for="jobName">Job name</label>
+      <input id="jobName" type="text" placeholder="e.g. 12 Smith St hydrant pump" autocomplete="off" />
+    </div>
+    <div class="lookup">
+      <div class="field" style="margin:0">
+        <label for="testYear">Year of test</label>
+        <input id="testYear" type="number" inputmode="numeric" />
+      </div>
+      <div class="field" style="margin:0">
+        <label for="pumpId">Pump / set</label>
+        <input id="pumpId" type="text" placeholder="optional" autocomplete="off" />
+      </div>
+    </div>
+    <div class="sysbox">
+      <b>System requirements</b>
+      <div class="lookup">
+        <div class="field" style="margin:0">
+          <label for="reqQ">Required flow (L/s)</label>
+          <input id="reqQ" type="number" inputmode="decimal" step="0.1" placeholder="e.g. 20" />
+        </div>
+        <div class="field" style="margin:0">
+          <label for="reqP">Required pressure (kPa)</label>
+          <input id="reqP" type="number" inputmode="decimal" step="1" placeholder="e.g. 450" />
+        </div>
+      </div>
+      <div class="field" style="margin:10px 0 0">
+        <label for="reqNote">Notes</label>
+        <input id="reqNote" type="text" placeholder="e.g. most remote hydrant / sprinkler demand" autocomplete="off" />
+      </div>
+    </div>
+    <section class="visual">
+      <canvas id="pumpChart" width="900" height="640" title="Open large chart"></canvas>
+      <button type="button" class="chart-expand" id="expandPump">Large chart</button>
+    </section>
+    <p class="notes" style="margin-top:0">Enter flow (L/s) and pressure (kPa). The curve is a spline through the points.</p>
+    <div id="pumpPts"></div>
+    <button type="button" class="addpt" id="addPt">+ Add point</button>
+    <div class="actions">
+      <button type="button" class="ghost" id="newPumpJob">New curve</button>
+      <button type="button" class="ghost" id="savePump">Save to device</button>
+      <button type="button" id="emailPump">Email chart</button>
+    </div>
+    <p class="notes"><span id="pumpSaveStatus"></span> Curves <strong>autosave by job name</strong>. PNG still goes to <strong>Pictures/FitterCalcs</strong>. Plot is a field record, not a certified lab curve.</p>
+    <div class="jobs-head">
+      <h2>History</h2>
+    </div>
+    <p class="notes" style="margin-top:0">Autosaved pump curves. Open one to load it back onto this page.</p>
+    <div id="pumpJobs"></div>
+  </div>
+
+  <div id="page-hydro" class="page">
+    <div class="chips" id="hcSched"></div>
+    <div class="chips" id="hcSize"></div>
+    <div class="hc-grid">
+      <div class="field" style="margin:0">
+        <label for="hcQ">Flow (L/s)</label>
+        <input id="hcQ" type="number" inputmode="decimal" step="0.1" value="20" />
+      </div>
+      <div class="field" style="margin:0">
+        <label for="hcL">Pipe length (m)</label>
+        <input id="hcL" type="number" inputmode="decimal" step="0.1" value="30" />
+      </div>
+      <div class="field" style="margin:0">
+        <label for="hcElb">90° elbows (qty)</label>
+        <input id="hcElb" type="number" inputmode="numeric" step="1" value="4" />
+      </div>
+      <div class="field" style="margin:0">
+        <label for="hcRise">Rise height (m)</label>
+        <input id="hcRise" type="number" inputmode="decimal" step="0.1" value="0" />
+      </div>
+      <div class="field" style="margin:0">
+        <label for="hcC">Hazen-Williams C</label>
+        <input id="hcC" type="number" inputmode="numeric" step="1" value="120" />
+      </div>
+      <div class="field" style="margin:0">
+        <label>Internal dia</label>
+        <div class="stat" style="margin:0"><b id="hcId">—</b> <small>mm ID</small></div>
+      </div>
+    </div>
+    <div class="hc-out" id="hcOut"></div>
+    <p class="notes">
+      Hazen-Williams friction plus 9.81 kPa per metre of rise. Elbows use 90° standard equivalent length (fire tables).
+      Steel default <strong>C=120</strong>, stainless and CPVC <strong>C=150</strong>. Field estimate — not a certified hydraulic design.
+    </p>
+  </div>
+
+  <div id="page-tanks" class="page">
+    <div class="chips" id="tkShape">
+      <button type="button" class="on" data-s="cyl">Cylindrical</button>
+      <button type="button" data-s="rect">Rectangular</button>
+    </div>
+    <div class="hc-grid" id="tkCyl">
+      <div class="field" style="margin:0">
+        <label for="tkD">Internal diameter (m)</label>
+        <input id="tkD" type="number" inputmode="decimal" step="0.01" value="6.5" />
+      </div>
+      <div class="field" style="margin:0">
+        <label for="tkH">Shell height (m)</label>
+        <input id="tkH" type="number" inputmode="decimal" step="0.01" value="3.6" />
+      </div>
+    </div>
+    <div class="hc-grid hidden" id="tkRect">
+      <div class="field" style="margin:0">
+        <label for="tkL">Internal length (m)</label>
+        <input id="tkL" type="number" inputmode="decimal" step="0.01" value="6" />
+      </div>
+      <div class="field" style="margin:0">
+        <label for="tkW">Internal width (m)</label>
+        <input id="tkW" type="number" inputmode="decimal" step="0.01" value="4" />
+      </div>
+      <div class="field" style="margin:0">
+        <label for="tkHr">Water height (m)</label>
+        <input id="tkHr" type="number" inputmode="decimal" step="0.01" value="3.6" />
+      </div>
+    </div>
+    <div class="sysbox">
+      <b>Effective capacity (AS 2304 / AS 2419 / AS 3500.1)</b>
+      <div class="hc-grid">
+        <div class="field" style="margin:0">
+          <label for="tkTop">Top unused — overflow air gap (mm)</label>
+          <input id="tkTop" type="number" inputmode="decimal" step="1" value="20" />
+        </div>
+        <div class="field" style="margin:0">
+          <label for="tkBot">Bottom unused — suction / vortex (mm)</label>
+          <input id="tkBot" type="number" inputmode="decimal" step="1" value="150" />
+        </div>
+        <div class="field" style="margin:0">
+          <label for="tkQ">Demand flow (L/s) — optional</label>
+          <input id="tkQ" type="number" inputmode="decimal" step="0.1" placeholder="e.g. 20" />
+        </div>
+      </div>
+    </div>
+    <div class="hc-out" id="tkOut"></div>
+    <p class="notes">
+      <strong>Gross</strong> = full internal volume of the shell.
+      <strong>Effective</strong> = volume between the usable high water (overflow minus air gap, default 20 mm per AS/NZS 3500.1) and the usable low water (above suction/vortex inhibitor, default 150 mm — typical AS 2304 / AS 2419 field value; enter the actual plate height).
+      Duration uses effective litres ÷ flow. Field estimate — confirm on the current Standard.
+    </p>
+  </div>
+
+  <div id="page-as1851" class="page">
+    <details class="as-intro" open>
+      <summary>What is AS 1851? (tap to hide)</summary>
+      <p>
+        <strong>AS 1851-2012</strong> (plus Amendment 1:2016) is the Australian Standard for
+        <strong>routine service</strong> of fire protection that is already installed.
+        It is not the design/install Standard. Sprinklers are designed to AS 2118, hydrants to AS 2419,
+        pumps to AS 2941, tanks to AS 2304, detection to AS 1670, hose reels to AS 2441, and so on.
+        AS 1851 tells you how often to come back, what to look at, what to test, and what to write down
+        so the installed system still works the way it was designed.
+      </p>
+      <p>
+        <strong>Routine service</strong> has four parts:
+        <strong>inspect</strong> (look and compare to last time / baseline),
+        <strong>test</strong> (prove it actually works — alarm, flow, pump start, trip),
+        <strong>preventative maintenance</strong> (batteries, fuel, grease, clean, replace consumables),
+        and <strong>survey</strong> (does this system still match the building — occupancy, storage, missing heads, blocked hydrants).
+      </p>
+      <p>
+        <strong>How visits stack.</strong> A yearly visit includes the monthly and six-monthly items, then the extra yearly work.
+        A five-yearly visit includes the yearly work plus a deeper survey / internal / overhaul set.
+        The owner may run monthly items weekly. Work is done by a <strong>competent person</strong> for that system type,
+        and results go in the <strong>logbook</strong> (pressures, defects, isolations, who did the work).
+        Five-yearly surveys need <strong>baseline data</strong>: as-installed drawings, pump curves, tank levels, head types.
+      </p>
+      <p>
+        <strong>Frequencies</strong> used across the Standard: monthly, 3-monthly, 6-monthly, yearly, 2-yearly, 5-yearly, then 10 / 25 / 30-yearly where listed.
+        Table 1.11(B) tolerances (so a visit is not late/early by accident): monthly ±5 working days · 3-monthly ±10 working days · 6-monthly ±1 month · yearly ±2 months · 5-yearly ±3 months · 10/25/30-yearly ±6 months.
+      </p>
+      <dl class="as-secs">
+        <dt>Sec 1</dt><dd>General — scope, competency, records, frequencies, baseline, defects</dd>
+        <dt>Sec 2</dt><dd>Automatic fire sprinklers — wet, dry, deluge, pre-action</dd>
+        <dt>Sec 3</dt><dd>Fire pumpsets — diesel, electric, jockey, controllers</dd>
+        <dt>Sec 4</dt><dd>Fire hydrant systems — landing valves, booster, flow tests</dd>
+        <dt>Sec 5</dt><dd>Water storage tanks for fire protection</dd>
+        <dt>Sec 6</dt><dd>Fire detection &amp; alarm, and EWIS / occupant warning</dd>
+        <dt>Sec 7</dt><dd>Special hazard systems — gas, foam and similar</dd>
+        <dt>Sec 8</dt><dd>Delivery lay-flat hose</dd>
+        <dt>Sec 9</dt><dd>Fire hose reels</dd>
+        <dt>Sec 10</dt><dd>Portable and wheeled fire extinguishers</dd>
+        <dt>Sec 11</dt><dd>Fire blankets</dd>
+        <dt>Sec 12</dt><dd>Passive fire and smoke — doors, seals, walls, dampers as passive</dd>
+        <dt>Sec 13</dt><dd>Mechanical smoke control — fans, stair press, fire/smoke dampers</dd>
+        <dt>Sec 14</dt><dd>Emergency planning in facilities — wardens, diagrams, plan</dd>
+      </dl>
+      <p>
+        Pick a <strong>system</strong> and <strong>frequency</strong> below, or search (pump monthly, hydrant flow, damper, tank internal).
+        Cards are a field memory aid of <strong>typical</strong> checks — not a copy of the copyrighted tables.
+        Confirm the exact item and pass/fail in the current Standard on site.
+      </p>
+    </details>
+    <input id="asSearch" type="search" placeholder="Search — e.g. hydrant yearly, pump monthly, damper, tank" autocomplete="off" />
+    <div class="chips" id="asSysChips"></div>
+    <div class="chips" id="asFreqChips"></div>
+    <div class="as-count" id="asCount"></div>
+    <div id="asList"></div>
+    <p class="notes">
+      Field lookup for <strong>AS 1851-2012</strong> (incl. Amdt 1:2016). This is <strong>not the Standard</strong>
+      and not a substitute for the current published document. Confirm the exact table item and pass/fail on site.
+    </p>
+  </div>
+
+  <div id="pumpOverlay" class="chart-overlay hidden" role="dialog" aria-modal="true" aria-label="Large pump chart">
+    <div class="chart-overlay-bar">
+      <span>Pump curve</span>
+      <button type="button" id="closePumpOverlay">Close</button>
+    </div>
+    <canvas id="pumpChartBig"></canvas>
+  </div>
+
+<script>
+const APP_VERSION = "2.18";
+const APP_BUILD = 29;
+
+const DATA = {
+  sch10: {
+    label: "Sch 10",
+    material: "Steel • C=120",
+    color: "#d1243a",
+    rows: [
+      { nps: "3/4", od: 1.050, wall: 0.083, id: 0.884, wt: 0.87 },
+      { nps: "1", od: 1.315, wall: 0.109, id: 1.097, wt: 1.41 },
+      { nps: "1-1/4", od: 1.660, wall: 0.109, id: 1.442, wt: 1.81 },
+      { nps: "1-1/2", od: 1.900, wall: 0.109, id: 1.682, wt: 2.09 },
+      { nps: "2", od: 2.375, wall: 0.109, id: 2.157, wt: 2.64 },
+      { nps: "2-1/2", od: 2.875, wall: 0.120, id: 2.635, wt: 3.53 },
+      { nps: "3", od: 3.500, wall: 0.120, id: 3.260, wt: 4.34 },
+      { nps: "3-1/2", od: 4.000, wall: 0.120, id: 3.760, wt: 4.98 },
+      { nps: "4", od: 4.500, wall: 0.120, id: 4.260, wt: 5.62 },
+      { nps: "5", od: 5.563, wall: 0.134, id: 5.295, wt: 7.78 },
+      { nps: "6", od: 6.625, wall: 0.134, id: 6.357, wt: 9.30 },
+      { nps: "8", od: 8.625, wall: 0.188, id: 8.249, wt: 16.96 },
+      { nps: "10", od: 10.750, wall: 0.188, id: 10.374, wt: 21.23 }
+    ]
+  },
+  sch40: {
+    label: "Sch 40",
+    material: "Steel • C=120",
+    color: "#e8b86d",
+    rows: [
+      { nps: "3/4", od: 1.050, wall: 0.113, id: 0.824, wt: 1.13 },
+      { nps: "1", od: 1.315, wall: 0.133, id: 1.049, wt: 1.68 },
+      { nps: "1-1/4", od: 1.660, wall: 0.140, id: 1.380, wt: 2.27 },
+      { nps: "1-1/2", od: 1.900, wall: 0.145, id: 1.610, wt: 2.72 },
+      { nps: "2", od: 2.375, wall: 0.154, id: 2.067, wt: 3.65 },
+      { nps: "2-1/2", od: 2.875, wall: 0.203, id: 2.469, wt: 5.79 },
+      { nps: "3", od: 3.500, wall: 0.216, id: 3.068, wt: 7.58 },
+      { nps: "3-1/2", od: 4.000, wall: 0.226, id: 3.548, wt: 9.11 },
+      { nps: "4", od: 4.500, wall: 0.237, id: 4.026, wt: 10.79 },
+      { nps: "5", od: 5.563, wall: 0.258, id: 5.047, wt: 14.62 },
+      { nps: "6", od: 6.625, wall: 0.280, id: 6.065, wt: 18.97 },
+      { nps: "8", od: 8.625, wall: 0.322, id: 7.981, wt: 28.55 },
+      { nps: "10", od: 10.750, wall: 0.365, id: 10.020, wt: 40.48 }
+    ]
+  },
+  sch5: {
+    label: "Sch 5",
+    material: "Steel • C=120",
+    color: "#9aa8b5",
+    rows: [
+      { nps: "1", od: 1.315, wall: 0.065, id: 1.185, wt: 0.87 },
+      { nps: "1-1/4", od: 1.660, wall: 0.065, id: 1.530, wt: 1.11 },
+      { nps: "1-1/2", od: 1.900, wall: 0.065, id: 1.770, wt: 1.28 },
+      { nps: "2", od: 2.375, wall: 0.065, id: 2.245, wt: 1.61 },
+      { nps: "2-1/2", od: 2.875, wall: 0.083, id: 2.709, wt: 2.48 },
+      { nps: "3", od: 3.500, wall: 0.083, id: 3.334, wt: 3.03 },
+      { nps: "4", od: 4.500, wall: 0.083, id: 4.334, wt: 3.92 },
+      { nps: "6", od: 6.625, wall: 0.109, id: 6.407, wt: 7.60 },
+      { nps: "8", od: 8.625, wall: 0.109, id: 8.407, wt: 9.92 }
+    ]
+  },
+  cpvc: {
+    label: "CPVC",
+    material: "SDR 13.5 • C=150",
+    color: "#7dcea0",
+    rows: [
+      { nps: "3/4", od: 1.050, wall: 0.078, id: 0.874, wt: 0.168 },
+      { nps: "1", od: 1.315, wall: 0.097, id: 1.101, wt: 0.262 },
+      { nps: "1-1/4", od: 1.660, wall: 0.123, id: 1.394, wt: 0.418 },
+      { nps: "1-1/2", od: 1.900, wall: 0.141, id: 1.598, wt: 0.548 },
+      { nps: "2", od: 2.375, wall: 0.176, id: 2.003, wt: 0.859 },
+      { nps: "2-1/2", od: 2.875, wall: 0.213, id: 2.423, wt: 1.257 },
+      { nps: "3", od: 3.500, wall: 0.259, id: 2.950, wt: 1.867 }
+    ]
+  },
+  ss10: {
+    label: "SS 10S",
+    material: "Stainless 10S • C=150",
+    color: "#c5d0dc",
+    rows: [
+      { nps: "3/4", od: 1.050, wall: 0.083, id: 0.884, wt: 0.87 },
+      { nps: "1", od: 1.315, wall: 0.109, id: 1.097, wt: 1.43 },
+      { nps: "1-1/4", od: 1.660, wall: 0.109, id: 1.442, wt: 1.84 },
+      { nps: "1-1/2", od: 1.900, wall: 0.109, id: 1.682, wt: 2.13 },
+      { nps: "2", od: 2.375, wall: 0.109, id: 2.157, wt: 2.69 },
+      { nps: "2-1/2", od: 2.875, wall: 0.120, id: 2.635, wt: 3.59 },
+      { nps: "3", od: 3.500, wall: 0.120, id: 3.260, wt: 4.41 },
+      { nps: "3-1/2", od: 4.000, wall: 0.120, id: 3.760, wt: 5.07 },
+      { nps: "4", od: 4.500, wall: 0.120, id: 4.260, wt: 5.72 },
+      { nps: "5", od: 5.563, wall: 0.134, id: 5.295, wt: 7.92 },
+      { nps: "6", od: 6.625, wall: 0.134, id: 6.357, wt: 9.47 },
+      { nps: "8", od: 8.625, wall: 0.148, id: 8.329, wt: 13.66 },
+      { nps: "10", od: 10.750, wall: 0.165, id: 10.420, wt: 19.00 }
+    ]
+  },
+  ss40: {
+    label: "SS 40S",
+    material: "Stainless 40S • C=150",
+    color: "#8fa0b3",
+    rows: [
+      { nps: "3/4", od: 1.050, wall: 0.113, id: 0.824, wt: 1.15 },
+      { nps: "1", od: 1.315, wall: 0.133, id: 1.049, wt: 1.71 },
+      { nps: "1-1/4", od: 1.660, wall: 0.140, id: 1.380, wt: 2.31 },
+      { nps: "1-1/2", od: 1.900, wall: 0.145, id: 1.610, wt: 2.77 },
+      { nps: "2", od: 2.375, wall: 0.154, id: 2.067, wt: 3.72 },
+      { nps: "2-1/2", od: 2.875, wall: 0.203, id: 2.469, wt: 5.90 },
+      { nps: "3", od: 3.500, wall: 0.216, id: 3.068, wt: 7.73 },
+      { nps: "3-1/2", od: 4.000, wall: 0.226, id: 3.548, wt: 9.28 },
+      { nps: "4", od: 4.500, wall: 0.237, id: 4.026, wt: 11.00 },
+      { nps: "5", od: 5.563, wall: 0.258, id: 5.047, wt: 14.90 },
+      { nps: "6", od: 6.625, wall: 0.280, id: 6.065, wt: 19.33 },
+      { nps: "8", od: 8.625, wall: 0.322, id: 7.981, wt: 29.10 },
+      { nps: "10", od: 10.750, wall: 0.365, id: 10.020, wt: 41.25 }
+    ]
+  }
+};
+
+const ORDER = ["sch10", "ss10", "sch40", "ss40", "sch5", "cpvc"];
+const BAR_CLASS = { sch10: "s10", ss10: "ss10", sch40: "s40", ss40: "ss40", sch5: "s5", cpvc: "cpvc" };
+
+let schedule = "sch10";
+let nps = "4";
+let metric = true;
+
+function fmt(n, d) {
+  if (n == null || Number.isNaN(n)) return "—";
+  const v = metric ? n * 25.4 : n;
+  const digits = metric ? (d === "wt" ? 2 : 1) : (d === "wt" ? 2 : 3);
+  return v.toFixed(digits);
+}
+function unit(kind) {
+  if (kind === "wt") return metric ? "kg/m" : "lb/ft";
+  return metric ? "mm" : "in";
+}
+function wtVal(row) {
+  return metric ? row.wt * 1.48816 : row.wt;
+}
+
+function currentRow() {
+  const set = DATA[schedule].rows;
+  return set.find(r => r.nps === nps) || set[Math.min(4, set.length - 1)];
+}
+
+function drawPipe(row) {
+  const svg = document.getElementById("pipe");
+  const maxOd = 10.75;
+  const outerR = 34 + (row.od / maxOd) * 54;
+  const innerR = outerR * (row.id / row.od);
+  const cx = 100, cy = 100;
+  const ss = String(schedule || "").startsWith("ss");
+  svg.innerHTML = `
+    <defs>
+      <radialGradient id="g" cx="38%" cy="32%">
+        <stop offset="0%" stop-color="${ss ? "#dfe6ee" : "#6a2a32"}"/>
+        <stop offset="55%" stop-color="${ss ? "#9aa8b5" : "#c41e3a"}"/>
+        <stop offset="100%" stop-color="${ss ? "#3a424c" : "#3a1016"}"/>
+      </radialGradient>
+    </defs>
+    <circle cx="${cx}" cy="${cy}" r="${outerR + 6}" fill="none" stroke="#3a322c" stroke-width="1"/>
+    <circle cx="${cx}" cy="${cy}" r="${outerR}" fill="url(#g)" stroke="#f4ede4" stroke-width="1.2"/>
+    <circle cx="${cx}" cy="${cy}" r="${innerR}" fill="#14110f" stroke="#e8b86d" stroke-width="1.4"/>
+    <path d="M ${cx} ${cy - outerR} L ${cx} ${cy - outerR - 10}" stroke="#e8b86d" stroke-width="1.2"/>
+    <text x="${cx}" y="${cy - outerR - 14}" text-anchor="middle" fill="#e8b86d" font-size="9">OD</text>
+    <path d="M ${cx + innerR * 0.15} ${cy} L ${cx + innerR} ${cy}" stroke="#9aa8b5" stroke-width="1"/>
+    <text x="${cx + 4}" y="${cy - 6}" fill="#9aa8b5" font-size="9">ID</text>
+    <text x="${cx}" y="${cy + 4}" text-anchor="middle" fill="#f4ede4" font-size="11" font-weight="700">${row.nps}"</text>
+  `;
+}
+
+function renderTable() {
+  const set = DATA[schedule];
+  const body = document.getElementById("rows");
+  body.innerHTML = set.rows.map(r => `
+    <tr data-nps="${r.nps}" class="${r.nps === nps ? "sel" : ""}">
+      <td>${r.nps}"</td>
+      <td>${fmt(r.od)}</td>
+      <td>${fmt(r.wall)}</td>
+      <td>${fmt(r.id)}</td>
+    </tr>
+  `).join("");
+  body.querySelectorAll("tr").forEach(tr => {
+    tr.addEventListener("click", () => {
+      nps = tr.getAttribute("data-nps");
+      render();
+    });
+  });
+}
+
+function renderCompare(row) {
+  document.getElementById("compareTitle").textContent = "Wall thickness at " + row.nps + (metric ? " (mm)" : " in");
+  const walls = ORDER.map(key => {
+    const found = DATA[key].rows.find(r => r.nps === row.nps);
+    return found ? { key, label: DATA[key].label, wall: found.wall } : null;
+  }).filter(Boolean);
+  const max = Math.max(...walls.map(w => w.wall));
+  document.getElementById("bars").innerHTML = walls.map(w => {
+    const shown = metric ? (w.wall * 25.4).toFixed(1) + " mm" : w.wall.toFixed(3) + " in";
+    const pct = (w.wall / max) * 100;
+    return `<div class="bar-row"><span>${w.label}</span><div class="track"><div class="fill ${BAR_CLASS[w.key]}" style="width:${pct}%"></div></div><span>${shown}</span></div>`;
+  }).join("");
+}
+
+function render() {
+  const set = DATA[schedule];
+  if (!set.rows.some(r => r.nps === nps)) nps = set.rows[0].nps;
+  const row = currentRow();
+  document.getElementById("titleSize").textContent = row.nps + " in " + set.label;
+  document.getElementById("titleMat").textContent = set.material;
+  document.getElementById("vOd").textContent = fmt(row.od);
+  document.getElementById("vWall").textContent = fmt(row.wall);
+  document.getElementById("vId").textContent = fmt(row.id);
+  document.getElementById("vWt").textContent = (metric ? wtVal(row) : row.wt).toFixed(2);
+  document.getElementById("uOd").textContent = unit();
+  document.getElementById("uWall").textContent = unit();
+  document.getElementById("uId").textContent = unit();
+  document.getElementById("uWt").textContent = unit("wt");
+  drawPipe(row);
+  renderTable();
+  renderCompare(row);
+}
+
+const AS1851 = [
+  {
+    group: "General", system: "General", freq: "About", table: "Section 1 · scope and how the Standard is used",
+    tags: "what is as 1851 routine service inspect test survey logbook competent baseline weekly owner defect isolation impairment",
+    why: "Section 1 is the rulebook for every other section. It says what routine service is, who can do it, how often, what to write down, and what happens when something is wrong or isolated.",
+    checks: [
+      "Routine service = inspect + test + preventative maintenance + survey. Looking at a valve is not enough if you never prove it works and never ask whether the building has changed.",
+      "It applies to systems that are already installed. Design, install, and commissioning live in other Standards (AS 2118, AS 2419, AS 2941, AS 2304, AS 1670, AS 2441, AS 1841/1850, and so on).",
+      "Work is done by a competent person for that system type — trained and experienced, not just whoever is on site with a tag punch.",
+      "Keep a logbook or equivalent: date, who, what was done, pressures/readings, defects, outstanding items, isolations.",
+      "Baseline data is needed before a survey means anything: as-installed drawings, block plan, pump curves, tank operating levels, head types, water-supply details.",
+      "The owner may run monthly items weekly. That does not skip the contractor's scheduled visits.",
+      "If you isolate or impair a system, tag it, tell the owner, and follow the site/brigade isolation procedure. Do not leave a dead system looking live.",
+      "A longer visit includes the shorter ones: yearly = monthly + 6-monthly + yearly extras. Five-yearly = yearly + survey/overhaul extras."
+    ],
+    also: "This app is a field memory aid, not a copy of the copyrighted Standard. Confirm pass/fail against the current published tables on site."
+  },
+  {
+    group: "General", system: "General", freq: "Monthly", table: "Table 1.11(B) · frequency tolerance",
+    tags: "tolerance monthly 5 days working",
+    why: "Monthly visits have a small window so the program does not drift.",
+    checks: [
+      "Tolerance ±5 working days either side of the due date.",
+      "Owner may also run these items weekly — still record the contractor monthly visit."
+    ]
+  },
+  {
+    group: "General", system: "General", freq: "3-monthly", table: "Table 1.11(B) · frequency tolerance",
+    tags: "tolerance 10 days three monthly quarterly",
+    why: "Some tables list 3-monthly items. If the table for that system has none, skip it.",
+    checks: [
+      "Tolerance ±10 working days.",
+      "Only do 3-monthly work where that system's table actually lists it."
+    ]
+  },
+  {
+    group: "General", system: "General", freq: "6-monthly", table: "Table 1.11(B) · frequency tolerance",
+    tags: "tolerance 1 month six monthly",
+    why: "Six-monthly is the common 'open it up a bit more' visit for hydrants, hose reels, extinguishers, blankets, doors.",
+    checks: ["Tolerance ±1 month.", "Always include the monthly items for that system as well."]
+  },
+  {
+    group: "General", system: "General", freq: "Yearly", table: "Table 1.11(B) · frequency tolerance",
+    tags: "tolerance yearly annual 2 months functional",
+    why: "Yearly is the main functional-test visit for most systems.",
+    checks: ["Tolerance ±2 months.", "Includes monthly and six-monthly items, then the extra yearly tests."]
+  },
+  {
+    group: "General", system: "General", freq: "2-yearly", table: "Table 1.11(B) · selected pump and hydrant items",
+    tags: "tolerance 2 yearly biennial",
+    why: "A few pump and hydrant table items sit on a 2-yearly interval instead of yearly.",
+    checks: ["Tolerance ±2 months.", "Do not assume everything is yearly — check the table item."]
+  },
+  {
+    group: "General", system: "General", freq: "5-yearly", table: "Table 1.11(B) · frequency tolerance",
+    tags: "tolerance 5 yearly survey overhaul",
+    why: "Five-yearly is the deep visit: survey against baseline, internals, overhaul-type work.",
+    checks: ["Tolerance ±3 months.", "Includes the full yearly service plus the extra survey/internal items."]
+  },
+  {
+    group: "General", system: "General", freq: "10-yearly+", table: "Table 1.11(B) · 10 / 25 / 30-yearly",
+    tags: "tolerance 10 25 30 yearly tank internal sprinkler head sample",
+    why: "Long-interval items: tank internals, sprinkler-head sampling, and similar condition work.",
+    checks: ["Tolerance ±6 months.", "Typical examples: 10-yearly tank internal (Sec 5 / App G), wet-sprinkler head sample at 10 / 25 / 30 years."]
+  },
+
+  {
+    group: "Sprinklers", system: "Sprinklers", freq: "About", table: "Section 2 · automatic fire sprinkler systems",
+    tags: "sprinkler wet dry deluge pre-action alarm valve gong AS 2118 head spare cabinet block plan",
+    why: "Section 2 covers installed automatic sprinklers. Design is AS 2118; this section is how you keep the installed system in service. Four common types:",
+    checks: [
+      "Wet: pipes full of water. A head fuses from heat, water flows, the alarm valve operates, water-motor gong and/or pressure switch raise the alarm. Most buildings.",
+      "Dry: pipes full of air or nitrogen (freeze risk). A head opens, air dumps, the dry valve trips, water fills the pipes. Needs air pressure, compressor or nitrogen, and often an accelerator.",
+      "Deluge: open heads, pipes dry until a detection system trips a deluge valve and floods the lot. High-hazard process, aircraft hangars, similar.",
+      "Pre-action: closed heads plus detection. Detection must operate before water enters the pipes — extra protection against accidental discharge (cold stores, computer rooms, museums).",
+      "You will live at the valve set: alarm/stop valves, gauges, alarm line, gong or pressure switch, drain, spare-head cabinet, block plan / zone signage.",
+      "Water supplies may be town main, tank, pump, or a combination — monthly you are checking indications, not doing the full pump test (that is Sec 3)."
+    ],
+    also: "Each type has its own table (wet 2.4.2, dry 2.4.3, deluge 2.4.4, pre-action 2.4.5). Use the table that matches the system in front of you."
+  },
+  {
+    group: "Sprinklers", system: "Sprinklers", freq: "Monthly", table: "Sec 2 · monthly (wet 2.4.2.1 / dry 2.4.3.1 / deluge 2.4.4.1 / pre-action 2.4.5.1)",
+    tags: "sprinkler monthly alarm valve gauge isolation leak wet dry deluge pre-action gong pressure water supply",
+    why: "A walk-around so the system is still live, valves are in the right position, and pressures match last visit. You are not doing the yearly flow/trip test yet.",
+    checks: [
+      "Alarm, stop and subsidiary isolation valves accessible, fully open (unless a labelled normally-closed subsidiary), secured/locked, labelled.",
+      "Gauges readable and not smashed. Record wet-side (and air-side on dry/pre-action) and water-supply pressures. Compare to last visit and to the design/baseline band.",
+      "No unexplained leaks, corrosion, or mechanical damage at the valve set, alarm line, or visible pipe.",
+      "Water-supply indications look normal: town-main cock open, tank level healthy, pump in auto, jockey holding pressure.",
+      "Alarm test as the monthly table requires for that type — prove the water-motor gong and/or electric alarm / pressure switch. Silence and restore.",
+      "Dry / pre-action: air or nitrogen pressure in range; compressor or nitrogen supply healthy; low-air alarm not sitting there ignored.",
+      "Deluge / pre-action: detection and release in automatic; no unexplained isolation or 'manual only' left from a previous job.",
+      "Spot-check occupied areas: heads not painted, bagged, loaded, or blocked by storage. Spare-head cabinet present with the right temperature ratings.",
+      "Block plan / zone signage still at the valve set. Room not turned into a store."
+    ],
+    also: "Write pressures and defects in the logbook. If you found a shut valve or a dead alarm, that is an impairment — tag and tell the owner."
+  },
+  {
+    group: "Sprinklers", system: "Sprinklers", freq: "6-monthly", table: "Sec 2 · six-monthly (2.4.2.2 / 2.4.3.2 / 2.4.4.2 / 2.4.5.2)",
+    tags: "sprinkler six monthly alarm test water motor gong strainer alarm line accelerator",
+    why: "Monthly plus a more thorough prove of the alarm line and valve-set functions.",
+    checks: [
+      "Do every monthly item first.",
+      "Alarm-line / water-motor gong test where fitted — water at the gong, gong actually rings, alarm line not blocked or seized.",
+      "Electric alarm / pressure switch proves back to the FIP / CIE if that is how the building is wired.",
+      "Check strainers and alarm-line fittings as the six-monthly table lists for that type.",
+      "Dry systems: look at accelerator / exhauster / air-maintenance device as scheduled.",
+      "Confirm drain valves, test valves and the inspector's test point still operate and shut off cleanly."
+    ]
+  },
+  {
+    group: "Sprinklers", system: "Sprinklers", freq: "Yearly", table: "Sec 2 · yearly functional (2.4.2.3 / 2.4.3.3 / 2.4.4.3 / 2.4.5.3)",
+    tags: "sprinkler yearly functional flow alarm valve trip dry deluge pre-action FIP interface",
+    why: "This is the 'make it actually run' visit for that system type. Monthly and six-monthly work is included.",
+    checks: [
+      "Do every monthly and six-monthly item first.",
+      "Wet: functional flow through the alarm valve so the clapper/alarm operates and water is proved at the alarm. Restore and confirm the valve reseats.",
+      "Dry: trip test (full or partial as the table and the site/AHJ require). Time to water, air dump, valve trip, restore, reset air pressure, drain low points.",
+      "Deluge: trip from detection as scheduled — full discharge or an agreed isolation/bypass method with the owner/AHJ. Prove detection, solenoid/release, and valve.",
+      "Pre-action: prove detection plus the trip path so water is only admitted the way the system is designed. Restore air/nitrogen.",
+      "Confirm the alarm hits the FIP / brigade signalling if that interface exists.",
+      "Water supplies: town main still available; if pumps or tanks serve the sprinklers, those get their own Sec 3 / Sec 5 tests — don't skip them because you 'did sprinklers'.",
+      "Walk more of the protected area than you did monthly: missing heads, occupancy change, new mezzanines, blocked aisles, heaters too close to heads."
+    ],
+    also: "Stopwatch, gauge readings, and restore steps belong in the logbook. A trip test that you cannot restore is an impairment."
+  },
+  {
+    group: "Sprinklers", system: "Sprinklers", freq: "5-yearly", table: "Sec 2 · five-yearly survey (2.4.2.4 / 2.4.3.4 / 2.4.4.4 / 2.4.5.4)",
+    tags: "sprinkler five yearly survey internal valve strainer occupancy storage height baseline",
+    why: "Stand back against the baseline. The building may have changed even if the valve set still looks pretty.",
+    checks: [
+      "Do the full yearly service first.",
+      "Survey vs as-installed / baseline: occupancy, storage height and commodity, new partitions, missing or extra heads, obstructed discharge, painted heads, heaters, process changes.",
+      "Internal inspection of alarm / dry / deluge / pre-action valves and strainers as the five-yearly table lists. Look for scale, rubber debris, seized moving parts.",
+      "Condition of accessible pipework, hangers, seismic bracing, and valve-room corrosion.",
+      "Spare heads, wrench, and cabinet still match the heads in the ceiling (temperature, orifice, response type).",
+      "Water-supply adequacy still matches the original design demand — if in doubt, flag a hydraulic check (the Hydro-Calcs tab is an estimate only)."
+    ],
+    also: "A survey is not a redesign. Record defects and occupancy changes so the owner can get an AS 2118 review if the use of the building has moved."
+  },
+  {
+    group: "Sprinklers", system: "Sprinklers", freq: "10-yearly+", table: "Sec 2 · wet 10 / 25 / 30-yearly",
+    tags: "sprinkler 10 25 30 year head sample laboratory solder fusible",
+    why: "Wet systems pick up extra long-interval condition work, including sampling heads.",
+    checks: [
+      "At the scheduled 10, 25 and 30-year marks, sample sprinkler heads for condition / laboratory test as the table requires (soldered/fusible elements age).",
+      "Replace sampled heads with the same type. Do not mix response ratings or orifices to 'make up numbers'.",
+      "Use the visit to look harder at pipe condition, MIC/tuberculation if water quality is poor, and any dry-system drum-drip / low-point maintenance.",
+      "Tolerance ±6 months."
+    ]
+  },
+
+  {
+    group: "Pumps", system: "Fire pumps", freq: "About", table: "Section 3 · fire pumpsets",
+    tags: "pumpset diesel electric jockey controller AS 2941 suction discharge churn rated flow battery fuel cooling",
+    why: "Section 3 is the installed fire pumpset — diesel, electric, or both — plus jockey/pressure-maintenance pump and controllers. Design/install is AS 2941. The sprinkler or hydrant system is useless if this does not start.",
+    checks: [
+      "Electric: controller in auto, reliable power, short proving run. Diesel: start system, batteries, charger, fuel, cooling, exhaust, a longer run to temperature.",
+      "Jockey/pressure-maintenance pump holds system pressure so the main pump is not hammering on and off. Record cut-in / cut-out.",
+      "You care about suction (tank level, strainers, no air leak), discharge/churn pressure, packing drip, cooling water, controller lamps/faults, and the weekly/monthly auto-start path.",
+      "Yearly is when you put water through a flow meter or hydrant/test header and compare to the duty / nameplate / baseline curve — not just a churn in the room."
+    ]
+  },
+  {
+    group: "Pumps", system: "Fire pumps", freq: "Monthly", table: "Sec 3 · 3.4.1 monthly",
+    tags: "pump monthly diesel electric start run battery fuel cooling suction jockey controller packing leak churn heater",
+    why: "Prove the pump will start by itself and run without cooking, starving, or sitting on a fault lamp.",
+    checks: [
+      "Controller in automatic, no silenced faults, power available (electric) / start-battery healthy (diesel).",
+      "Auto-start from pressure drop or the test method in the table — do not only press MANUAL and call it done unless the table says that is the monthly method.",
+      "Diesel: run to operating temperature (commonly around 30 minutes on monthly — confirm the table and manufacturer). Electric: a shorter proving run as scheduled.",
+      "Record suction and discharge / churn pressure. Compare to last month and to the nameplate/baseline. A slow creep down is a story — packing, jockey, or a leak on the system.",
+      "Jockey: cut-in / cut-out still in band, not short-cycling, not dead.",
+      "Batteries: voltage, charger on, terminals clean, electrolyte/level or sealed-battery condition. Block heater on in cold rooms.",
+      "Fuel: level adequate, no leaks, tank vent clear. Cooling: heat exchanger / radiator / raw-water solenoid actually moving water. Exhaust and pump-room ventilation not blocked.",
+      "Packing / mechanical seal: normal drip, not a jet and not bone-dry smoke. Coupling/guards in place. No new pool of water or diesel on the plinth.",
+      "Suction: tank level / town-main cock, suction strainer not starved, no obvious air leak on the suction side."
+    ],
+    also: "Log engine hours, pressures, any alarms that came up, and that you left it in AUTO."
+  },
+  {
+    group: "Pumps", system: "Fire pumps", freq: "6-monthly", table: "Sec 3 · 3.4.2 six-monthly",
+    tags: "pump six monthly performance controller fuel batteries cooling packing seals",
+    why: "Monthly run plus a harder look at the things that fail slowly: batteries, fuel, cooling, packing, controller.",
+    checks: [
+      "Do every monthly item first.",
+      "Batteries and charger more thoroughly (load/condition as scheduled). Replace if they will not crank a diesel in winter.",
+      "Fuel system: water in fuel, filters, hoses, tank condition. Cooling system: hoses, coolant, raw-water strainer, solenoid operation.",
+      "Controller: lamps, switches, interlocks, engine instruments, weekly exerciser if fitted. Prove the off-normal / fault path if the table asks.",
+      "Packing adjustment / seal leak-off. Coupling alignment / guard. Pump-room drains and lighting still usable at 2 a.m.",
+      "Suction and discharge isolating valves fully open and secured. Test header / flow-meter isolating valves in the correct normal position."
+    ]
+  },
+  {
+    group: "Pumps", system: "Fire pumps", freq: "Yearly", table: "Sec 3 · 3.4.3 yearly",
+    tags: "pump yearly flow test churn rated duty curve performance hydrant header annubar",
+    why: "This is the performance visit. Churn pressure in the room is not a flow test.",
+    checks: [
+      "Do monthly and six-monthly items first.",
+      "Flow-test the pump against duty: test header, hydrants, or a calibrated meter/Annubar. Record kPa vs L/s at churn, rated, and a high-flow point as the table/baseline requires.",
+      "Compare to the nameplate and to the commissioning / last-year curve. A pump that still 'starts' but has lost head is a fail for performance.",
+      "Diesel: governor, overspeed, shutdowns, instruments, fuel and cooling under load. Electric: current, starter, overloads, supply voltage under load.",
+      "Jockey settings, pressure switches, and the automatic start path from system pressure.",
+      "Suction strainers, foot valves, tank low-level interlocks, and any priming arrangement.",
+      "Controllers: automatic, manual, off-normal signalling to FIP/BMS as installed. Leave in AUTO."
+    ],
+    also: "Take the curve with you (Pump tab in this app can store job curves). If performance is down, look at impeller wear, suction issues, and engine power before you blame the sprinkler system."
+  },
+  {
+    group: "Pumps", system: "Fire pumps", freq: "2-yearly", table: "Sec 3 · selected items (Table 3.4.3 item 3.5 class)",
+    tags: "pump 2 yearly extra overhaul interval",
+    why: "A small set of pump items is listed at 2-yearly rather than every year.",
+    checks: [
+      "Check the yearly table for items marked 2-yearly — do not skip them because 'we did yearly last year'.",
+      "Tolerance ±2 months.",
+      "Typical flavour: extra condition / overhaul-adjacent checks that are too heavy for every annual but too important to leave for five years."
+    ]
+  },
+  {
+    group: "Pumps", system: "Fire pumps", freq: "5-yearly", table: "Sec 3 · 3.4.4 five-yearly",
+    tags: "pump five yearly overhaul survey impeller wear ring engine",
+    why: "Condition and overhaul-level look at the pumpset, not just another yearly flow test.",
+    checks: [
+      "Do the full yearly performance service first.",
+      "Deeper condition: impeller/wear rings if performance has dropped, engine/motor condition, coupling, bearings, baseplate, corrosion of suction and discharge.",
+      "Controller internals, wiring, and replacement of tired batteries/chargers as needed.",
+      "Suction pipework, tank outlet, vortex inhibitor, and strainers — a five-yearly pump survey that never looks at the tank is half a job.",
+      "Update baseline: new curve, nameplate photo, fuel/battery dates, any parts replaced."
+    ]
+  },
+
+  {
+    group: "Hydrants", system: "Hydrants", freq: "About", table: "Section 4 · fire hydrant systems",
+    tags: "hydrant landing valve booster brigade attack feed suction AS 2419 cap strap lugged",
+    why: "Section 4 is the installed hydrant system: internal landing valves, yard hydrants, and the fire-brigade booster. Design is AS 2419. The point is that a firefighter can get water at the required flow and pressure from the right outlets.",
+    checks: [
+      "Landing valves on each floor / fire stair: cap, strap, waterway, handwheel, signage, access. Not a coat rack.",
+      "Booster / brigade connection at the street: inlets, lugged caps, drain, signage, hardstand. This is how the brigade pumps into your building.",
+      "Water supply may be town main only, or town main plus pump/tank. If pumps are fitted, monthly pump work is Sec 3 — hydrants still need their own valve and flow tests.",
+      "Yearly is a flow test of the system. Five-yearly adds booster/brigade and hydrostatic-type tests as scheduled."
+    ]
+  },
+  {
+    group: "Hydrants", system: "Hydrants", freq: "Monthly", table: "Sec 4 · monthly where pumpsets are fitted",
+    tags: "hydrant monthly pump booster",
+    why: "A hydrant system with no pump has little monthly work. If there is a fire pump on the hydrants, the pump monthly is the monthly hydrant visit.",
+    checks: [
+      "If pumpsets serve the hydrants, do Section 3 monthly on those pumps (auto start, run, batteries, fuel, jockey, pressures).",
+      "Quick look at the booster enclosure: still accessible, not used as a bin store, caps on, no obvious vandalism or isolation.",
+      "No new leaks at the pump room or visible hydrant mains."
+    ]
+  },
+  {
+    group: "Hydrants", system: "Hydrants", freq: "6-monthly", table: "Sec 4 · 4.4.1 valves / 4.4.2 system",
+    tags: "hydrant six monthly landing valve booster visual cap strap signage access leak",
+    why: "Open every landing valve and the booster and look. You are not flowing the system yet.",
+    checks: [
+      "Every landing valve: access not blocked, signage in place, cap and strap (or chain) present, lugs not smashed, handwheel turns, no seized stem, no leak at the gland, waterway not full of rubbish.",
+      "Yard hydrants: pad not buried, outlet clear, indicator plate visible, no car park built over it.",
+      "Booster: doors open, inlets capped and lugged, drain clear, signage (boost / attack / feed as labelled), brigade access and hardstand still there.",
+      "Isolation valves on the hydrant main in the correct position, secured, labelled. No 'temporary' closed valve from a fit-out.",
+      "Pipework, supports, hose cabinets, and any attack/feed hydrants at the booster. Leaks, corrosion, missing caps.",
+      "If pumps are fitted, include the pump six-monthly as well."
+    ]
+  },
+  {
+    group: "Hydrants", system: "Hydrants", freq: "Yearly", table: "Sec 4 · 4.4.3 yearly flow test",
+    tags: "hydrant yearly flow test landing valve pressure residual pitot",
+    why: "Prove water comes out at useful pressure. Visual is not a flow test.",
+    checks: [
+      "Do the six-monthly visual of every valve first.",
+      "Flow-test the system as the yearly table requires — typically a number of landing valves / the hydraulically most disadvantaged points, residual pressure recorded.",
+      "Compare residual kPa and L/s to the design / baseline / AS 2419 duty for that building. A pretty valve that delivers nothing is a fail.",
+      "Booster inlets: prove waterway (blank caps off, no wasp nests, drain works) even if the full 5-yearly booster test is not due.",
+      "Restore every valve, cap, strap and isolation. Leave the system as you found it, only better.",
+      "Pumps: yearly pump flow (Sec 3) if pumps serve the hydrants — same day is sensible."
+    ],
+    also: "Take a pitot / Annubar / meter and a gauge. Write which outlets you flowed so next year is comparable."
+  },
+  {
+    group: "Hydrants", system: "Hydrants", freq: "2-yearly", table: "Sec 4 · selected 2-yearly items",
+    tags: "hydrant 2 yearly",
+    why: "A few hydrant table items are 2-yearly.",
+    checks: [
+      "Check the Section 4 tables for items on a 2-yearly interval.",
+      "Tolerance ±2 months."
+    ]
+  },
+  {
+    group: "Hydrants", system: "Hydrants", freq: "5-yearly", table: "Sec 4 · 4.4.4 five-yearly booster / hydrostatic",
+    tags: "hydrant five yearly booster hydrostatic brigade attack feed",
+    why: "The brigade connection and system integrity get a proper test, not just a yearly landing-valve flow.",
+    checks: [
+      "Do the yearly flow test first.",
+      "Booster / brigade connection flow and hydrostatic-type tests as the five-yearly table schedules (attack, feed, suction as fitted).",
+      "Prove the brigade can actually use the inlets: access, signage, hardstand, lugged caps, drain, non-return / isolating arrangements.",
+      "Look at underground main condition via leaks, valve pits, and any pressure loss that yearly tests have been hinting at.",
+      "Survey: new buildings on the ring main, closed valves, hydrants moved behind fences, car parks over outlets."
+    ]
+  },
+
+  {
+    group: "Tanks", system: "Water tanks", freq: "About", table: "Section 5 · water storage tanks for fire protection",
+    tags: "tank AS 2304 overflow vortex suction contents level roof hatch ladder insect screen effective capacity",
+    why: "Section 5 is the fire water tank that feeds sprinklers and/or hydrants. Design is usually AS 2304. The tank is not 'full' just because the sight glass looks wet — overflow air gap and suction/vortex unused water do not count (see the Tanks tab).",
+    checks: [
+      "Yearly is mostly external: contents, overflow, roof, hatch, ladders, corrosion, insect screens, signage, pipework.",
+      "10-yearly is the internal: drain/clean, floor sediment, linings, fittings, vortex inhibitor, condition of the shell from the inside (Appendix G items).",
+      "Low-level and contents indicators matter because the pump will eat air if the tank is quietly empty.",
+      "Make-up, infill, and town-main ball valve / solenoid: a tank that cannot refill after a flow test is a defect."
+    ]
+  },
+  {
+    group: "Tanks", system: "Water tanks", freq: "Yearly", table: "Sec 5 · yearly external",
+    tags: "tank yearly level overflow roof ladder contents corrosion insect screen signage infill",
+    why: "Confirm the tank still holds the fire water you think it does, and that the roof is not a wildlife park.",
+    checks: [
+      "Contents / water level vs the required effective capacity (not just 'there is some water'). Record the level.",
+      "Overflow clear, air gap still there, overflow not discharging onto electrics or a neighbour.",
+      "Roof, hatch, vents and insect screens in place — no birds, leaves, or sunlight growing algae.",
+      "Ladders, platforms, handrails safe to use. Signage (fire water / capacity) readable.",
+      "External corrosion, leaks at the shell, hold-down, pipe penetrations, and the suction / infill / overflow pipework.",
+      "Infill / make-up actually works. Isolation valves on suction and infill in the correct position and secured.",
+      "Contents gauge / level switch / low-level alarm to the pump room or FIP as installed.",
+      "Vortex inhibitor and suction bell are a 10-yearly internal item — yearly you can still check that the suction isolation is open and the pump is not pulling air."
+    ]
+  },
+  {
+    group: "Tanks", system: "Water tanks", freq: "10-yearly+", table: "Sec 5 / Appendix G · G5–G7 internal",
+    tags: "tank 10 year internal clean sediment lining vortex inhibitor drain",
+    why: "Get inside. Sediment, linings, and fittings do not show from the hatch.",
+    checks: [
+      "Isolate, drain and make safe. Confined-space rules apply — this is not a quick look with a torch from the manhole if the table wants an internal.",
+      "Clean sediment from the floor. Inspect lining / coating, floor, wall, roof structure, baffles.",
+      "Inspect overflow, infill, suction, vortex inhibitor, stilling well, and internal fittings for corrosion or missing parts.",
+      "Refill to the correct level, restore infill/auto-fill, prove level indication, and leave suction open to the pumps.",
+      "Tolerance ±6 months."
+    ],
+    also: "Plan this with the owner — the building may need a temporary water supply or a brigade notification while the tank is empty."
+  },
+
+  {
+    group: "Detection", system: "Detection & EWIS", freq: "About", table: "Section 6 · fire detection and alarm, EWIS / occupant warning",
+    tags: "FIP CIE detector MCP heat smoke AS 1670 EWIS OWS speaker warden phone ASE brigade",
+    why: "Section 6 is the fire indicator panel (CIE/FIP), detectors, manual call points, occupant warning / EWIS, and the brigade signalling. Design is AS 1670 (and AS 1670.4 for sound systems). Sprinkler alarms often land here too.",
+    checks: [
+      "Monthly: the panel is alive — power, batteries, lamps, faults, a supervised alarm path. EWIS/OWS monthly as its own table.",
+      "Yearly: functional of detection — you actually test detectors / MCPs on a sample or 100% as the table and detector type require, plus sounders/speakers.",
+      "Five-yearly: survey of the installation against the building (covered detectors, new rooms, disabled devices left that way).",
+      "Interfaces: sprinkler flow switch, hydrant pump run, fan controls, door holders, ASE/brigade. A green panel with a dead ASE is not 'all good'."
+    ]
+  },
+  {
+    group: "Detection", system: "Detection & EWIS", freq: "Monthly", table: "Sec 6 · 6.4.1.2 CIE / 6.4.3.1 EWIS",
+    tags: "FIP CIE monthly power battery fault alarm EWIS OWS ASE brigade lamp",
+    why: "Is the panel still a fire panel, or a yellow-fault sculpture nobody has looked at since last month?",
+    checks: [
+      "CIE/FIP: normal condition, or every showing fault/disable is known, labelled, and in the logbook. No mystery yellow.",
+      "Mains power on, batteries present, charger healthy, not running on a dead battery with the fault buzzer silenced.",
+      "Lamps / display / buzzer: lamp test. Operators can still read zones.",
+      "Alarm functions as the monthly table requires (a simulated or switch test of the alarm path, not a full detector test).",
+      "ASE / brigade signalling: still in service if the building has one. A 'test' that never hits the monitoring centre is incomplete.",
+      "EWIS / occupant warning monthly (Table 6.4.3.1): panel status, power, a proving of warden/PA functions as scheduled — not a full speaker survey.",
+      "Logbook on site, last service entries make sense, keys/access to the panel still exist."
+    ]
+  },
+  {
+    group: "Detection", system: "Detection & EWIS", freq: "6-monthly", table: "Sec 6 · 6.4.1.3",
+    tags: "detection six monthly",
+    why: "Some detection items are six-monthly. After Amdt 1 many sites treat 6-monthly detection as light or not required — read the current table, do not guess.",
+    checks: [
+      "Check Table 6.4.1.3 (and EWIS tables) for any six-monthly items that still apply to this installation.",
+      "If the table marks six-monthly as not required for that item, do not invent work — do the monthly thoroughly and wait for yearly.",
+      "Good use of the visit if you are on site anyway: clear panel faults, replace tired batteries, chase disables left on from a fit-out."
+    ]
+  },
+  {
+    group: "Detection", system: "Detection & EWIS", freq: "Yearly", table: "Sec 6 · 6.4.1.4 detection / 6.4.3.2 EWIS",
+    tags: "detection yearly functional detector sample MCP heat smoke speaker sounder EWIS",
+    why: "Prove devices, not just the panel lamps.",
+    checks: [
+      "Do monthly items first.",
+      "Functional test of detectors as the table requires for that type (smoke, heat, multi-criteria, beam, aspirating, linear). Sample vs 100% is in the table — do not under-test because it is a big site.",
+      "Every MCP / break-glass as scheduled. Restore glasses and covers.",
+      "Sounders, strobes, EWIS speakers and warden phones: audibility / intelligibility / coverage as the yearly EWIS table (6.4.3.2).",
+      "Cause-and-effect: fans, smoke doors, occupant warning, sprinkler flow-switch input, pump run, door holders, occupant warning cascade.",
+      "Batteries: capacity/condition, not just 'charger LED is green'. Replace dated batteries.",
+      "Drawings / zone list / block plan still match the building. Disabled points and isolated zones closed out or reported."
+    ]
+  },
+  {
+    group: "Detection", system: "Detection & EWIS", freq: "5-yearly", table: "Sec 6 · 6.4.1.5 five-yearly survey",
+    tags: "detection five yearly survey occupancy covered detector",
+    why: "The building has grown walls, the warehouse got racking, and someone painted a detector.",
+    checks: [
+      "Full yearly functional first.",
+      "Survey vs baseline: new rooms without detection, covered or painted detectors, HVAC changes, occupancy, cable condition, extra MCPs needed after a fit-out.",
+      "CIE capacity, battery sizing still honest, ageing devices, obsolete parts.",
+      "Interfaces to mechanical smoke (Sec 13) and sprinklers still make sense."
+    ]
+  },
+
+  {
+    group: "Special", system: "Special hazards", freq: "About", table: "Section 7 · special hazard systems",
+    tags: "gas suppression foam IG55 FM200 Novec CO2 pre-action kitchen wet chemical",
+    why: "Gas, foam, kitchen wet chemical, and similar — anything that is not a 'normal' wet sprinkler or hydrant. These systems kill fires (or people, if CO2) with an agent, so isolation and lock-off discipline matters as much as the bottles looking pretty.",
+    checks: [
+      "Control panel in auto, detection healthy, release path not isolated unless a tagged lock-off is in force for occupied work.",
+      "Agent containers: pressure/weight, secure, hoses, nozzles, signs (vacate / do not enter), directional valves.",
+      "For foam: concentrate level and type, proportioner, bladder tank, discharge path.",
+      "Yearly functional is a big deal — often done with discharge inhibited or on a test bottle; agree the method with the owner."
+    ]
+  },
+  {
+    group: "Special", system: "Special hazards", freq: "Monthly", table: "Sec 7 · monthly",
+    tags: "gas suppression foam monthly control bottle isolation indicator lock-off",
+    why: "Confirm the system is in service and nobody has left it locked off after a shutdown.",
+    checks: [
+      "Control equipment in automatic, power healthy, no unexplained isolation or lock-off. If a lock-off is in place it must be tagged and the owner aware.",
+      "Indicators, abort, manual release, and signage still in place and labelled.",
+      "Agent containers: pressure gauges in band (or weight where that is the method), brackets tight, no corrosion or impact damage. Hoses not kinked.",
+      "Protected space: openings, dampers, and 'do not enter / vacate when discharged' signs. No new hole cut in the room that will dump the agent.",
+      "Foam: concentrate level, no leaking bladder, proportioner not isolated."
+    ]
+  },
+  {
+    group: "Special", system: "Special hazards", freq: "6-monthly", table: "Sec 7 · six-monthly",
+    tags: "special hazard six monthly",
+    why: "Monthly plus extra container / control / enclosure checks as the Section 7 tables list for that agent.",
+    checks: [
+      "Do monthly items first.",
+      "Deeper look at container pressures/weights, release solenoids, pilot lines, and enclosure integrity clues (new vents, propped doors).",
+      "Foam concentrate condition / sample if the table asks. Strainers and water supply to the foam skid."
+    ]
+  },
+  {
+    group: "Special", system: "Special hazards", freq: "Yearly", table: "Sec 7 · yearly functional",
+    tags: "special hazard yearly functional discharge inhibited",
+    why: "Prove detection, release logic, alarms, and (as agreed) the discharge path without accidentally gassing a server room.",
+    checks: [
+      "Functional of detection and the release sequence as the table and manufacturer require. Mechanical isolation / inhibit of live agent unless a planned discharge is approved.",
+      "Alarms, strobes, countdown, ventilation shutdown, damper close, door holders — the cause-and-effect that makes the agent stay in the room.",
+      "Container test/weight, flexible hoses, and any replacement interval the manufacturer lists.",
+      "Restore to automatic. Remove inhibits. Walk the lock-off board so nothing is left hung."
+    ]
+  },
+  {
+    group: "Special", system: "Special hazards", freq: "5-yearly", table: "Sec 7 · five-yearly survey",
+    tags: "special hazard five yearly survey enclosure integrity door fan",
+    why: "Agent quantity and room tightness age. A survey catches the room that is no longer the room that was designed.",
+    checks: [
+      "Yearly functional first.",
+      "Survey of the hazard, enclosure integrity (door-fan or equivalent where required), nozzle placement, occupancy, and whether the agent still matches the fuel.",
+      "Container hydrostatic / replacement intervals as the agent standard and manufacturer require — some of this is not 'AS 1851 only'."
+    ]
+  },
+
+  {
+    group: "Hose", system: "Lay-flat hose", freq: "About", table: "Section 8 · delivery lay-flat hose",
+    tags: "layflat hose coupling pressure test mildew brigade",
+    why: "Lay-flat (attack/delivery) hose stored for brigade or site use. It rots, mildews, and the couplings get smashed. Visual is yearly; pressure test is on the scheduled interval.",
+    checks: [
+      "Unroll, look for rot, abrasion, coupling damage, missing washers.",
+      "Pressure-test as the table requires at yearly / longer intervals. Dry and restow so you do not put wet hose away."
+    ]
+  },
+  {
+    group: "Hose", system: "Lay-flat hose", freq: "Yearly", table: "Sec 8 · yearly",
+    tags: "layflat hose yearly pressure test coupling washer",
+    why: "Unroll it. Hose that has sat in a pile since the last fire is not proven.",
+    checks: [
+      "Visual: cover, lining, couplings, lugs, washers. Mildew, oil, UV, abrasion, kinks.",
+      "Pressure test at the scheduled yearly (or as the table splits visual vs test).",
+      "Dry completely, restow so couplings are not under the pile, record which lengths passed."
+    ]
+  },
+  {
+    group: "Hose", system: "Lay-flat hose", freq: "5-yearly", table: "Sec 8 · five-yearly",
+    tags: "layflat five yearly",
+    why: "Extra service / test interval for hose that is still in service at five years.",
+    checks: [
+      "Do the yearly visual/pressure work.",
+      "Any extra 5-yearly test or replacement the table lists. Retire hose that keeps failing rather than patching it forever."
+    ]
+  },
+
+  {
+    group: "Reels", system: "Hose reels", freq: "About", table: "Section 9 · fire hose reels",
+    tags: "hose reel AS 2441 nozzle cabinet isolation water stopcock",
+    why: "Occupant hose reels (AS 2441 install). First-attack for trained occupants — they only work if the hose is not seized to itself and water actually comes out of the nozzle.",
+    checks: [
+      "Six-monthly: access, nozzle, hose condition, water at the nozzle, signage, isolation valve.",
+      "Yearly: unwind the full hose, operate, rewind so the next person can actually pull it off the drum."
+    ]
+  },
+  {
+    group: "Reels", system: "Hose reels", freq: "6-monthly", table: "Sec 9 · 9.4.1 six-monthly",
+    tags: "hose reel six monthly nozzle cabinet water isolation signage leak",
+    why: "Prove there is water and that someone can get to the reel.",
+    checks: [
+      "Access: not behind stock, not used as a coat hook, cabinet door opens, signage visible.",
+      "Isolation / stopcock at the reel open (or as labelled). Service valve not shut from a plumbing job.",
+      "Nozzle present, operates, not painted seized. Hose not cracked, UV-killed, or fused to the drum.",
+      "Run water to the nozzle — you need water, not just a pretty cabinet. Check for leaks at the gland and piping.",
+      "Pivots, drum, and hose guide still let the hose pull off. Anti-tamper seals as fitted."
+    ]
+  },
+  {
+    group: "Reels", system: "Hose reels", freq: "Yearly", table: "Sec 9 · 9.4.2 yearly",
+    tags: "hose reel yearly unwind operate rewind",
+    why: "Unwind the lot. Six-monthly water-at-nozzle can hide a hose that only works for the first five metres.",
+    checks: [
+      "Do six-monthly items first.",
+      "Fully unwind, operate the nozzle through the pattern, check the full length for damage, rewind correctly so the next pull is clean.",
+      "Confirm flow is useful, not a dribble from a partly shut isolation or a clogged nozzle.",
+      "Wall fixings, cabinet, and pipework still sound."
+    ]
+  },
+
+  {
+    group: "Extinguishers", system: "Extinguishers", freq: "About", table: "Section 10 · portable and wheeled fire extinguishers",
+    tags: "extinguisher ABE water CO2 foam wet chemical tag pressure AS 1841 AS 1850",
+    why: "Portable and wheeled extinguishers. Location and type are an AS 2444 / NCC problem; Section 10 is keeping the ones that are already on the wall serviceable.",
+    checks: [
+      "6-monthly: still there, accessible, pressure in the green, hose/nozzle ok, tag/record.",
+      "Yearly: more thorough — weight/agent, hose, head, corrosion, powder condition for dry chemical.",
+      "5-yearly: pressure test / overhaul-type work as scheduled for that type (CO2, water, foam, powder all differ)."
+    ]
+  },
+  {
+    group: "Extinguishers", system: "Extinguishers", freq: "6-monthly", table: "Sec 10 · six-monthly",
+    tags: "extinguisher six monthly tag pressure location access hose",
+    why: "A missing extinguisher is the most common fail. Then pressure, then access.",
+    checks: [
+      "Correct type still at the designated location, not stolen, not used and put back empty.",
+      "Access and signage: not behind a pallet, not used as a doorstop.",
+      "Pressure gauge in the operating band (where fitted). CO2: no gauge — you are looking at weight/horn at yearly, but still check the seal and horn monthly/6-monthly as the table says.",
+      "Hose, nozzle, safety pin and anti-tamper seal in place. Bracket sound. No corrosion or a cracked horn.",
+      "Record / maintenance tag punched. Logbook if the site uses one."
+    ]
+  },
+  {
+    group: "Extinguishers", system: "Extinguishers", freq: "Yearly", table: "Sec 10 · yearly",
+    tags: "extinguisher yearly weight agent powder inversion hose",
+    why: "Look harder than a gauge glance.",
+    checks: [
+      "Do six-monthly items first.",
+      "Weight / agent quantity as scheduled. Dry chemical: invert/condition so powder has not caked. Foam/water: contents and additive as required.",
+      "Hose, head, and discharge assembly off and checked if the table/type requires. Replace perished hoses.",
+      "Corrosion, damaged horns (CO2), unreadable labels, wrong type for the hazard after a fit-out (kitchen oil vs ABE, etc.)."
+    ]
+  },
+  {
+    group: "Extinguishers", system: "Extinguishers", freq: "5-yearly", table: "Sec 10 · five-yearly pressure test / overhaul",
+    tags: "extinguisher five yearly pressure test overhaul hydrostatic",
+    why: "The cylinder itself, not just the gauge.",
+    checks: [
+      "Pressure test / overhaul as the table and the extinguisher type require (intervals differ for CO2, water, foam, powder, wet chemical).",
+      "Replace or condemn cylinders that fail. Do not restamp a thin bottle.",
+      "After test: correct charge, correct label, correct location, tag dated."
+    ]
+  },
+
+  {
+    group: "Blankets", system: "Fire blankets", freq: "About", table: "Section 11 · fire blankets",
+    tags: "blanket kitchen cabinet instructions",
+    why: "Fire blankets, usually at kitchens. They fail by going missing, getting used as a picnic rug, or sitting in a melted plastic pack.",
+    checks: [
+      "Still in the labelled location, pack intact, instructions readable, blanket not contaminated or holey."
+    ]
+  },
+  {
+    group: "Blankets", system: "Fire blankets", freq: "6-monthly", table: "Sec 11 · 11.4 six-monthly",
+    tags: "blanket six monthly location cabinet",
+    why: "Location and condition. Do not unroll a sealed blanket unless the pack is damaged — then it is a replace.",
+    checks: [
+      "Correct location, accessible, signage/instructions readable.",
+      "Container/pack intact. If the blanket is exposed, check for contamination, holes, and that it is still a fire blanket.",
+      "Replace rather than 'fold it nicer' if it has been used or is damaged."
+    ]
+  },
+  {
+    group: "Blankets", system: "Fire blankets", freq: "Yearly", table: "Sec 11 · yearly",
+    tags: "blanket yearly",
+    why: "Same idea as six-monthly with the extra yearly table items.",
+    checks: [
+      "Do six-monthly items.",
+      "Any extra yearly inspection the table lists. Record replacement dates."
+    ]
+  },
+
+  {
+    group: "Passive", system: "Passive & smoke", freq: "About", table: "Section 12 · passive fire and smoke systems",
+    tags: "fire door smoke door seal closer latch gap penetration collar damper wall",
+    why: "Doors, walls, penetrations, smoke seals — the stuff that does not pump water. A fire door that does not latch is an open hole in the compartment. Horizontal sliding fire doors have extra monthly items where fitted.",
+    checks: [
+      "Fire/smoke doors: they close, latch, seals meet, closer works, no wedge, gaps not enormous, signage on the door.",
+      "Penetrations, collars, fire-stopping: still there after the electrician's last visit.",
+      "Some sliding / roller fire doors need monthly operation. Swinging doors are typically six-monthly / yearly."
+    ]
+  },
+  {
+    group: "Passive", system: "Passive & smoke", freq: "Monthly", table: "Sec 12 · monthly where sliding / special doors are fitted",
+    tags: "fire door monthly sliding horizontal roller",
+    why: "Only some door types have monthly. Swinging fire doors are not a monthly walk unless the site has added it.",
+    checks: [
+      "Horizontal sliding / roller / special fire doors: operate as the monthly table requires so they have not seized on the rail.",
+      "Clear the tracks. No stock stored in the door's path. Fusible links / hold-open devices still intact.",
+      "If the building has none of these, monthly passive may be empty — do not skip six-monthly swinging doors because of that."
+    ]
+  },
+  {
+    group: "Passive", system: "Passive & smoke", freq: "6-monthly", table: "Sec 12 · six-monthly doors and seals",
+    tags: "fire door smoke door seal closer latch gap signage six monthly",
+    why: "Every swinging fire/smoke door on the register.",
+    checks: [
+      "Door closes fully from the open position under its closer — no wind, no bind, no missing closer.",
+      "Latches. A door that kisses the frame and bounces open is a fail.",
+      "Smoke/fire seals present, not painted solid, not torn. Bottom seals / saddles still there.",
+      "Gaps at the meeting stiles and head not excessive. Glass and vision panels intact. Signage ('fire door keep shut') readable.",
+      "No wedges, no door-stop tricks, no broken hold-open that leaves it open on alarm. Electromagnetic hold-opens release on alarm/test as installed.",
+      "Hardware: panic bars, locksets that still allow latching. Frame and hinges sound."
+    ]
+  },
+  {
+    group: "Passive", system: "Passive & smoke", freq: "Yearly", table: "Sec 12 / Table 12.4.5 yearly",
+    tags: "fire door yearly sliding penetration fire stopping",
+    why: "Six-monthly doors plus the extra yearly passive items, including a harder look at penetrations and sliding doors.",
+    checks: [
+      "Do six-monthly door service first.",
+      "Yearly extra items in Table 12.4.5 — including more thorough sliding-door / shutter checks.",
+      "Spot-survey penetrations, fire collars, and stopping after fit-outs. A new cable tray through a fire wall with no collar is a defect.",
+      "Smoke curtains / automatic smoke barriers if fitted: deploy as scheduled."
+    ]
+  },
+  {
+    group: "Passive", system: "Passive & smoke", freq: "5-yearly", table: "Sec 12 · Table 12.4.5 selected 5-yearly (e.g. item 5.6(b))",
+    tags: "passive five yearly",
+    why: "Selected passive items are five-yearly.",
+    checks: [
+      "Check Table 12.4.5 for 5-yearly items (including 5.6(b) class items).",
+      "Tolerance ±3 months.",
+      "Use the visit for a proper compartmentation survey if the building has had years of trades."
+    ]
+  },
+
+  {
+    group: "Mechanical", system: "Mechanical smoke", freq: "About", table: "Section 13 · fire and smoke control features of mechanical services",
+    tags: "smoke control fan stair pressurisation damper fire smoke HVAC zone",
+    why: "Fans, stair pressurisation, zone pressurisation, fire and smoke dampers — the air side of the fire strategy. Dampers are the ones fitters forget: they sit in ducts and seize.",
+    checks: [
+      "Monthly: fans and auto functions that the table lists — stair press and smoke-control fans should not be a yearly surprise.",
+      "Yearly: 20% of fire/smoke dampers on a rolling sample so every damper is done inside 5 years. If 10–20% of that sample fail, inspect all dampers within 12 months.",
+      "Cause-and-effect with the FIP: the right fans start/stop, the right dampers close, the stairs pressurise, relief works."
+    ]
+  },
+  {
+    group: "Mechanical", system: "Mechanical smoke", freq: "Monthly", table: "Sec 13 · monthly fans / indicators",
+    tags: "smoke control fan stair pressurisation monthly indicator auto",
+    why: "Prove the smoke-control fans and indicators are not sitting in fault.",
+    checks: [
+      "Stair pressurisation / smoke-control / zone fans: status indicators normal, auto available, no silenced faults.",
+      "Auto functions as the monthly table requires (a start/status prove, not necessarily a full building dump of smoke).",
+      "Power, belts (if you can see them), intakes not boarded over, discharge not into a new wall.",
+      "Interface lamps at the FIP / fire fan control panel match reality."
+    ]
+  },
+  {
+    group: "Mechanical", system: "Mechanical smoke", freq: "Yearly", table: "Sec 13 · yearly · Cl 13.4.1.4 damper sample",
+    tags: "damper 20 percent rolling five year fail sample stair press fan",
+    why: "Fans get a proper run; dampers get a rolling sample so they are not all left for year five.",
+    checks: [
+      "Full functional of smoke-control and stair-press systems as yearly tables require: start from FIP, correct direction, pressure in the stair, relief, door-opening force not ridiculous.",
+      "Fire and smoke dampers: inspect/operate 20% of the population, chosen so that all dampers are covered within 5 years. Record which ones so you do not test the easy plant-room dampers every year.",
+      "If 10–20% of that sample fail (seized, broken fusible link, blade not closing, access panel missing), inspect ALL dampers within 12 months. If more than 20% fail, that is a system problem — open the lot.",
+      "Access panels still exist. A damper you cannot get to is not 'passed'.",
+      "Cause-and-effect with detection (Sec 6): the right zone trips the right fans/dampers."
+    ]
+  },
+  {
+    group: "Mechanical", system: "Mechanical smoke", freq: "5-yearly", table: "Sec 13 · 13.4.1.4 / .10 / .12 / .14",
+    tags: "damper five yearly mechanical survey",
+    why: "Catch the dampers and mechanical items that were not in this year's 20%, plus the extra five-yearly mechanical tables.",
+    checks: [
+      "Complete any remaining damper population so the 5-year loop is closed.",
+      "Extra mechanical/smoke items in 13.4.1.10 / .12 / .14 as scheduled.",
+      "Survey: new ducts through fire walls without dampers, fans replaced with the wrong type, stair doors fitted with extra latches that kill pressurisation."
+    ]
+  },
+
+  {
+    group: "Planning", system: "Emergency planning", freq: "About", table: "Section 14 · emergency planning in facilities",
+    tags: "emergency plan warden evacuation diagram AS 3745",
+    why: "The human side: emergency plan, wardens, evacuation diagrams. Related to AS 3745. Fitters bump into this when the logbook cupboard also holds the warden kit.",
+    checks: [
+      "Plan current, matches the building after fit-outs.",
+      "Warden structure, identification, and training as scheduled.",
+      "Evacuation diagrams in the right places, oriented correctly, not five years out of date."
+    ]
+  },
+  {
+    group: "Planning", system: "Emergency planning", freq: "6-monthly", table: "Sec 14 · six-monthly",
+    tags: "emergency six monthly warden",
+    why: "The shorter emergency-planning items — often warden/equipment checks rather than a full plan rewrite.",
+    checks: [
+      "Warden identification, kits, and communications as the six-monthly table lists.",
+      "Evacuation diagrams still on the wall and still true after the last fit-out.",
+      "Any six-monthly exercise/brief the table or the site's AS 3745 program requires."
+    ]
+  },
+  {
+    group: "Planning", system: "Emergency planning", freq: "Yearly", table: "Sec 14 · yearly",
+    tags: "emergency plan yearly warden evacuation diagram",
+    why: "Confirm the plan is still the plan for this building.",
+    checks: [
+      "Emergency plan reviewed and current: occupancy, exits, fire systems, assembly areas, shutdowns.",
+      "Warden list and training not stale. Chief warden actually exists.",
+      "Diagrams: location, orientation ('you are here'), version date, exits, extinguishers, hose reels, FIPs, assembly area.",
+      "Coordination with the fire-system isolation procedure so a sprinkler drain-down is not a surprise during an evacuation drill."
+    ]
+  }
+];
+
+let asSys = "";
+let asFreq = "";
+
+function setupAS1851() {
+  const sys = ["", "General", "Sprinklers", "Fire pumps", "Hydrants", "Water tanks", "Detection & EWIS", "Special hazards", "Lay-flat hose", "Hose reels", "Extinguishers", "Fire blankets", "Passive & smoke", "Mechanical smoke", "Emergency planning"];
+  const freq = ["", "About", "Monthly", "3-monthly", "6-monthly", "Yearly", "2-yearly", "5-yearly", "10-yearly+"];
+  const sysHost = document.getElementById("asSysChips");
+  const freqHost = document.getElementById("asFreqChips");
+  sysHost.innerHTML = sys.map(s => `<button type="button" data-s="${s}" class="${s === asSys ? "on" : ""}">${s || "All systems"}</button>`).join("");
+  freqHost.innerHTML = freq.map(s => `<button type="button" data-f="${s}" class="${s === asFreq ? "on" : ""}">${s || "All frequencies"}</button>`).join("");
+  sysHost.querySelectorAll("button").forEach(b => b.onclick = () => {
+    asSys = b.getAttribute("data-s");
+    sysHost.querySelectorAll("button").forEach(x => x.classList.toggle("on", x === b));
+    renderAS1851();
+  });
+  freqHost.querySelectorAll("button").forEach(b => b.onclick = () => {
+    asFreq = b.getAttribute("data-f");
+    freqHost.querySelectorAll("button").forEach(x => x.classList.toggle("on", x === b));
+    renderAS1851();
+  });
+  document.getElementById("asSearch").addEventListener("input", renderAS1851);
+  renderAS1851();
+}
+
+function highlightAS(text, words) {
+  let out = String(text || "").replace(/[&<>]/g, c => ({ "&":"&amp;","<":"&lt;",">":"&gt;" }[c]));
+  words.forEach(w => {
+    if (w.length < 2) return;
+    const re = new RegExp("(" + w.replace(/[.*+?^${}()|[\]\\]/g, "\\$&") + ")", "gi");
+    out = out.replace(re, "<mark>$1</mark>");
+  });
+  return out;
+}
+
+function asHay(e) {
+  return [e.group, e.system, e.freq, e.table, e.tags, e.why, e.also, e.do]
+    .concat(e.checks || [])
+    .join(" ")
+    .toLowerCase();
+}
+
+function renderAS1851() {
+  const q = (document.getElementById("asSearch").value || "").toLowerCase().trim();
+  const words = q.split(/\s+/).filter(Boolean);
+  const rows = AS1851.filter(e => {
+    if (asSys && e.system !== asSys) return false;
+    if (asFreq && e.freq !== asFreq) return false;
+    if (!words.length) return true;
+    const hay = asHay(e);
+    return words.every(w => hay.includes(w));
+  });
+  document.getElementById("asCount").textContent = rows.length
+    ? rows.length + " result" + (rows.length === 1 ? "" : "s")
+    : (q || asSys || asFreq ? "No matches" : "");
+  const host = document.getElementById("asList");
+  if (!rows.length) {
+    host.innerHTML = '<div class="as-card"><p>No matches. Try hydrant, pump, sprinkler, damper, tank, yearly, monthly, about.</p></div>';
+    return;
+  }
+  host.innerHTML = rows.map(e => {
+    const checks = (e.checks || []).map(c => `<li>${highlightAS(c, words)}</li>`).join("");
+    const why = e.why ? `<p class="as-why">${highlightAS(e.why, words)}</p>` : (e.do ? `<p class="as-why">${highlightAS(e.do, words)}</p>` : "");
+    const also = e.also ? `<p class="as-also">${highlightAS(e.also, words)}</p>` : "";
+    return `
+    <div class="as-card">
+      <h3>${highlightAS(e.system + " · " + e.freq, words)}</h3>
+      <div class="meta">${highlightAS(e.table, words)}</div>
+      ${why}
+      ${checks ? `<ul>${checks}</ul>` : ""}
+      ${also}
+    </div>`;
+  }).join("");
+}
+
+const ELBOW_EL_FT = {
+  "3/4": 2, "1": 2, "1-1/4": 3, "1-1/2": 4, "2": 5, "2-1/2": 6,
+  "3": 7, "3-1/2": 8, "4": 10, "5": 12, "6": 14, "8": 18, "10": 22
+};
+let hcSched = "sch10";
+let hcNps = "4";
+
+function elbowElM(nps) {
+  const ft = ELBOW_EL_FT[nps];
+  if (ft != null) return ft * 0.3048;
+  const row = DATA[hcSched].rows.find(r => r.nps === nps);
+  const idIn = row ? row.id : 2;
+  return 30 * idIn * 0.0254;
+}
+
+function setupHydro() {
+  const sh = document.getElementById("hcSched");
+  sh.innerHTML = ORDER.map(k =>
+    `<button type="button" data-s="${k}" class="${k === hcSched ? "on" : ""}">${DATA[k].label}</button>`
+  ).join("");
+  sh.querySelectorAll("button").forEach(b => b.onclick = () => {
+    hcSched = b.getAttribute("data-s");
+    sh.querySelectorAll("button").forEach(x => x.classList.toggle("on", x === b));
+    const rows = DATA[hcSched].rows;
+    if (!rows.some(r => r.nps === hcNps)) hcNps = rows[0].nps;
+    document.getElementById("hcC").value = (hcSched === "cpvc" || hcSched === "ss10" || hcSched === "ss40") ? 150 : 120;
+    fillHcSizes();
+    renderHydro();
+  });
+  fillHcSizes();
+  ["hcQ", "hcL", "hcElb", "hcRise", "hcC"].forEach(id => {
+    document.getElementById(id).addEventListener("input", renderHydro);
+  });
+  renderHydro();
+}
+
+function fillHcSizes() {
+  const host = document.getElementById("hcSize");
+  const rows = DATA[hcSched].rows;
+  host.innerHTML = rows.map(r =>
+    `<button type="button" data-n="${r.nps}" class="${r.nps === hcNps ? "on" : ""}">${r.nps}"</button>`
+  ).join("");
+  host.querySelectorAll("button").forEach(b => b.onclick = () => {
+    hcNps = b.getAttribute("data-n");
+    host.querySelectorAll("button").forEach(x => x.classList.toggle("on", x === b));
+    renderHydro();
+  });
+}
+
+function renderHydro() {
+  const set = DATA[hcSched];
+  const row = set.rows.find(r => r.nps === hcNps) || set.rows[0];
+  const idIn = row.id;
+  const idMm = idIn * 25.4;
+  document.getElementById("hcId").textContent = idMm.toFixed(1);
+  const Q = parseFloat(document.getElementById("hcQ").value);
+  const Lm = parseFloat(document.getElementById("hcL").value);
+  const nEl = parseFloat(document.getElementById("hcElb").value);
+  const rise = parseFloat(document.getElementById("hcRise").value);
+  const C = parseFloat(document.getElementById("hcC").value);
+  const out = document.getElementById("hcOut");
+  if (![Q, Lm, nEl, rise, C, idIn].every(Number.isFinite) || Q <= 0 || C <= 0 || idIn <= 0) {
+    out.innerHTML = '<div class="stat"><label>Total loss</label><b>—</b> <small>kPa</small></div>';
+    return;
+  }
+  const elM = Math.max(0, nEl) * elbowElM(hcNps);
+  const Le = Math.max(0, Lm) + elM;
+  const Qgpm = Q * 15.8503;
+  const pPsiFt = 4.52 * Math.pow(Qgpm, 1.85) / (Math.pow(C, 1.85) * Math.pow(idIn, 4.87));
+  const fricKpa = pPsiFt * (Le * 3.28084) * 6.89476;
+  const statKpa = 9.81 * Math.max(0, rise);
+  const total = fricKpa + statKpa;
+  const kpaM = Le > 0 ? fricKpa / Le : 0;
+  const areaM2 = Math.PI * Math.pow(idIn * 0.0254 / 2, 2);
+  const vel = (Q / 1000) / areaM2;
+  out.innerHTML = `
+    <div class="stat"><label>Equiv. length</label><b>${Le.toFixed(1)}</b> <small>m (${elM.toFixed(1)} m elbows)</small></div>
+    <div class="stat"><label>Friction</label><b>${fricKpa.toFixed(0)}</b> <small>kPa · ${kpaM.toFixed(1)} kPa/m</small></div>
+    <div class="stat"><label>Static rise</label><b>${statKpa.toFixed(0)}</b> <small>kPa · ${Math.max(0, rise).toFixed(1)} m</small></div>
+    <div class="stat"><label>Velocity</label><b>${vel.toFixed(2)}</b> <small>m/s</small></div>
+    <div class="stat hc-total"><label>Total pressure loss</label><b>${total.toFixed(0)}</b> <small>kPa</small></div>`;
+}
+
+let tkShape = "cyl";
+
+function setupTanks() {
+  const host = document.getElementById("tkShape");
+  host.querySelectorAll("button").forEach(b => b.onclick = () => {
+    tkShape = b.getAttribute("data-s");
+    host.querySelectorAll("button").forEach(x => x.classList.toggle("on", x === b));
+    document.getElementById("tkCyl").classList.toggle("hidden", tkShape !== "cyl");
+    document.getElementById("tkRect").classList.toggle("hidden", tkShape !== "rect");
+    renderTanks();
+  });
+  ["tkD", "tkH", "tkL", "tkW", "tkHr", "tkTop", "tkBot", "tkQ"].forEach(id => {
+    document.getElementById(id).addEventListener("input", renderTanks);
+  });
+  renderTanks();
+}
+
+function renderTanks() {
+  const topMm = parseFloat(document.getElementById("tkTop").value);
+  const botMm = parseFloat(document.getElementById("tkBot").value);
+  const Q = parseFloat(document.getElementById("tkQ").value);
+  let area = 0, H = 0;
+  if (tkShape === "cyl") {
+    const D = parseFloat(document.getElementById("tkD").value);
+    H = parseFloat(document.getElementById("tkH").value);
+    if (Number.isFinite(D) && D > 0) area = Math.PI * (D / 2) * (D / 2);
+  } else {
+    const L = parseFloat(document.getElementById("tkL").value);
+    const W = parseFloat(document.getElementById("tkW").value);
+    H = parseFloat(document.getElementById("tkHr").value);
+    if (Number.isFinite(L) && Number.isFinite(W) && L > 0 && W > 0) area = L * W;
+  }
+  const out = document.getElementById("tkOut");
+  if (!(area > 0) || !(H > 0)) {
+    out.innerHTML = '<div class="stat hc-total"><label>Effective capacity</label><b>—</b> <small>kL</small></div>';
+    return;
+  }
+  const topM = (Number.isFinite(topMm) ? Math.max(0, topMm) : 0) / 1000;
+  const botM = (Number.isFinite(botMm) ? Math.max(0, botMm) : 0) / 1000;
+  const Heff = H - topM - botM;
+  const Vgross = area * H;
+  const Vtop = area * topM;
+  const Vbot = area * botM;
+  const Veff = area * Math.max(0, Heff);
+  const kgross = Vgross * 1000;
+  const keff = Veff * 1000;
+  let dur = "—";
+  if (Number.isFinite(Q) && Q > 0 && keff > 0) {
+    const min = keff / (Q * 60);
+    dur = min >= 60 ? (min / 60).toFixed(2) + " h" : min.toFixed(0) + " min";
+  }
+  const warn = Heff <= 0 ? '<p class="notes" style="grid-column:1/-1;color:var(--gold)">Top + bottom unused is bigger than the shell height.</p>' : "";
+  out.innerHTML = `
+    <div class="stat"><label>Plan area</label><b>${area.toFixed(2)}</b> <small>m²</small></div>
+    <div class="stat"><label>Effective water height</label><b>${Math.max(0, Heff).toFixed(3)}</b> <small>m</small></div>
+    <div class="stat"><label>Gross volume</label><b>${kgross.toFixed(0)}</b> <small>L · ${(kgross / 1000).toFixed(2)} kL</small></div>
+    <div class="stat"><label>Unusable top</label><b>${(Vtop * 1000).toFixed(0)}</b> <small>L</small></div>
+    <div class="stat"><label>Unusable bottom</label><b>${(Vbot * 1000).toFixed(0)}</b> <small>L</small></div>
+    <div class="stat"><label>Duration at demand</label><b>${dur}</b> <small>${Number.isFinite(Q) && Q > 0 ? Q + " L/s" : "enter flow"}</small></div>
+    <div class="stat hc-total"><label>Effective capacity</label><b>${(keff / 1000).toFixed(2)}</b> <small>kL · ${keff.toFixed(0)} L</small></div>
+    ${warn}`;
+}
+
+function showPage(page) {
+  document.querySelectorAll(".nav button").forEach(b => b.classList.toggle("on", b.getAttribute("data-page") === page));
+  ["pipe", "annubar", "flange", "pump", "hydro", "tanks", "as1851"].forEach(p => {
+    const el = document.getElementById("page-" + p);
+    if (el) el.classList.toggle("on", p === page);
+  });
+  document.getElementById("pipeUnits").style.display = page === "pipe" ? "flex" : "none";
+  setAppTitle(page);
+  if (page === "annubar") {
+    document.getElementById("appSub").innerHTML = "Annubar probes • pipe size • L/s from inHg<br>Type K to match the probe card";
+    renderAnnu();
+  } else if (page === "flange") {
+    document.getElementById("appSub").innerHTML = "Flange ID • Table D / E / F / H • ANSI • PN16<br>OD, PCD, bolts, hole size";
+    renderFlange();
+  } else if (page === "pump") {
+    document.getElementById("appSub").innerHTML = "Pump curve • kPa vs L/s spline<br>Autosave by job name";
+    renderJobList();
+    drawPump();
+  } else if (page === "hydro") {
+    document.getElementById("appSub").innerHTML = "Hydro-Calcs • friction + static kPa<br>Pipe size, length, elbows, rise";
+    renderHydro();
+  } else if (page === "tanks") {
+    document.getElementById("appSub").innerHTML = "Tank volume • gross and effective kL<br>AS 2304 / AS 2419 / AS 3500.1";
+    renderTanks();
+  } else if (page === "as1851") {
+    document.getElementById("appSub").innerHTML = "Routine service of fire protection systems<br>What is in AS 1851 · frequencies · typical field checks";
+    renderAS1851();
+  } else {
+    document.getElementById("appSub").innerHTML = "Fire protection pipe OD, wall, and ID<br>Sch 10 mill • SS 10S • Sch 40 • SS 40S • Sch 5 • CPVC";
+  }
+}
+
+function setAppTitle(page) {
+  const el = document.getElementById("appTitle");
+  if (!el) return;
+  if (page === "as1851") {
+    el.innerHTML = '<span class="brand-fit">AS 1851</span><span class="brand-sep">·</span><span class="brand-calcs">2012</span>';
+  } else {
+    el.innerHTML = '<span class="brand-fit">FITTER</span><span class="brand-sep">·</span><span class="brand-calcs">CALCS</span>';
+  }
+}
+
+function isPcApp() {
+  if (window.FitterCalcsPC) return true;
+  const ua = navigator.userAgent || "";
+  return !/Android|iPhone|iPad|Mobile/i.test(ua);
+}
+
+const KBD_SEL = "button, input, select, textarea, summary, tbody tr[data-nps], tbody tr[data-dn]";
+let kbdEl = null;
+let kbdKey = "";
+let kbdRestoreTimer = 0;
+
+function kbdShown(el) {
+  if (!el || el.disabled) return false;
+  const overlay = document.getElementById("pumpOverlay");
+  const overlayOpen = overlay && !overlay.classList.contains("hidden");
+  if (overlayOpen) {
+    if (!overlay.contains(el)) return false;
+  } else if (el.closest(".page") && !el.closest(".page.on")) return false;
+  if (el.closest(".hidden")) return false;
+  const cs = getComputedStyle(el);
+  if (cs.display === "none" || cs.visibility === "hidden") return false;
+  const r = el.getBoundingClientRect();
+  return r.width > 1 && r.height > 1;
+}
+
+function kbdItems() {
+  return [...document.querySelectorAll(KBD_SEL)].filter(kbdShown);
+}
+
+function kbdKeyOf(el) {
+  if (!el) return "";
+  if (el.id) return "id:" + el.id;
+  if (el.dataset.page) return "nav:" + el.dataset.page;
+  const page = (el.closest(".page") || {}).id || "root";
+  const host = (el.parentElement || {}).id || "";
+  if (el.dataset.nps) return page + ":nps:" + el.dataset.nps;
+  if (el.dataset.dn) return page + ":dn:" + el.tagName + ":" + el.dataset.dn;
+  if (el.dataset.s != null) return page + ":s:" + host + ":" + el.dataset.s;
+  if (el.dataset.k) return page + ":k:" + host + ":" + el.dataset.k;
+  if (el.dataset.pr) return page + ":pr:" + el.dataset.pr;
+  if (el.dataset.n) return page + ":n:" + el.dataset.n;
+  if (el.dataset.f != null) return page + ":f:" + el.dataset.f;
+  if (el.dataset.open) return page + ":open:" + el.dataset.open;
+  if (el.dataset.del) return page + ":del:" + el.dataset.del;
+  if (el.dataset.i != null) return page + ":i:" + el.className + ":" + el.dataset.i;
+  return page + ":" + el.tagName + ":" + host + ":" + (el.textContent || "").trim().slice(0, 24);
+}
+
+function setKbd(el) {
+  if (!el) return;
+  document.querySelectorAll(".kbd-on").forEach(n => n.classList.remove("kbd-on"));
+  kbdEl = el;
+  kbdKey = kbdKeyOf(el);
+  el.classList.add("kbd-on");
+  if (el.matches("input, textarea, select")) {
+    if (document.activeElement !== el) {
+      try { el.focus({ preventScroll: true }); } catch (e) { el.focus(); }
+    }
+  } else if (document.activeElement && document.activeElement.matches("input, textarea, select")) {
+    document.activeElement.blur();
+  }
+  try { el.scrollIntoView({ block: "nearest", inline: "nearest" }); } catch (e) {}
+}
+
+function restoreKbd() {
+  if (!document.documentElement.classList.contains("pc")) return;
+  const items = kbdItems();
+  if (!items.length) return;
+  let found = kbdKey ? items.find(el => kbdKeyOf(el) === kbdKey) : null;
+  if (!found && kbdEl && items.indexOf(kbdEl) >= 0) found = kbdEl;
+  setKbd(found || items[0]);
+}
+
+function queueRestoreKbd() {
+  cancelAnimationFrame(kbdRestoreTimer);
+  kbdRestoreTimer = requestAnimationFrame(restoreKbd);
+}
+
+function moveKbd(dx, dy) {
+  const items = kbdItems();
+  if (!items.length) return;
+  let i = items.indexOf(kbdEl);
+  if (i < 0) { setKbd(items[0]); return; }
+  const cur = items[i];
+  const cr = cur.getBoundingClientRect();
+  const cx = cr.left + cr.width / 2;
+  const cy = cr.top + cr.height / 2;
+  const sameRow = r => Math.abs(r.top - cr.top) < 18;
+  if (dx) {
+    const row = items.filter(el => el !== cur && sameRow(el.getBoundingClientRect()));
+    const ahead = row.filter(el => {
+      const x = el.getBoundingClientRect().left + el.getBoundingClientRect().width / 2;
+      return dx > 0 ? x > cx + 1 : x < cx - 1;
+    }).sort((a, b) => dx * (a.getBoundingClientRect().left - b.getBoundingClientRect().left));
+    if (ahead[0]) return setKbd(ahead[0]);
+    if (row.length) {
+      row.sort((a, b) => a.getBoundingClientRect().left - b.getBoundingClientRect().left);
+      return setKbd(dx > 0 ? row[0] : row[row.length - 1]);
+    }
+    return setKbd(items[(i + dx + items.length) % items.length]);
+  }
+  if (dy) {
+    let best = null, bestScore = Infinity;
+    items.forEach(el => {
+      if (el === cur) return;
+      const r = el.getBoundingClientRect();
+      const y = r.top + r.height / 2;
+      const x = r.left + r.width / 2;
+      const yDist = y - cy;
+      if (dy > 0 && yDist < 10) return;
+      if (dy < 0 && yDist > -10) return;
+      const overlap = Math.max(0, Math.min(cr.right, r.right) - Math.max(cr.left, r.left));
+      const score = Math.abs(yDist) * 4 + Math.abs(x - cx) - overlap * 3;
+      if (score < bestScore) { bestScore = score; best = el; }
+    });
+    if (best) setKbd(best);
+  }
+}
+
+function activateKbd() {
+  if (!kbdEl) return;
+  if (kbdEl.tagName === "SUMMARY") {
+    const d = kbdEl.closest("details");
+    if (d) d.open = !d.open;
+    return;
+  }
+  kbdEl.click();
+}
+
+function inputKeepsLeftRight(e) {
+  const el = document.activeElement;
+  if (!el || !el.matches("input, textarea")) return false;
+  const type = (el.type || "text").toLowerCase();
+  if (type === "number") return false;
+  try {
+    const start = el.selectionStart, end = el.selectionEnd, len = String(el.value || "").length;
+    if (start !== end) return true;
+    if (e.key === "ArrowLeft" && start > 0) return true;
+    if (e.key === "ArrowRight" && end < len) return true;
+  } catch (err) {
+    return type === "text" || type === "search";
+  }
+  return false;
+}
+
+function setupPcKeys() {
+  if (!isPcApp()) return;
+  document.documentElement.classList.add("pc");
+  document.addEventListener("click", e => {
+    const el = e.target.closest(KBD_SEL);
+    if (el && kbdShown(el)) setKbd(el);
+  }, true);
+  document.addEventListener("keydown", e => {
+    if (e.altKey || e.ctrlKey || e.metaKey) return;
+    const key = e.key;
+    if (key === "Escape") {
+      if (pumpOverlayOpen) {
+        e.preventDefault();
+        requestClosePumpOverlay();
+      }
+      return;
+    }
+    if (key === "ArrowLeft") {
+      if (inputKeepsLeftRight(e)) return;
+      e.preventDefault();
+      moveKbd(-1, 0);
+    } else if (key === "ArrowRight") {
+      if (inputKeepsLeftRight(e)) return;
+      e.preventDefault();
+      moveKbd(1, 0);
+    } else if (key === "ArrowUp") {
+      e.preventDefault();
+      moveKbd(0, -1);
+    } else if (key === "ArrowDown") {
+      e.preventDefault();
+      moveKbd(0, 1);
+    } else if (key === "Enter") {
+      if (kbdEl && kbdEl.matches("input, textarea")) {
+        e.preventDefault();
+        moveKbd(0, 1);
+        return;
+      }
+      e.preventDefault();
+      activateKbd();
+    }
+  }, true);
+  try {
+    new MutationObserver(queueRestoreKbd).observe(document.body, { childList: true, subtree: true });
+  } catch (e) {}
+  const on = document.querySelector(".nav button.on") || kbdItems()[0];
+  if (on) setKbd(on);
+}
+
+function setup() {
+  const host = document.getElementById("schedules");
+  host.innerHTML = ORDER.map(key =>
+    `<button type="button" data-s="${key}" class="${key === schedule ? "on" : ""}">${DATA[key].label}</button>`
+  ).join("");
+  host.querySelectorAll("button").forEach(btn => {
+    btn.addEventListener("click", () => {
+      schedule = btn.getAttribute("data-s");
+      host.querySelectorAll("button").forEach(b => b.classList.toggle("on", b === btn));
+      render();
+    });
+  });
+  document.getElementById("btnIn").onclick = () => { metric = false; document.getElementById("btnIn").classList.add("on"); document.getElementById("btnMm").classList.remove("on"); render(); };
+  document.getElementById("btnMm").onclick = () => { metric = true; document.getElementById("btnMm").classList.add("on"); document.getElementById("btnIn").classList.remove("on"); render(); };
+  document.querySelectorAll(".nav button").forEach(btn => {
+    btn.addEventListener("click", () => {
+      const page = btn.getAttribute("data-page");
+      document.querySelectorAll(".nav button").forEach(b => b.classList.toggle("on", b === btn));
+      showPage(page);
+    });
+  });
+  setupAnnu();
+  setupFlange();
+  setupPump();
+  setupHydro();
+  setupTanks();
+  setupAS1851();
+  const buildEl = document.getElementById("appBuild");
+  if (buildEl) {
+    buildEl.textContent = "v" + APP_VERSION;
+    buildEl.onclick = () => {
+      if (window.OnlyFitters && OnlyFitters.checkUpdate) OnlyFitters.checkUpdate();
+    };
+  }
+  const updBtn = document.getElementById("updateNow");
+  if (updBtn) {
+    updBtn.onclick = () => {
+      if (window.OnlyFitters && OnlyFitters.installUpdate) OnlyFitters.installUpdate();
+    };
+  }
+  window.FitterCalcsUpdate = {
+    show: function(version, notes) {
+      const banner = document.getElementById("updateBanner");
+      const title = document.getElementById("updateTitle");
+      const note = document.getElementById("updateNotes");
+      if (!banner) return;
+      if (title) title.textContent = "FitterCalcs " + version + " is online";
+      if (note) note.textContent = notes || "Tap Update to download and install.";
+      banner.classList.remove("hidden");
+    }
+  };
+  render();
+  setupPcKeys();
+}
+
+const INHG_TO_INH2O = 13.595;
+const GPM_PER_LS = 15.8503;
+
+const ANNU_PROBES = {
+  "3/8": { label: "3/8\"", dMm: 9.53, c1: -1.3452, c2: 0.9200 },
+  "20T": { label: "20T", dMm: 20.0, c1: -1.4300, c2: 1.2650 },
+  "21T": { label: "21T", dMm: 21.0, c1: -1.4300, c2: 1.2650 }
+};
+
+const ANNU_PIPES = {
+  sch10: {
+    label: "Sch 10",
+    sizes: {
+      "50": 54.8, "65": 66.9, "80": 82.8, "90": 95.5,
+      "100": 108.2, "125": 134.5, "150": 161.5, "200": 209.5
+    }
+  },
+  ss10: {
+    label: "SS 10S",
+    sizes: {
+      "50": 54.8, "65": 66.9, "80": 82.8, "90": 95.5,
+      "100": 108.2, "125": 134.5, "150": 161.5, "200": 211.6
+    }
+  },
+  sch40: {
+    label: "Sch 40",
+    sizes: {
+      "50": 52.5, "65": 62.7, "80": 77.9, "90": 90.1,
+      "100": 102.3, "125": 128.2, "150": 154.1, "200": 202.7
+    }
+  },
+  ss40: {
+    label: "SS 40S",
+    sizes: {
+      "50": 52.5, "65": 62.7, "80": 77.9, "90": 90.1,
+      "100": 102.3, "125": 128.2, "150": 154.1, "200": 202.7
+    }
+  },
+  copper: {
+    label: "Cu B",
+    sizes: {
+      "50": 48.4, "65": 60.2, "80": 72.9,
+      "100": 98.3, "125": 123.3, "150": 148.3
+    }
+  }
+};
+const ANNU_DNS = ["50", "65", "80", "90", "100", "125", "150", "200"];
+const ANNU_DN_NPS = {
+  "50": "2", "65": "2-1/2", "80": "3", "90": "3-1/2",
+  "100": "4", "125": "5", "150": "6", "200": "8"
+};
+const ANNU_DP = [0.5, 1, 1.5, 2, 3, 4, 5, 6, 8, 10, 12, 15, 20, 25, 30];
+const ANNU_K_CAL = {
+  "20T": { k: 0.637, nps: "2" },
+  "21T": { k: 0.672, nps: "4" }
+};
+
+let annuKind = "sch10";
+let annuDn = "50";
+let annuProbe = "3/8";
+let annuKManual = false;
+
+function probeSpec() { return ANNU_PROBES[annuProbe]; }
+function annuKRaw(idMm, probeKey) {
+  const p = ANNU_PROBES[probeKey];
+  if (!p || !(idMm > 0)) return NaN;
+  const D = idMm / 25.4;
+  const dIn = p.dMm / 25.4;
+  const B = (4 * dIn) / (Math.PI * D);
+  const t = 1 - p.c2 * B;
+  const den = 1 - p.c1 * t * t;
+  if (t <= 0 || den <= 0) return NaN;
+  return t / Math.sqrt(den);
+}
+function annuCalIdMm(probeKey) {
+  const cal = ANNU_K_CAL[probeKey];
+  const nps = cal && cal.nps ? cal.nps : "4";
+  const row = DATA.sch40.rows.find(r => r.nps === nps);
+  return row.id * 25.4;
+}
+function annuK(idMm) {
+  const raw = annuKRaw(idMm, annuProbe);
+  if (!Number.isFinite(raw)) return raw;
+  const cal = ANNU_K_CAL[annuProbe];
+  if (!cal) return raw;
+  const ref = annuKRaw(annuCalIdMm(annuProbe), annuProbe);
+  if (!Number.isFinite(ref) || ref === 0) return raw;
+  return raw * (cal.k / ref);
+}
+function readAnnuK(idMm) {
+  const el = document.getElementById("annuKIn");
+  const v = parseFloat(el && el.value);
+  if (annuKManual && Number.isFinite(v) && v > 0) return v;
+  return annuK(idMm);
+}
+function flowFromInHg(idMm, inHg, kUsed) {
+  const D = idMm / 25.4;
+  const calc = annuK(idMm);
+  const K = Number.isFinite(kUsed) && kUsed > 0 ? kUsed : calc;
+  if (!Number.isFinite(K)) return { gpm: NaN, ls: NaN, lpm: NaN, ms: NaN, K, B: NaN, calc };
+  const dIn = probeSpec().dMm / 25.4;
+  const B = (4 * dIn) / (Math.PI * D);
+  const gpm = 5.6664 * K * D * D * Math.sqrt(Math.max(inHg, 0) * INHG_TO_INH2O);
+  const ls = gpm / GPM_PER_LS;
+  const area = Math.PI * Math.pow(idMm / 2000, 2);
+  const ms = (ls / 1000) / area;
+  return { gpm, ls, lpm: ls * 60, ms, K, B, calc };
+}
+function currentAnnuId() {
+  const nps = ANNU_DN_NPS[annuDn];
+  if (nps && DATA[annuKind]) {
+    const row = DATA[annuKind].rows.find(r => r.nps === nps);
+    if (row) return row.id * 25.4;
+  }
+  return ANNU_PIPES[annuKind].sizes[annuDn] || null;
+}
+function renderAnnu() {
+  const id = currentAnnuId();
+  const kind = ANNU_PIPES[annuKind];
+  if (!id) {
+    if (!kind.sizes[annuDn]) annuDn = Object.keys(kind.sizes)[0];
+    return renderAnnu();
+  }
+  const inHg = parseFloat(document.getElementById("inHg").value) || 0;
+  const calc = annuK(id);
+  const kEl = document.getElementById("annuKIn");
+  if (!annuKManual && kEl && document.activeElement !== kEl) {
+    kEl.value = Number.isFinite(calc) ? calc.toFixed(3) : "";
+  }
+  const usedK = readAnnuK(id);
+  const q = flowFromInHg(id, Math.max(inHg, 0), usedK);
+  const p = probeSpec();
+  document.getElementById("annuTitle").textContent = "DN" + annuDn + " " + kind.label + " • " + p.label;
+  document.getElementById("annuProbeLabel").textContent = p.label + "  " + p.dMm.toFixed(2) + " mm OD • water";
+  document.getElementById("annuId").textContent = id.toFixed(1);
+  document.getElementById("annuKCalc").textContent = Number.isFinite(calc) ? calc.toFixed(3) : "—";
+  document.getElementById("annuProbeOd").textContent = p.dMm.toFixed(2);
+  if (!Number.isFinite(q.ls)) {
+    document.getElementById("annuLs").textContent = "—";
+    document.getElementById("annuLpm").textContent = "Probe too large for this pipe ID";
+  } else {
+    document.getElementById("annuLs").textContent = q.ls.toFixed(2);
+    const note = q.B > 0.35 ? "  •  high blockage" : "";
+    document.getElementById("annuLpm").textContent = q.lpm.toFixed(0) + " L/min  •  " + q.ms.toFixed(2) + " m/s" + note;
+  }
+  document.getElementById("annuRows").innerHTML = ANNU_DP.map(dp => {
+    const r = flowFromInHg(id, dp, usedK);
+    if (!Number.isFinite(r.ls)) {
+      return `<tr><td>${dp.toFixed(1)}</td><td>—</td><td>—</td><td>—</td></tr>`;
+    }
+    const cls = (r.ms > 5 || r.B > 0.35) ? "warn" : "";
+    return `<tr class="${Math.abs(dp - inHg) < 0.05 ? "sel" : ""}">
+      <td>${dp.toFixed(1)}</td>
+      <td>${r.ls.toFixed(2)}</td>
+      <td>${r.lpm.toFixed(0)}</td>
+      <td class="${cls}">${r.ms.toFixed(2)}</td>
+    </tr>`;
+  }).join("");
+}
+function setupAnnu() {
+  const pr = document.getElementById("annuProbe");
+  pr.innerHTML = Object.keys(ANNU_PROBES).map(k =>
+    `<button type="button" data-pr="${k}" class="${k === annuProbe ? "on" : ""}">${ANNU_PROBES[k].label}</button>`
+  ).join("");
+  pr.querySelectorAll("button").forEach(btn => {
+    btn.onclick = () => {
+      annuProbe = btn.getAttribute("data-pr");
+      pr.querySelectorAll("button").forEach(b => b.classList.toggle("on", b === btn));
+      annuKManual = false;
+      renderAnnu();
+    };
+  });
+  const p = document.getElementById("annuPipe");
+  p.innerHTML = ["sch10", "ss10", "sch40", "ss40", "copper"].map(k =>
+    `<button type="button" data-k="${k}" class="${k === annuKind ? "on" : ""}">${ANNU_PIPES[k].label}</button>`
+  ).join("");
+  p.querySelectorAll("button").forEach(btn => {
+    btn.onclick = () => {
+      annuKind = btn.getAttribute("data-k");
+      p.querySelectorAll("button").forEach(b => b.classList.toggle("on", b === btn));
+      if (!ANNU_PIPES[annuKind].sizes[annuDn]) annuDn = Object.keys(ANNU_PIPES[annuKind].sizes)[0];
+      annuKManual = false;
+      paintAnnuSizes();
+      renderAnnu();
+    };
+  });
+  paintAnnuSizes();
+  document.getElementById("inHg").addEventListener("input", renderAnnu);
+  document.getElementById("annuKIn").addEventListener("input", () => {
+    annuKManual = true;
+    renderAnnu();
+  });
+  document.getElementById("annuKAuto").onclick = () => {
+    annuKManual = false;
+    renderAnnu();
+  };
+}
+function paintAnnuSizes() {
+  const s = document.getElementById("annuSize");
+  const sizes = ANNU_PIPES[annuKind].sizes;
+  s.innerHTML = ANNU_DNS.filter(dn => sizes[dn]).map(dn =>
+    `<button type="button" data-dn="${dn}" class="${dn === annuDn ? "on" : ""}">DN${dn}</button>`
+  ).join("");
+  s.querySelectorAll("button").forEach(btn => {
+    btn.onclick = () => {
+      annuDn = btn.getAttribute("data-dn");
+      s.querySelectorAll("button").forEach(b => b.classList.toggle("on", b === btn));
+      annuKManual = false;
+      renderAnnu();
+    };
+  });
+}
+
+const FLANGE = {
+  d: { label: "Table D", note: "AS 2129 • ~700 kPa",
+    rows: {
+      "15": { od:95, t:5, pcd:67, n:4, hole:14, bolt:"M12" },
+      "20": { od:100, t:5, pcd:73, n:4, hole:14, bolt:"M12" },
+      "25": { od:115, t:5, pcd:83, n:4, hole:14, bolt:"M12" },
+      "32": { od:120, t:6, pcd:87, n:4, hole:14, bolt:"M12" },
+      "40": { od:135, t:6, pcd:98, n:4, hole:14, bolt:"M12" },
+      "50": { od:150, t:8, pcd:114, n:4, hole:18, bolt:"M16" },
+      "65": { od:165, t:8, pcd:127, n:4, hole:18, bolt:"M16" },
+      "80": { od:185, t:10, pcd:146, n:4, hole:18, bolt:"M16" },
+      "90": { od:205, t:10, pcd:165, n:4, hole:18, bolt:"M16" },
+      "100": { od:215, t:10, pcd:178, n:4, hole:18, bolt:"M16" },
+      "125": { od:255, t:13, pcd:210, n:8, hole:18, bolt:"M16" },
+      "150": { od:280, t:13, pcd:235, n:8, hole:18, bolt:"M16" },
+      "200": { od:335, t:13, pcd:292, n:8, hole:22, bolt:"M20" },
+      "250": { od:405, t:16, pcd:356, n:8, hole:22, bolt:"M20" },
+      "300": { od:455, t:19, pcd:406, n:12, hole:26, bolt:"M24" }
+    }},
+  e: { label: "Table E", note: "AS 2129 • ~1400 kPa",
+    rows: {
+      "15": { od:95, t:6, pcd:67, n:4, hole:14, bolt:"M12" },
+      "20": { od:100, t:6, pcd:73, n:4, hole:14, bolt:"M12" },
+      "25": { od:115, t:7, pcd:83, n:4, hole:14, bolt:"M12" },
+      "32": { od:120, t:8, pcd:87, n:4, hole:14, bolt:"M12" },
+      "40": { od:135, t:9, pcd:98, n:4, hole:14, bolt:"M12" },
+      "50": { od:150, t:10, pcd:114, n:4, hole:18, bolt:"M16" },
+      "65": { od:165, t:10, pcd:127, n:4, hole:18, bolt:"M16" },
+      "80": { od:185, t:11, pcd:146, n:4, hole:18, bolt:"M16" },
+      "90": { od:205, t:12, pcd:165, n:8, hole:18, bolt:"M16" },
+      "100": { od:215, t:13, pcd:178, n:8, hole:18, bolt:"M16" },
+      "125": { od:255, t:14, pcd:210, n:8, hole:18, bolt:"M16" },
+      "150": { od:280, t:17, pcd:235, n:8, hole:22, bolt:"M20" },
+      "200": { od:335, t:19, pcd:292, n:8, hole:22, bolt:"M20" },
+      "250": { od:405, t:22, pcd:356, n:12, hole:22, bolt:"M20" },
+      "300": { od:455, t:25, pcd:406, n:12, hole:26, bolt:"M24" }
+    }},
+  f: { label: "Table F", note: "AS 2129 • ~2100 kPa • ~AS 4087 PN21",
+    rows: {
+      "15": { od:95, t:10, pcd:67, n:4, hole:14, bolt:"M12" },
+      "20": { od:100, t:10, pcd:73, n:4, hole:14, bolt:"M12" },
+      "25": { od:120, t:10, pcd:87, n:4, hole:18, bolt:"M16" },
+      "32": { od:135, t:13, pcd:98, n:4, hole:18, bolt:"M16" },
+      "40": { od:140, t:13, pcd:105, n:4, hole:18, bolt:"M16" },
+      "50": { od:165, t:16, pcd:127, n:4, hole:18, bolt:"M16" },
+      "65": { od:185, t:16, pcd:146, n:8, hole:18, bolt:"M16" },
+      "80": { od:205, t:16, pcd:165, n:8, hole:18, bolt:"M16" },
+      "100": { od:230, t:19, pcd:191, n:8, hole:18, bolt:"M16" },
+      "125": { od:280, t:22, pcd:235, n:8, hole:22, bolt:"M20" },
+      "150": { od:305, t:22, pcd:260, n:12, hole:22, bolt:"M20" },
+      "200": { od:370, t:25, pcd:324, n:12, hole:22, bolt:"M20" },
+      "250": { od:430, t:29, pcd:381, n:12, hole:26, bolt:"M24" },
+      "300": { od:490, t:32, pcd:438, n:16, hole:26, bolt:"M24" }
+    }},
+  h: { label: "Table H", note: "AS 2129 • ~3500 kPa • ~AS 4087 PN35",
+    rows: {
+      "15": { od:115, t:13, pcd:83, n:4, hole:18, bolt:"M16" },
+      "20": { od:115, t:13, pcd:83, n:4, hole:18, bolt:"M16" },
+      "25": { od:120, t:13, pcd:87, n:4, hole:18, bolt:"M16" },
+      "32": { od:135, t:13, pcd:98, n:4, hole:18, bolt:"M16" },
+      "40": { od:140, t:13, pcd:105, n:4, hole:18, bolt:"M16" },
+      "50": { od:165, t:19, pcd:127, n:4, hole:18, bolt:"M16" },
+      "65": { od:185, t:19, pcd:146, n:8, hole:18, bolt:"M16" },
+      "80": { od:205, t:19, pcd:165, n:8, hole:18, bolt:"M16" },
+      "100": { od:230, t:22, pcd:191, n:8, hole:18, bolt:"M16" },
+      "125": { od:280, t:25, pcd:235, n:8, hole:22, bolt:"M20" },
+      "150": { od:305, t:25, pcd:260, n:12, hole:22, bolt:"M20" },
+      "200": { od:370, t:29, pcd:324, n:12, hole:22, bolt:"M20" },
+      "250": { od:430, t:32, pcd:381, n:12, hole:26, bolt:"M24" },
+      "300": { od:490, t:35, pcd:438, n:16, hole:26, bolt:"M24" }
+    }},
+  a150: { label: "ANSI 150", note: "ASME B16.5 Class 150",
+    rows: {
+      "15": { od:89, t:11, pcd:60, n:4, hole:16, bolt:"1/2\"" },
+      "20": { od:98, t:13, pcd:70, n:4, hole:16, bolt:"1/2\"" },
+      "25": { od:108, t:14, pcd:79, n:4, hole:16, bolt:"1/2\"" },
+      "32": { od:117, t:16, pcd:89, n:4, hole:16, bolt:"1/2\"" },
+      "40": { od:127, t:18, pcd:98, n:4, hole:16, bolt:"1/2\"" },
+      "50": { od:152, t:19, pcd:121, n:4, hole:19, bolt:"5/8\"" },
+      "65": { od:178, t:22, pcd:140, n:4, hole:19, bolt:"5/8\"" },
+      "80": { od:191, t:24, pcd:152, n:4, hole:19, bolt:"5/8\"" },
+      "90": { od:216, t:24, pcd:178, n:8, hole:19, bolt:"5/8\"" },
+      "100": { od:229, t:24, pcd:191, n:8, hole:19, bolt:"5/8\"" },
+      "125": { od:254, t:24, pcd:216, n:8, hole:22, bolt:"3/4\"" },
+      "150": { od:279, t:25, pcd:241, n:8, hole:22, bolt:"3/4\"" },
+      "200": { od:343, t:29, pcd:298, n:8, hole:22, bolt:"3/4\"" },
+      "250": { od:406, t:30, pcd:362, n:12, hole:25, bolt:"7/8\"" },
+      "300": { od:483, t:32, pcd:432, n:12, hole:25, bolt:"7/8\"" }
+    }},
+  a300: { label: "ANSI 300", note: "ASME B16.5 Class 300",
+    rows: {
+      "15": { od:95, t:14, pcd:67, n:4, hole:16, bolt:"1/2\"" },
+      "20": { od:117, t:16, pcd:83, n:4, hole:19, bolt:"5/8\"" },
+      "25": { od:124, t:18, pcd:89, n:4, hole:19, bolt:"5/8\"" },
+      "32": { od:133, t:19, pcd:98, n:4, hole:19, bolt:"5/8\"" },
+      "40": { od:156, t:21, pcd:114, n:4, hole:22, bolt:"3/4\"" },
+      "50": { od:165, t:22, pcd:127, n:8, hole:19, bolt:"5/8\"" },
+      "65": { od:190, t:25, pcd:149, n:8, hole:22, bolt:"3/4\"" },
+      "80": { od:210, t:29, pcd:168, n:8, hole:22, bolt:"3/4\"" },
+      "100": { od:254, t:32, pcd:200, n:8, hole:22, bolt:"3/4\"" },
+      "125": { od:279, t:35, pcd:235, n:8, hole:22, bolt:"3/4\"" },
+      "150": { od:318, t:37, pcd:270, n:12, hole:22, bolt:"3/4\"" },
+      "200": { od:381, t:41, pcd:330, n:12, hole:25, bolt:"7/8\"" },
+      "250": { od:445, t:48, pcd:387, n:16, hole:29, bolt:"1\"" },
+      "300": { od:521, t:51, pcd:451, n:16, hole:32, bolt:"1-1/8\"" }
+    }},
+  pn16: { label: "PN16", note: "EN 1092-1 PN16",
+    rows: {
+      "15": { od:95, t:12, pcd:65, n:4, hole:14, bolt:"M12" },
+      "20": { od:105, t:14, pcd:75, n:4, hole:14, bolt:"M12" },
+      "25": { od:115, t:14, pcd:85, n:4, hole:14, bolt:"M12" },
+      "32": { od:140, t:16, pcd:100, n:4, hole:18, bolt:"M16" },
+      "40": { od:150, t:16, pcd:110, n:4, hole:18, bolt:"M16" },
+      "50": { od:165, t:18, pcd:125, n:4, hole:18, bolt:"M16" },
+      "65": { od:185, t:18, pcd:145, n:4, hole:18, bolt:"M16" },
+      "80": { od:200, t:20, pcd:160, n:8, hole:18, bolt:"M16" },
+      "100": { od:220, t:20, pcd:180, n:8, hole:18, bolt:"M16" },
+      "125": { od:250, t:22, pcd:210, n:8, hole:18, bolt:"M16" },
+      "150": { od:285, t:22, pcd:240, n:8, hole:22, bolt:"M20" },
+      "200": { od:340, t:24, pcd:295, n:8, hole:22, bolt:"M20" },
+      "250": { od:405, t:26, pcd:355, n:12, hole:26, bolt:"M24" },
+      "300": { od:460, t:28, pcd:410, n:12, hole:26, bolt:"M24" }
+    }}
+};
+const FL_ORDER = ["d","e","f","h","a150","a300","pn16"];
+const FL_DNS = ["15","20","25","32","40","50","65","80","90","100","125","150","200","250","300"];
+let flStd = "d";
+let flDn = "100";
+
+function flRow() {
+  const std = FLANGE[flStd];
+  return std.rows[flDn] || null;
+}
+function drawFlange(row) {
+  const svg = document.getElementById("flSvg");
+  const maxOd = 490;
+  const R = 36 + (row.od / maxOd) * 58;
+  const rPcd = R * (row.pcd / row.od);
+  const holeR = Math.max(3, R * (row.hole / row.od));
+  const cx = 100, cy = 100;
+  let holes = "";
+  for (let i = 0; i < row.n; i++) {
+    const a = (Math.PI * 2 * i) / row.n - Math.PI / 2;
+    const x = cx + rPcd * Math.cos(a);
+    const y = cy + rPcd * Math.sin(a);
+    holes += `<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="${holeR.toFixed(1)}" fill="#14110f" stroke="#e8b86d" stroke-width="1.2"/>`;
+  }
+  svg.innerHTML = `
+    <circle cx="${cx}" cy="${cy}" r="${R + 4}" fill="none" stroke="#3a322c"/>
+    <circle cx="${cx}" cy="${cy}" r="${R}" fill="#6a2a32" stroke="#f4ede4" stroke-width="1.4"/>
+    <circle cx="${cx}" cy="${cy}" r="${R * 0.38}" fill="#14110f" stroke="#9aa8b5"/>
+    <circle cx="${cx}" cy="${cy}" r="${rPcd}" fill="none" stroke="#e8b86d" stroke-width="0.8" stroke-dasharray="3 3"/>
+    ${holes}
+    <text x="${cx}" y="${cy + 4}" text-anchor="middle" fill="#f4ede4" font-size="11" font-weight="700">${row.n}</text>
+  `;
+}
+function renderFlange() {
+  const std = FLANGE[flStd];
+  if (!std.rows[flDn]) flDn = Object.keys(std.rows)[0];
+  const row = std.rows[flDn];
+  document.getElementById("flTitle").textContent = "DN" + flDn + "  " + std.label;
+  document.getElementById("flNote").textContent = std.note;
+  document.getElementById("flOd").textContent = row.od;
+  document.getElementById("flPcd").textContent = row.pcd;
+  document.getElementById("flBolts").textContent = row.n + " × " + row.bolt;
+  document.getElementById("flHole").textContent = row.hole + " / " + row.t + " mm";
+  drawFlange(row);
+  document.getElementById("flRows").innerHTML = Object.keys(std.rows).map(dn => {
+    const r = std.rows[dn];
+    return `<tr data-dn="${dn}" class="${dn === flDn ? "sel" : ""}">
+      <td>DN${dn}</td><td>${r.od}</td><td>${r.pcd}</td><td>${r.n}</td><td>${r.hole}</td><td>${r.bolt}</td>
+    </tr>`;
+  }).join("");
+  document.querySelectorAll("#flRows tr").forEach(tr => {
+    tr.onclick = () => { flDn = tr.getAttribute("data-dn"); paintFlSizes(); renderFlange(); };
+  });
+  document.getElementById("flMatchTitle").textContent = "DN" + flDn + " on other standards";
+  document.getElementById("flMatch").innerHTML = FL_ORDER.filter(k => FLANGE[k].rows[flDn]).map(k => {
+    const r = FLANGE[k].rows[flDn];
+    const same = r.od === row.od && r.pcd === row.pcd && r.n === row.n;
+    return `<div class="bar-row"><span>${FLANGE[k].label}</span>
+      <div>${r.n} × ${r.bolt} • PCD ${r.pcd} • OD ${r.od}${same && k !== flStd ? " • same drilling" : ""}</div>
+      <span>${same && k !== flStd ? "mates*" : ""}</span></div>`;
+  }).join("");
+  paintFlSizes();
+}
+function paintFlSizes() {
+  const s = document.getElementById("flSize");
+  const rows = FLANGE[flStd].rows;
+  s.innerHTML = FL_DNS.filter(dn => rows[dn]).map(dn =>
+    `<button type="button" data-dn="${dn}" class="${dn === flDn ? "on" : ""}">DN${dn}</button>`
+  ).join("");
+  s.querySelectorAll("button").forEach(btn => {
+    btn.onclick = () => { flDn = btn.getAttribute("data-dn"); renderFlange(); };
+  });
+}
+function setupFlange() {
+  const p = document.getElementById("flStd");
+  p.innerHTML = FL_ORDER.map(k =>
+    `<button type="button" data-k="${k}" class="${k === flStd ? "on" : ""}">${FLANGE[k].label}</button>`
+  ).join("");
+  p.querySelectorAll("button").forEach(btn => {
+    btn.onclick = () => {
+      flStd = btn.getAttribute("data-k");
+      p.querySelectorAll("button").forEach(b => b.classList.toggle("on", b === btn));
+      if (!FLANGE[flStd].rows[flDn]) flDn = Object.keys(FLANGE[flStd].rows)[0];
+      renderFlange();
+    };
+  });
+}
+
+let pumpPts = [
+  { q: 0, p: 800 },
+  { q: 10, p: 720 },
+  { q: 20, p: 580 },
+  { q: 30, p: 380 }
+];
+const JOBS_KEY = "onlyfitters-pump-jobs";
+const DRAFT_KEY = "onlyfitters-pump-draft";
+let pumpSaveTimer = null;
+let applyingPump = false;
+let activeJobId = "";
+
+function jobStorageKey(job, year, pump) {
+  return (job || "").trim().toLowerCase() + "|" + (year || "") + "|" + (pump || "").trim().toLowerCase();
+}
+function loadJobs() {
+  try { return JSON.parse(localStorage.getItem(JOBS_KEY) || "[]"); } catch (e) { return []; }
+}
+function storeJobs(jobs) {
+  localStorage.setItem(JOBS_KEY, JSON.stringify(jobs.slice(0, 80)));
+}
+function timeAgo(ts) {
+  const s = Math.max(0, Math.round((Date.now() - ts) / 1000));
+  if (s < 10) return "just now";
+  if (s < 60) return s + "s ago";
+  const m = Math.round(s / 60);
+  if (m < 60) return m + " min ago";
+  const h = Math.round(m / 60);
+  if (h < 48) return h + " h ago";
+  return new Date(ts).toLocaleDateString();
+}
+function readReq() {
+  const q = parseFloat(document.getElementById("reqQ").value);
+  const p = parseFloat(document.getElementById("reqP").value);
+  const note = document.getElementById("reqNote").value.trim();
+  if (!Number.isFinite(q) || !Number.isFinite(p)) return null;
+  return { q, p, note };
+}
+function currentPumpState() {
+  return {
+    jobName: document.getElementById("jobName").value.trim(),
+    year: document.getElementById("testYear").value.trim(),
+    pumpId: document.getElementById("pumpId").value.trim(),
+    req: readReq(),
+    reqNote: document.getElementById("reqNote").value.trim(),
+    pts: readPumpPts(),
+    updated: Date.now()
+  };
+}
+function setPumpStatus(msg) {
+  const el = document.getElementById("pumpSaveStatus");
+  if (el) el.textContent = msg || "";
+}
+function applyPumpState(s, id) {
+  applyingPump = true;
+  document.getElementById("jobName").value = s.jobName || "";
+  document.getElementById("testYear").value = s.year || new Date().getFullYear();
+  document.getElementById("pumpId").value = s.pumpId || "";
+  document.getElementById("reqQ").value = s.req && Number.isFinite(s.req.q) ? s.req.q : (s.reqQ || "");
+  document.getElementById("reqP").value = s.req && Number.isFinite(s.req.p) ? s.req.p : (s.reqP || "");
+  document.getElementById("reqNote").value = (s.req && s.req.note) || s.reqNote || "";
+  pumpPts = (s.pts && s.pts.length) ? s.pts.map(p => ({ q: p.q, p: p.p })) : [{ q: 0, p: 0 }];
+  activeJobId = id || s.id || "";
+  renderPumpRows();
+  drawPump();
+  applyingPump = false;
+  renderJobList();
+}
+function autosavePump() {
+  if (applyingPump) return;
+  const s = currentPumpState();
+  try { localStorage.setItem(DRAFT_KEY, JSON.stringify(s)); } catch (e) {}
+  if (!s.jobName) {
+    setPumpStatus("Name the job to keep it in the list");
+    return;
+  }
+  const jobs = loadJobs();
+  const k = jobStorageKey(s.jobName, s.year, s.pumpId);
+  let i = jobs.findIndex(j => j.id === activeJobId);
+  if (i < 0) i = jobs.findIndex(j => jobStorageKey(j.jobName, j.year, j.pumpId) === k);
+  const rec = {
+    id: i >= 0 ? jobs[i].id : String(Date.now()),
+    jobName: s.jobName,
+    year: s.year,
+    pumpId: s.pumpId,
+    req: s.req,
+    reqNote: s.reqNote,
+    pts: s.pts,
+    updated: s.updated
+  };
+  activeJobId = rec.id;
+  if (i >= 0) jobs[i] = rec;
+  else jobs.unshift(rec);
+  jobs.sort((a, b) => b.updated - a.updated);
+  try { storeJobs(jobs); } catch (e) {}
+  setPumpStatus("Autosaved " + timeAgo(s.updated));
+  renderJobList();
+}
+function schedulePumpSave() {
+  if (applyingPump) return;
+  clearTimeout(pumpSaveTimer);
+  pumpSaveTimer = setTimeout(autosavePump, 400);
+}
+function renderJobList() {
+  const host = document.getElementById("pumpJobs");
+  if (!host) return;
+  const jobs = loadJobs();
+  if (!jobs.length) {
+    host.innerHTML = '<p class="notes" style="margin:0 0 8px">No saved jobs yet. Type a job name — the curve autosaves as you edit.</p>';
+    return;
+  }
+  host.innerHTML = jobs.map(j => `
+    <div class="jobcard${j.id === activeJobId ? " on" : ""}">
+      <h3>${escPump(j.jobName)}</h3>
+      <div class="meta">${escPump(j.year || "")}${j.pumpId ? " · " + escPump(j.pumpId) : ""} · ${j.pts ? j.pts.length : 0} pts · ${timeAgo(j.updated || 0)}</div>
+      <div class="rowbtns">
+        <button type="button" data-open="${escPump(j.id)}">Open</button>
+        <button type="button" class="ghost" data-del="${escPump(j.id)}">Delete</button>
+      </div>
+    </div>`).join("");
+  host.querySelectorAll("[data-open]").forEach(b => b.onclick = () => {
+    const rec = loadJobs().find(j => j.id === b.getAttribute("data-open"));
+    if (!rec) return;
+    applyPumpState(rec, rec.id);
+    setPumpStatus("Opened " + rec.jobName);
+  });
+  host.querySelectorAll("[data-del]").forEach(b => b.onclick = () => {
+    const id = b.getAttribute("data-del");
+    storeJobs(loadJobs().filter(j => j.id !== id));
+    if (activeJobId === id) activeJobId = "";
+    renderJobList();
+    setPumpStatus("Deleted");
+  });
+}
+function escPump(s) {
+  return String(s || "").replace(/[&<>"']/g, c => ({ "&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;" }[c]));
+}
+
+function monotoneSpline(pts) {
+  const n = pts.length;
+  if (n === 0) return x => null;
+  if (n === 1) return x => pts[0].p;
+  const x = pts.map(p => p.q);
+  const y = pts.map(p => p.p);
+  const dx = [], dy = [], m = [];
+  for (let i = 0; i < n - 1; i++) {
+    dx[i] = x[i + 1] - x[i];
+    dy[i] = (y[i + 1] - y[i]) / dx[i];
+  }
+  m[0] = dy[0];
+  m[n - 1] = dy[n - 2];
+  for (let i = 1; i < n - 1; i++) {
+    m[i] = (dy[i - 1] * dy[i] <= 0) ? 0 : (dy[i - 1] + dy[i]) / 2;
+  }
+  for (let i = 0; i < n - 1; i++) {
+    if (Math.abs(dy[i]) < 1e-12) { m[i] = m[i + 1] = 0; continue; }
+    const a = m[i] / dy[i], b = m[i + 1] / dy[i];
+    const s = a * a + b * b;
+    if (s > 9) {
+      const t = 3 / Math.sqrt(s);
+      m[i] = t * a * dy[i];
+      m[i + 1] = t * b * dy[i];
+    }
+  }
+  return function (xq) {
+    if (xq <= x[0]) return y[0];
+    if (xq >= x[n - 1]) return y[n - 1];
+    let i = 0;
+    while (i < n - 2 && xq > x[i + 1]) i++;
+    const t = (xq - x[i]) / dx[i];
+    const t2 = t * t, t3 = t2 * t;
+    return (2 * t3 - 3 * t2 + 1) * y[i]
+      + (t3 - 2 * t2 + t) * m[i] * dx[i]
+      + (-2 * t3 + 3 * t2) * y[i + 1]
+      + (t3 - t2) * m[i + 1] * dx[i];
+  };
+}
+
+const brandLogo = new Image();
+brandLogo.src = "logo.png";
+brandLogo.onload = () => { try { drawPump(); } catch (e) {} };
+let skipBrandLogo = false;
+
+function fillTracked(ctx, text, x, y, extra) {
+  let cx = x;
+  for (let i = 0; i < text.length; i++) {
+    const ch = text[i];
+    ctx.fillText(ch, cx, y);
+    cx += ctx.measureText(ch).width + extra;
+  }
+  return cx;
+}
+
+function roundRectPath(ctx, x, y, w, h, r) {
+  const rad = Math.min(r, w / 2, h / 2);
+  ctx.beginPath();
+  ctx.moveTo(x + rad, y);
+  ctx.arcTo(x + w, y, x + w, y + h, rad);
+  ctx.arcTo(x + w, y + h, x, y + h, rad);
+  ctx.arcTo(x, y + h, x, y, rad);
+  ctx.arcTo(x, y, x + w, y, rad);
+  ctx.closePath();
+}
+
+function drawBrandHeader(ctx, w, hBar) {
+  ctx.save();
+  ctx.fillStyle = "#14110f";
+  ctx.fillRect(0, 0, w, hBar);
+  ctx.fillStyle = "#d1243a";
+  ctx.fillRect(0, hBar - 3, w, 3);
+  const logo = Math.round(Math.min(56, hBar - 20));
+  const x = 18;
+  const y = Math.round((hBar - 3 - logo) / 2);
+  if (!skipBrandLogo && brandLogo.complete && brandLogo.naturalWidth) {
+    ctx.save();
+    roundRectPath(ctx, x, y, logo, logo, 14);
+    ctx.clip();
+    ctx.drawImage(brandLogo, x, y, logo, logo);
+    ctx.restore();
+    ctx.strokeStyle = "#5a2a22";
+    ctx.lineWidth = 1.2;
+    roundRectPath(ctx, x, y, logo, logo, 14);
+    ctx.stroke();
+  }
+  const tx = x + logo + 14;
+  ctx.textAlign = "left";
+  ctx.textBaseline = "alphabetic";
+  ctx.fillStyle = "#d1243a";
+  ctx.font = "800 11px sans-serif";
+  fillTracked(ctx, "FIRE PROTECTION", tx, y + 13, 2.4);
+  ctx.font = "800 26px sans-serif";
+  ctx.fillStyle = "#e8b86d";
+  let cx = fillTracked(ctx, "FITTER", tx, y + 44, 1.2);
+  ctx.fillStyle = "#d1243a";
+  ctx.font = "400 26px sans-serif";
+  ctx.fillText(" · ", cx, y + 44);
+  cx += ctx.measureText(" · ").width;
+  ctx.fillStyle = "#f4ede4";
+  ctx.font = "800 26px sans-serif";
+  fillTracked(ctx, "CALCS", cx, y + 44, 1.6);
+  ctx.fillStyle = "#e8b86d";
+  ctx.font = "800 12px sans-serif";
+  const tag = "PUMP CURVE";
+  let tagW = 0;
+  for (let i = 0; i < tag.length; i++) tagW += ctx.measureText(tag[i]).width + 2.2;
+  fillTracked(ctx, tag, w - 20 - tagW, y + 16, 2.2);
+  ctx.fillStyle = "#a89b8c";
+  ctx.font = "800 12px sans-serif";
+  const ver = "v" + APP_VERSION;
+  ctx.fillText(ver, w - 20 - ctx.measureText(ver).width, y + 38);
+  ctx.restore();
+}
+
+function readPumpPts() {
+  const rows = document.querySelectorAll("#pumpPts .ptrow");
+  const pts = [];
+  rows.forEach(row => {
+    const q = parseFloat(row.querySelector(".q").value);
+    const p = parseFloat(row.querySelector(".p").value);
+    if (Number.isFinite(q) && Number.isFinite(p)) pts.push({ q, p });
+  });
+  pts.sort((a, b) => a.q - b.q);
+  const uniq = [];
+  pts.forEach(pt => {
+    if (!uniq.length || Math.abs(uniq[uniq.length - 1].q - pt.q) > 1e-9) uniq.push(pt);
+    else uniq[uniq.length - 1] = pt;
+  });
+  return uniq;
+}
+
+function renderPumpRows() {
+  const host = document.getElementById("pumpPts");
+  host.innerHTML = pumpPts.map((pt, i) => `
+    <div class="ptrow">
+      <input class="q" type="number" inputmode="decimal" step="10" value="${pt.q}" placeholder="L/s" aria-label="L/s"/>
+      <input class="p" type="number" inputmode="decimal" step="1" value="${pt.p}" placeholder="kPa" aria-label="kPa"/>
+      <button type="button" class="delpt" data-i="${i}" aria-label="Remove">×</button>
+    </div>`).join("");
+  host.querySelectorAll("input").forEach(inp => inp.addEventListener("input", () => {
+    pumpPts = readPumpPts();
+    drawPump();
+    schedulePumpSave();
+  }));
+  host.querySelectorAll(".delpt").forEach(btn => btn.onclick = () => {
+    const i = +btn.getAttribute("data-i");
+    pumpPts.splice(i, 1);
+    if (!pumpPts.length) pumpPts = [{ q: 0, p: 0 }];
+    renderPumpRows();
+    drawPump();
+    schedulePumpSave();
+  });
+}
+
+function drawPumpOn(ctx, w, h, pts, job, year, pump, forExport, req) {
+  const hasReq = req && Number.isFinite(req.q) && Number.isFinite(req.p);
+  const hBar = forExport ? 80 : 0;
+  const padL = 88, padR = 32, padB = 72;
+  const padT = forExport ? hBar + (hasReq ? 84 : 60) : 36;
+  ctx.fillStyle = forExport ? "#f7f1ea" : "#f4ede4";
+  ctx.fillRect(0, 0, w, h);
+  if (forExport) {
+    drawBrandHeader(ctx, w, hBar);
+    ctx.textAlign = "left";
+    ctx.textBaseline = "alphabetic";
+    ctx.fillStyle = "#14110f";
+    ctx.font = "800 22px sans-serif";
+    ctx.fillText(job || "Pump test curve", padL, hBar + 28);
+    ctx.font = "700 16px sans-serif";
+    ctx.fillText("Year of test: " + (year || "") + (pump ? "    Pump: " + pump : "") + "    kPa vs L/s", padL, hBar + 50);
+    if (hasReq) {
+      ctx.fillStyle = "#6a4208";
+      ctx.font = "800 16px sans-serif";
+      const reqLine = "System req: " + req.q + " L/s @ " + req.p + " kPa" + (req.note ? "    " + req.note : "");
+      ctx.fillText(reqLine, padL, hBar + 72);
+    }
+  }
+  if (pts.length < 1 && !hasReq) {
+    ctx.fillStyle = "#14110f";
+    ctx.font = "700 20px sans-serif";
+    ctx.fillText("Add flow and pressure points", padL, h / 2);
+    return;
+  }
+  const qs = pts.map(p => p.q), ps = pts.map(p => p.p);
+  const lsStep = 10;
+  let maxQ = Math.max(0, ...(qs.length ? qs : [0]));
+  let maxP = Math.max(0, ...(ps.length ? ps : [100]));
+  if (hasReq) {
+    if (Number.isFinite(req.q)) maxQ = Math.max(maxQ, req.q);
+    if (Number.isFinite(req.p)) maxP = Math.max(maxP, req.p);
+  }
+  const xmin = 0;
+  const xmax = Math.max(lsStep, Math.ceil(maxQ / lsStep) * lsStep);
+  const ymin = 0;
+  const yNice = (function (max, target) {
+    const m = Math.max(max, 1);
+    const raw = m / target;
+    const pow = Math.pow(10, Math.floor(Math.log10(raw)));
+    const n = raw / pow;
+    const step = n <= 1 ? pow : n <= 2 ? 2 * pow : n <= 5 ? 5 * pow : 10 * pow;
+    return { step: step, max: Math.ceil(m / step) * step };
+  })(maxP, 6);
+  const ymax = yNice.max;
+  const yStep = yNice.step;
+  const xOf = q => padL + (q - xmin) / (xmax - xmin) * (w - padL - padR);
+  const yOf = p => padT + (1 - (p - ymin) / (ymax - ymin)) * (h - padT - padB);
+  ctx.strokeStyle = "#d7cbbd";
+  ctx.lineWidth = 1;
+  ctx.fillStyle = "#14110f";
+  ctx.font = "800 16px sans-serif";
+  for (let q = xmin; q <= xmax + 1e-9; q += lsStep) {
+    const x = xOf(q);
+    ctx.beginPath(); ctx.moveTo(x, padT); ctx.lineTo(x, h - padB); ctx.stroke();
+    ctx.textAlign = "center";
+    ctx.fillText(String(Math.round(q)), x, h - padB + 22);
+  }
+  for (let p = ymin; p <= ymax + 1e-9; p += yStep) {
+    const y = yOf(p);
+    ctx.beginPath(); ctx.moveTo(padL, y); ctx.lineTo(w - padR, y); ctx.stroke();
+    ctx.textAlign = "right";
+    ctx.fillText(String(Math.round(p)), padL - 10, y + 6);
+  }
+  ctx.strokeStyle = "#14110f";
+  ctx.lineWidth = 2;
+  ctx.beginPath(); ctx.moveTo(padL, padT); ctx.lineTo(padL, h - padB); ctx.lineTo(w - padR, h - padB); ctx.stroke();
+  ctx.save();
+  ctx.fillStyle = "#14110f";
+  ctx.font = "800 18px sans-serif";
+  ctx.textAlign = "center";
+  ctx.fillText("Flow (L/s)", w / 2, h - 16);
+  ctx.translate(18, (padT + h - padB) / 2);
+  ctx.rotate(-Math.PI / 2);
+  ctx.fillText("Pressure (kPa)", 0, 0);
+  ctx.restore();
+  if (pts.length >= 2) {
+    const f = monotoneSpline(pts);
+    ctx.strokeStyle = "#d1243a";
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    const steps = 80;
+    for (let i = 0; i <= steps; i++) {
+      const q = pts[0].q + (pts[pts.length - 1].q - pts[0].q) * i / steps;
+      const p = f(q);
+      const X = xOf(q), Y = yOf(p);
+      if (i === 0) ctx.moveTo(X, Y); else ctx.lineTo(X, Y);
+    }
+    ctx.stroke();
+  }
+  pts.forEach(pt => {
+    ctx.fillStyle = "#14110f";
+    ctx.beginPath();
+    ctx.arc(xOf(pt.q), yOf(pt.p), 5, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = "#d1243a";
+    ctx.beginPath();
+    ctx.arc(xOf(pt.q), yOf(pt.p), 3, 0, Math.PI * 2);
+    ctx.fill();
+  });
+  if (hasReq) {
+    const X = xOf(req.q), Y = yOf(req.p);
+    ctx.save();
+    ctx.setLineDash([6, 5]);
+    ctx.strokeStyle = "#b8862a";
+    ctx.lineWidth = 1.4;
+    ctx.beginPath();
+    ctx.moveTo(padL, Y);
+    ctx.lineTo(Math.min(w - padR, Math.max(padL, X)), Y);
+    ctx.moveTo(X, h - padB);
+    ctx.lineTo(X, Math.max(padT, Math.min(h - padB, Y)));
+    ctx.stroke();
+    ctx.setLineDash([]);
+    const s = 7;
+    ctx.fillStyle = "#e8b86d";
+    ctx.strokeStyle = "#14110f";
+    ctx.lineWidth = 1.6;
+    ctx.beginPath();
+    ctx.moveTo(X, Y - s);
+    ctx.lineTo(X + s, Y);
+    ctx.lineTo(X, Y + s);
+    ctx.lineTo(X - s, Y);
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+    ctx.fillStyle = "#6a4208";
+    ctx.font = "800 16px sans-serif";
+    ctx.textAlign = X > (padL + w - padR) / 2 ? "right" : "left";
+    ctx.textBaseline = "bottom";
+    let tag = "Req " + req.q + " L/s @ " + req.p + " kPa";
+    if (pts.length >= 2) {
+      const at = monotoneSpline(pts)(req.q);
+      if (Number.isFinite(at)) tag += at + 0.5 >= req.p ? "  (meets)" : "  (below)";
+    }
+    ctx.fillText(tag, X + (ctx.textAlign === "left" ? 10 : -10), Y - 10);
+    ctx.restore();
+  }
+}
+
+function drawPump() {
+  const canvas = document.getElementById("pumpChart");
+  const ctx = canvas.getContext("2d");
+  const job = document.getElementById("jobName").value.trim();
+  const year = document.getElementById("testYear").value.trim();
+  const pump = document.getElementById("pumpId").value.trim();
+  drawPumpOn(ctx, canvas.width, canvas.height, readPumpPts(), job, year, pump, true, readReq());
+  drawPumpBig();
+}
+
+let pumpOverlayOpen = false;
+let pumpOverlayPushed = false;
+
+function sizePumpBig() {
+  const c = document.getElementById("pumpChartBig");
+  if (!c) return;
+  const dpr = Math.min(window.devicePixelRatio || 1, 2.5);
+  const w = Math.max(280, c.clientWidth || window.innerWidth);
+  const h = Math.max(220, c.clientHeight || Math.round(window.innerHeight * 0.8));
+  const tw = Math.round(w * dpr);
+  const th = Math.round(h * dpr);
+  if (c.width !== tw || c.height !== th) {
+    c.width = tw;
+    c.height = th;
+  }
+}
+
+function drawPumpBig() {
+  const overlay = document.getElementById("pumpOverlay");
+  if (!overlay || overlay.classList.contains("hidden")) return;
+  const canvas = document.getElementById("pumpChartBig");
+  if (!canvas) return;
+  sizePumpBig();
+  const ctx = canvas.getContext("2d");
+  const job = document.getElementById("jobName").value.trim();
+  const year = document.getElementById("testYear").value.trim();
+  const pump = document.getElementById("pumpId").value.trim();
+  drawPumpOn(ctx, canvas.width, canvas.height, readPumpPts(), job, year, pump, true, readReq());
+}
+
+function pcFullscreen(on) {
+  if (!window.FitterCalcsPC || !window.OnlyFitters) return;
+  try { OnlyFitters.fullscreen(!!on); } catch (e) {}
+}
+
+function openPumpOverlay() {
+  const overlay = document.getElementById("pumpOverlay");
+  if (!overlay) return;
+  if (pumpOverlayOpen) {
+    drawPumpBig();
+    return;
+  }
+  pumpOverlayOpen = true;
+  overlay.classList.remove("hidden");
+  document.documentElement.classList.add("overlay-open");
+  pcFullscreen(true);
+  const paint = () => {
+    drawPumpBig();
+    const closeBtn = document.getElementById("closePumpOverlay");
+    if (closeBtn && document.documentElement.classList.contains("pc")) setKbd(closeBtn);
+  };
+  requestAnimationFrame(() => requestAnimationFrame(paint));
+  try {
+    history.pushState({ pumpBig: 1 }, "");
+    pumpOverlayPushed = true;
+  } catch (e) {
+    pumpOverlayPushed = false;
+  }
+}
+
+function closePumpOverlay(fromPop) {
+  if (!pumpOverlayOpen) return;
+  pumpOverlayOpen = false;
+  const overlay = document.getElementById("pumpOverlay");
+  if (overlay) overlay.classList.add("hidden");
+  document.documentElement.classList.remove("overlay-open");
+  pcFullscreen(false);
+  if (!fromPop && pumpOverlayPushed) {
+    pumpOverlayPushed = false;
+    try { history.back(); } catch (e) {}
+    return;
+  }
+  pumpOverlayPushed = false;
+  queueRestoreKbd();
+}
+
+function requestClosePumpOverlay() {
+  if (pumpOverlayPushed) {
+    try { history.back(); return; } catch (e) {}
+  }
+  closePumpOverlay(false);
+}
+
+function pumpFileName() {
+  const job = (document.getElementById("jobName").value || "pump").replace(/[^a-zA-Z0-9-_]+/g, "_");
+  const year = document.getElementById("testYear").value || new Date().getFullYear();
+  return "FitterCalcs-" + job + "-" + year + ".png";
+}
+
+function nativeToast(msg) {
+  try {
+    if (window.OnlyFitters) OnlyFitters.toast(String(msg));
+    else alert(msg);
+  } catch (e) {
+    try { alert(msg); } catch (err) {}
+  }
+}
+
+function sendChartToApp(mode, dataUrl, fname, subject, body) {
+  if (window.FitterCalcsPC) {
+    if (mode === "email") OnlyFitters.emailPng(dataUrl, fname, subject, body);
+    else OnlyFitters.savePng(dataUrl, fname);
+    return;
+  }
+  const b64 = dataUrl.indexOf(",") >= 0 ? dataUrl.split(",")[1] : dataUrl;
+  OnlyFitters.beginPng(mode, fname, subject || "", body || "");
+  const CHUNK = 120000;
+  for (let i = 0; i < b64.length; i += CHUNK) {
+    OnlyFitters.appendPng(b64.substring(i, i + CHUNK));
+  }
+  OnlyFitters.finishPng();
+}
+
+function exportPump(mode) {
+  try {
+    const pts = readPumpPts();
+    if (pts.length < 2) {
+      nativeToast("Add at least two points");
+      return;
+    }
+    const c = document.createElement("canvas");
+    c.width = 1400; c.height = 1000;
+    const ctx = c.getContext("2d");
+    const job = document.getElementById("jobName").value.trim();
+    const year = document.getElementById("testYear").value.trim();
+    const pump = document.getElementById("pumpId").value.trim();
+    const req = readReq();
+    skipBrandLogo = false;
+    drawPumpOn(ctx, c.width, c.height, pts, job, year, pump, true, req);
+    let dataUrl;
+    try {
+      dataUrl = c.toDataURL("image/png");
+    } catch (err) {
+      skipBrandLogo = true;
+      drawPumpOn(ctx, c.width, c.height, pts, job, year, pump, true, req);
+      dataUrl = c.toDataURL("image/png");
+      skipBrandLogo = false;
+    }
+    const fname = pumpFileName();
+    const subject = "FitterCalcs pump curve — " + (job || "test") + " " + year;
+    const body = "Job: " + (job || "-") + "\nYear of test: " + (year || "-") + "\nPump: " + (pump || "-") + "\n"
+      + (req ? "System req: " + req.q + " L/s @ " + req.p + " kPa" + (req.note ? " (" + req.note + ")" : "") + "\n" : "")
+      + "\nPoints (L/s, kPa):\n" +
+      pts.map(p => p.q + " L/s  @  " + p.p + " kPa").join("\n");
+    if (window.OnlyFitters) {
+      sendChartToApp(mode, dataUrl, fname, subject, body);
+      return;
+    }
+    const a = document.createElement("a");
+    a.href = dataUrl; a.download = fname; a.click();
+  } catch (e) {
+    nativeToast("Export failed: " + (e && e.message ? e.message : e));
+  }
+}
+
+function setupPump() {
+  document.getElementById("testYear").value = new Date().getFullYear();
+  try {
+    const draft = JSON.parse(localStorage.getItem(DRAFT_KEY) || "null");
+    if (draft && draft.pts && draft.pts.length) {
+      applyPumpState(draft, draft.id || "");
+    }
+  } catch (e) {}
+  renderPumpRows();
+  renderJobList();
+  document.getElementById("addPt").onclick = () => {
+    const pts = readPumpPts();
+    const last = pts[pts.length - 1] || { q: 0, p: 600 };
+    pumpPts = pts.concat([{ q: Math.floor((last.q + 1e-9) / 10) * 10 + 10, p: Math.max(0, last.p - 80) }]);
+    renderPumpRows();
+    drawPump();
+    schedulePumpSave();
+  };
+  document.getElementById("newPumpJob").onclick = () => {
+    applyingPump = true;
+    document.getElementById("jobName").value = "";
+    document.getElementById("testYear").value = new Date().getFullYear();
+    document.getElementById("pumpId").value = "";
+    document.getElementById("reqQ").value = "";
+    document.getElementById("reqP").value = "";
+    document.getElementById("reqNote").value = "";
+    pumpPts = [{ q: 0, p: 800 }, { q: 10, p: 720 }, { q: 20, p: 580 }, { q: 30, p: 380 }];
+    activeJobId = "";
+    renderPumpRows();
+    drawPump();
+    applyingPump = false;
+    setPumpStatus("New curve — name the job to autosave");
+    renderJobList();
+  };
+  ["jobName", "testYear", "pumpId", "reqQ", "reqP", "reqNote"].forEach(id => {
+    document.getElementById(id).addEventListener("input", () => {
+      drawPump();
+      schedulePumpSave();
+    });
+  });
+  document.getElementById("savePump").onclick = () => {
+    autosavePump();
+    exportPump("save");
+  };
+  document.getElementById("emailPump").onclick = () => {
+    autosavePump();
+    exportPump("email");
+  };
+  document.getElementById("expandPump").onclick = openPumpOverlay;
+  document.getElementById("pumpChart").onclick = openPumpOverlay;
+  document.getElementById("closePumpOverlay").onclick = requestClosePumpOverlay;
+  window.addEventListener("popstate", () => {
+    if (pumpOverlayOpen) closePumpOverlay(true);
+  });
+  window.addEventListener("resize", () => {
+    if (pumpOverlayOpen) drawPumpBig();
+  });
+  document.addEventListener("visibilitychange", () => {
+    if (document.hidden) autosavePump();
+  });
+  drawPump();
+}
+
+setup();
+</script>
+</body>
+</html>
