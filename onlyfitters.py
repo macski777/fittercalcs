@@ -17,7 +17,7 @@ from gi.repository import Gdk, GLib, Gtk, WebKit2
 
 APP_ID = "org.onlyfitters.app"
 APP_NAME = "FitterCalcs"
-APP_VERSION = "2.24"
+APP_VERSION = "2.25"
 APP_TITLE = "%s %s" % (APP_NAME, APP_VERSION)
 APP_DIR = Path(__file__).resolve().parent
 HTML = APP_DIR / "index.html"
@@ -36,6 +36,11 @@ window.OnlyFitters = {
   emailPng: function(dataUrl, filename, subject, body) {
     window.webkit.messageHandlers.onlyfitters.postMessage(JSON.stringify({
       op: "email", dataUrl: dataUrl, filename: filename, subject: subject, body: body
+    }));
+  },
+  emailText: function(subject, body) {
+    window.webkit.messageHandlers.onlyfitters.postMessage(JSON.stringify({
+      op: "emailText", subject: subject, body: body
     }));
   },
   toast: function(msg) {
@@ -85,6 +90,23 @@ def save_png(data_url, filename):
     path = PICTURES / safe_name(filename)
     path.write_bytes(decode_png(data_url))
     return path
+
+
+def email_text(subject, body):
+    subject = subject or "FitterCalcs report"
+    body = body or ""
+    try:
+        subprocess.Popen(
+            ["xdg-email", "--subject", subject, "--body", body],
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+        )
+    except Exception:
+        subprocess.Popen(
+            ["xdg-open", "mailto:?subject=" + subject],
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+        )
 
 
 def email_png(data_url, filename, subject, body):
@@ -200,6 +222,9 @@ class OnlyFitters(Gtk.Application):
                     msg.get("body"),
                 )
                 notify("Opening email with %s" % path.name)
+            elif op == "emailText":
+                email_text(msg.get("subject"), msg.get("body"))
+                notify("Opening email")
             elif op == "toast":
                 notify(msg.get("msg") or "")
             elif op == "fullscreen":

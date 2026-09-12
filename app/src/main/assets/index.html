@@ -35,48 +35,58 @@
       display: flex;
       align-items: center;
       justify-content: space-between;
-      gap: 12px;
-      margin-bottom: 14px;
+      gap: 14px;
+      margin-bottom: 16px;
     }
     .brand {
       display: flex;
       align-items: center;
-      gap: 11px;
+      gap: 14px;
       min-width: 0;
     }
     .logo {
-      width: 52px;
-      height: 52px;
-      border-radius: 16px;
+      width: 76px;
+      height: 76px;
+      border-radius: 22px;
       flex-shrink: 0;
       background: #1a1613;
       box-shadow:
         0 0 0 1px #5a2a22,
-        0 0 18px #d1243a55,
-        0 8px 18px #0008;
+        0 0 22px #d1243a66,
+        0 10px 22px #0008;
     }
     .brand-text { min-width: 0; }
     .brand-kicker {
       color: var(--red);
-      font-size: 0.58rem;
+      font-size: 0.72rem;
       font-weight: 800;
-      letter-spacing: 0.28em;
+      letter-spacing: 0.32em;
       line-height: 1;
-      margin: 0 0 4px;
+      margin: 0 0 6px;
     }
     h1 {
-      margin: 0 0 4px;
+      margin: 0 0 6px;
       line-height: 1;
     }
     .wordmark {
       display: block;
-      height: 36px;
+      height: 52px;
       width: auto;
       max-width: 100%;
     }
+    .brand-fit, .brand-calcs {
+      font-size: 1.65rem;
+      font-weight: 800;
+      letter-spacing: 0.04em;
+    }
+    .brand-sep {
+      color: var(--gold);
+      margin: 0 8px;
+      font-size: 1.4rem;
+    }
     .sub {
       color: var(--muted);
-      font-size: 0.78rem;
+      font-size: 0.86rem;
       line-height: 1.35;
     }
     .header-right {
@@ -89,7 +99,7 @@
     }
     .build {
       color: var(--gold);
-      font-size: 0.72rem;
+      font-size: 0.82rem;
       font-weight: 800;
       letter-spacing: 0.16em;
       line-height: 1;
@@ -611,7 +621,7 @@
 <body>
   <header>
     <div class="brand">
-      <img class="logo" src="logo.png" width="52" height="52" alt="FitterCalcs" />
+      <img class="logo" src="logo.png" width="76" height="76" alt="FitterCalcs" />
       <div class="brand-text">
         <div class="brand-kicker">FIRE PROTECTION</div>
         <h1 id="appTitle"><img class="wordmark" src="wordmark.svg" alt="FitterCalcs" /></h1>
@@ -619,7 +629,7 @@
       </div>
     </div>
     <div class="header-right">
-      <div class="build" id="appBuild" title="Check for update">v2.24</div>
+      <div class="build" id="appBuild" title="Check for update">v2.25</div>
       <div class="units" id="pipeUnits" role="group" aria-label="Units">
         <button id="btnIn" type="button">in</button>
         <button id="btnMm" class="on" type="button">mm</button>
@@ -874,6 +884,10 @@
   </div>
 
   <div id="page-hydro" class="page">
+    <div class="field">
+      <label for="hcSite">Site / job</label>
+      <input id="hcSite" type="text" placeholder="e.g. 12 Smith St hydrant main" autocomplete="off" />
+    </div>
     <div class="chips" id="hcSched"></div>
     <div class="chips" id="hcSize"></div>
     <div class="hc-grid">
@@ -903,13 +917,21 @@
       </div>
     </div>
     <div class="hc-out" id="hcOut"></div>
+    <div class="actions">
+      <button type="button" id="emailHydro">Email report</button>
+    </div>
     <p class="notes">
       Hazen-Williams friction plus 9.81 kPa per metre of rise. Elbows use 90° standard equivalent length (fire tables).
-      Steel default <strong>C=120</strong>, stainless and CPVC <strong>C=150</strong>. Field estimate — not a certified hydraulic design.
+      Steel default <strong>C=120</strong>, stainless and CPVC <strong>C=150</strong>.
+      Email sends a customer summary citing <strong>AS 1074</strong>, <strong>AS 2118.1</strong> and <strong>AS 2419.1</strong>. Field estimate — not a certified hydraulic design.
     </p>
   </div>
 
   <div id="page-tanks" class="page">
+    <div class="field">
+      <label for="tkSite">Site / job</label>
+      <input id="tkSite" type="text" placeholder="e.g. 12 Smith St fire tank" autocomplete="off" />
+    </div>
     <div class="chips" id="tkShape">
       <button type="button" class="on" data-s="cyl">Cylindrical</button>
       <button type="button" data-s="rect">Rectangular</button>
@@ -956,10 +978,14 @@
       </div>
     </div>
     <div class="hc-out" id="tkOut"></div>
+    <div class="actions">
+      <button type="button" id="emailTanks">Email report</button>
+    </div>
     <p class="notes">
       <strong>Gross</strong> = full internal volume of the shell.
       <strong>Effective</strong> = volume between the usable high water (overflow minus air gap, default 20 mm per AS/NZS 3500.1) and the usable low water (above suction/vortex inhibitor, default 150 mm — typical AS 2304 / AS 2419 field value; enter the actual plate height).
-      Duration uses effective litres ÷ flow. Field estimate — confirm on the current Standard.
+      Duration uses effective litres ÷ flow.
+      Email sends a customer summary citing <strong>AS 2304</strong>, <strong>AS 2419.1</strong>, <strong>AS 2118.1</strong> and <strong>AS/NZS 3500.1</strong>. Field estimate — confirm on the current Standard.
     </p>
   </div>
 
@@ -1034,8 +1060,8 @@
   </div>
 
 <script>
-const APP_VERSION = "2.24";
-const APP_BUILD = 35;
+const APP_VERSION = "2.25";
+const APP_BUILD = 36;
 
 const NPS_TO_DN = {
   "1/2": "15", "3/4": "20", "1": "25", "1-1/4": "32", "1-1/2": "40",
@@ -2123,6 +2149,7 @@ function setupHydro() {
   ["hcQ", "hcL", "hcElb", "hcRise", "hcC"].forEach(id => {
     document.getElementById(id).addEventListener("input", renderHydro);
   });
+  document.getElementById("emailHydro").onclick = () => emailHydroReport();
   renderHydro();
 }
 
@@ -2139,22 +2166,18 @@ function fillHcSizes() {
   });
 }
 
-function renderHydro() {
+function hydroState() {
   const set = DATA[hcSched];
   const row = set.rows.find(r => r.nps === hcNps) || set.rows[0];
   const idIn = row.id;
   const idMm = idIn * 25.4;
-  document.getElementById("hcId").textContent = idMm.toFixed(1);
   const Q = parseFloat(document.getElementById("hcQ").value);
   const Lm = parseFloat(document.getElementById("hcL").value);
   const nEl = parseFloat(document.getElementById("hcElb").value);
   const rise = parseFloat(document.getElementById("hcRise").value);
   const C = parseFloat(document.getElementById("hcC").value);
-  const out = document.getElementById("hcOut");
-  if (![Q, Lm, nEl, rise, C, idIn].every(Number.isFinite) || Q <= 0 || C <= 0 || idIn <= 0) {
-    out.innerHTML = '<div class="stat"><label>Total loss</label><b>—</b> <small>kPa</small></div>';
-    return;
-  }
+  const site = (document.getElementById("hcSite").value || "").trim();
+  if (![Q, Lm, nEl, rise, C, idIn].every(Number.isFinite) || Q <= 0 || C <= 0 || idIn <= 0) return null;
   const elM = Math.max(0, nEl) * elbowElM(hcNps);
   const Le = Math.max(0, Lm) + elM;
   const Qgpm = Q * 15.8503;
@@ -2165,12 +2188,25 @@ function renderHydro() {
   const kpaM = Le > 0 ? fricKpa / Le : 0;
   const areaM2 = Math.PI * Math.pow(idIn * 0.0254 / 2, 2);
   const vel = (Q / 1000) / areaM2;
+  return { set, row, Q, Lm, nEl, rise, C, idIn, idMm, elM, Le, fricKpa, statKpa, total, vel, kpaM, site };
+}
+
+function renderHydro() {
+  const s = hydroState();
+  const out = document.getElementById("hcOut");
+  if (!s) {
+    const row = (DATA[hcSched].rows.find(r => r.nps === hcNps) || DATA[hcSched].rows[0]);
+    document.getElementById("hcId").textContent = (row.id * 25.4).toFixed(1);
+    out.innerHTML = '<div class="stat"><label>Total loss</label><b>—</b> <small>kPa</small></div>';
+    return;
+  }
+  document.getElementById("hcId").textContent = s.idMm.toFixed(1);
   out.innerHTML = `
-    <div class="stat"><label>Equiv. length</label><b>${Le.toFixed(1)}</b> <small>m (${elM.toFixed(1)} m elbows)</small></div>
-    <div class="stat"><label>Friction</label><b>${fricKpa.toFixed(0)}</b> <small>kPa · ${kpaM.toFixed(1)} kPa/m</small></div>
-    <div class="stat"><label>Static rise</label><b>${statKpa.toFixed(0)}</b> <small>kPa · ${Math.max(0, rise).toFixed(1)} m</small></div>
-    <div class="stat"><label>Velocity</label><b>${vel.toFixed(2)}</b> <small>m/s</small></div>
-    <div class="stat hc-total"><label>Total pressure loss</label><b>${total.toFixed(0)}</b> <small>kPa</small></div>`;
+    <div class="stat"><label>Equiv. length</label><b>${s.Le.toFixed(1)}</b> <small>m (${s.elM.toFixed(1)} m elbows)</small></div>
+    <div class="stat"><label>Friction</label><b>${s.fricKpa.toFixed(0)}</b> <small>kPa · ${s.kpaM.toFixed(1)} kPa/m</small></div>
+    <div class="stat"><label>Static rise</label><b>${s.statKpa.toFixed(0)}</b> <small>kPa · ${Math.max(0, s.rise).toFixed(1)} m</small></div>
+    <div class="stat"><label>Velocity</label><b>${s.vel.toFixed(2)}</b> <small>m/s</small></div>
+    <div class="stat hc-total"><label>Total pressure loss</label><b>${s.total.toFixed(0)}</b> <small>kPa</small></div>`;
 }
 
 let tkShape = "cyl";
@@ -2187,29 +2223,33 @@ function setupTanks() {
   ["tkD", "tkH", "tkL", "tkW", "tkHr", "tkTop", "tkBot", "tkQ"].forEach(id => {
     document.getElementById(id).addEventListener("input", renderTanks);
   });
+  document.getElementById("emailTanks").onclick = () => emailTanksReport();
   renderTanks();
 }
 
-function renderTanks() {
+function tankState() {
   const topMm = parseFloat(document.getElementById("tkTop").value);
   const botMm = parseFloat(document.getElementById("tkBot").value);
   const Q = parseFloat(document.getElementById("tkQ").value);
-  let area = 0, H = 0;
+  const site = (document.getElementById("tkSite").value || "").trim();
+  let area = 0, H = 0, dims = "";
   if (tkShape === "cyl") {
     const D = parseFloat(document.getElementById("tkD").value);
     H = parseFloat(document.getElementById("tkH").value);
-    if (Number.isFinite(D) && D > 0) area = Math.PI * (D / 2) * (D / 2);
+    if (Number.isFinite(D) && D > 0) {
+      area = Math.PI * (D / 2) * (D / 2);
+      dims = "Cylindrical tank, internal diameter " + D.toFixed(2) + " m, shell height " + (Number.isFinite(H) ? H.toFixed(2) : "—") + " m";
+    }
   } else {
     const L = parseFloat(document.getElementById("tkL").value);
     const W = parseFloat(document.getElementById("tkW").value);
     H = parseFloat(document.getElementById("tkHr").value);
-    if (Number.isFinite(L) && Number.isFinite(W) && L > 0 && W > 0) area = L * W;
+    if (Number.isFinite(L) && Number.isFinite(W) && L > 0 && W > 0) {
+      area = L * W;
+      dims = "Rectangular tank, internal " + L.toFixed(2) + " m × " + W.toFixed(2) + " m, water height " + (Number.isFinite(H) ? H.toFixed(2) : "—") + " m";
+    }
   }
-  const out = document.getElementById("tkOut");
-  if (!(area > 0) || !(H > 0)) {
-    out.innerHTML = '<div class="stat hc-total"><label>Effective capacity</label><b>—</b> <small>kL</small></div>';
-    return;
-  }
+  if (!(area > 0) || !(H > 0)) return null;
   const topM = (Number.isFinite(topMm) ? Math.max(0, topMm) : 0) / 1000;
   const botM = (Number.isFinite(botMm) ? Math.max(0, botMm) : 0) / 1000;
   const Heff = H - topM - botM;
@@ -2220,19 +2260,34 @@ function renderTanks() {
   const kgross = Vgross * 1000;
   const keff = Veff * 1000;
   let dur = "—";
+  let durMin = null;
   if (Number.isFinite(Q) && Q > 0 && keff > 0) {
-    const min = keff / (Q * 60);
-    dur = min >= 60 ? (min / 60).toFixed(2) + " h" : min.toFixed(0) + " min";
+    durMin = keff / (Q * 60);
+    dur = durMin >= 60 ? (durMin / 60).toFixed(2) + " h" : durMin.toFixed(0) + " min";
   }
-  const warn = Heff <= 0 ? '<p class="notes" style="grid-column:1/-1;color:var(--gold)">Top + bottom unused is bigger than the shell height.</p>' : "";
+  return {
+    site, dims, area, H, topMm: Number.isFinite(topMm) ? Math.max(0, topMm) : 0,
+    botMm: Number.isFinite(botMm) ? Math.max(0, botMm) : 0,
+    Heff, Vgross, Vtop, Vbot, Veff, kgross, keff, Q, dur, durMin, shape: tkShape
+  };
+}
+
+function renderTanks() {
+  const s = tankState();
+  const out = document.getElementById("tkOut");
+  if (!s) {
+    out.innerHTML = '<div class="stat hc-total"><label>Effective capacity</label><b>—</b> <small>kL</small></div>';
+    return;
+  }
+  const warn = s.Heff <= 0 ? '<p class="notes" style="grid-column:1/-1;color:var(--gold)">Top + bottom unused is bigger than the shell height.</p>' : "";
   out.innerHTML = `
-    <div class="stat"><label>Plan area</label><b>${area.toFixed(2)}</b> <small>m²</small></div>
-    <div class="stat"><label>Effective water height</label><b>${Math.max(0, Heff).toFixed(3)}</b> <small>m</small></div>
-    <div class="stat"><label>Gross volume</label><b>${kgross.toFixed(0)}</b> <small>L · ${(kgross / 1000).toFixed(2)} kL</small></div>
-    <div class="stat"><label>Unusable top</label><b>${(Vtop * 1000).toFixed(0)}</b> <small>L</small></div>
-    <div class="stat"><label>Unusable bottom</label><b>${(Vbot * 1000).toFixed(0)}</b> <small>L</small></div>
-    <div class="stat"><label>Duration at demand</label><b>${dur}</b> <small>${Number.isFinite(Q) && Q > 0 ? Q + " L/s" : "enter flow"}</small></div>
-    <div class="stat hc-total"><label>Effective capacity</label><b>${(keff / 1000).toFixed(2)}</b> <small>kL · ${keff.toFixed(0)} L</small></div>
+    <div class="stat"><label>Plan area</label><b>${s.area.toFixed(2)}</b> <small>m²</small></div>
+    <div class="stat"><label>Effective water height</label><b>${Math.max(0, s.Heff).toFixed(3)}</b> <small>m</small></div>
+    <div class="stat"><label>Gross volume</label><b>${s.kgross.toFixed(0)}</b> <small>L · ${(s.kgross / 1000).toFixed(2)} kL</small></div>
+    <div class="stat"><label>Unusable top</label><b>${(s.Vtop * 1000).toFixed(0)}</b> <small>L</small></div>
+    <div class="stat"><label>Unusable bottom</label><b>${(s.Vbot * 1000).toFixed(0)}</b> <small>L</small></div>
+    <div class="stat"><label>Duration at demand</label><b>${s.dur}</b> <small>${Number.isFinite(s.Q) && s.Q > 0 ? s.Q + " L/s" : "enter flow"}</small></div>
+    <div class="stat hc-total"><label>Effective capacity</label><b>${(s.keff / 1000).toFixed(2)}</b> <small>kL · ${s.keff.toFixed(0)} L</small></div>
     ${warn}`;
 }
 
@@ -2524,6 +2579,11 @@ function setup() {
   };
   render();
   setupPcKeys();
+  const shot = new URLSearchParams(location.search).get("shot");
+  if (shot) {
+    document.documentElement.classList.add("shot");
+    showPage(shot);
+  }
 }
 
 const INHG_TO_INH2O = 13.595;
@@ -3158,7 +3218,7 @@ function roundRectPath(ctx, x, y, w, h, r) {
   ctx.closePath();
 }
 
-function drawBrandHeader(ctx, w, hBar) {
+function drawBrandHeader(ctx, w, hBar, tagText) {
   ctx.save();
   ctx.fillStyle = "#14110f";
   ctx.fillRect(0, 0, w, hBar);
@@ -3191,7 +3251,7 @@ function drawBrandHeader(ctx, w, hBar) {
   }
   ctx.fillStyle = "#e8b86d";
   ctx.font = "800 12px sans-serif";
-  const tag = "PUMP CURVE";
+  const tag = tagText || "PUMP CURVE";
   let tagW = 0;
   for (let i = 0; i < tag.length; i++) tagW += ctx.measureText(tag[i]).width + 2.2;
   fillTracked(ctx, tag, w - 20 - tagW, y + 16, 2.2);
@@ -3491,6 +3551,273 @@ function nativeToast(msg) {
   } catch (e) {
     try { alert(msg); } catch (err) {}
   }
+}
+
+function reportDate() {
+  return new Date().toLocaleDateString("en-AU", { day: "numeric", month: "long", year: "numeric" });
+}
+function reportFile(prefix, site) {
+  const job = (site || prefix).replace(/[^a-zA-Z0-9-_]+/g, "_").replace(/^_+|_+$/g, "") || prefix;
+  return "FitterCalcs-" + prefix + "-" + job + ".png";
+}
+function wrapReport(ctx, text, maxW) {
+  const words = String(text || "").split(/\s+/);
+  const lines = [];
+  let line = "";
+  words.forEach(w => {
+    const t = line ? line + " " + w : w;
+    if (ctx.measureText(t).width > maxW && line) {
+      lines.push(line);
+      line = w;
+    } else line = t;
+  });
+  if (line) lines.push(line);
+  return lines;
+}
+function drawKvRows(ctx, rows, x, y, w, rowH) {
+  rows.forEach((r, i) => {
+    if (i % 2 === 0) {
+      ctx.fillStyle = "#efe6da";
+      ctx.fillRect(x, y - 16, w, rowH);
+    }
+    ctx.fillStyle = "#6a5d50";
+    ctx.font = "600 18px sans-serif";
+    ctx.textAlign = "left";
+    ctx.fillText(r.k, x + 12, y);
+    ctx.fillStyle = "#1a1613";
+    ctx.font = "700 20px sans-serif";
+    ctx.textAlign = "right";
+    ctx.fillText(r.v, x + w - 12, y);
+    y += rowH;
+  });
+  ctx.textAlign = "left";
+  return y;
+}
+function drawFieldReport(spec) {
+  const w = 900, h = 1480;
+  const c = document.createElement("canvas");
+  c.width = w; c.height = h;
+  const ctx = c.getContext("2d");
+  ctx.fillStyle = "#f4ede4";
+  ctx.fillRect(0, 0, w, h);
+  const hBar = 96;
+  skipBrandLogo = false;
+  drawBrandHeader(ctx, w, hBar, spec.tag);
+  let y = hBar + 48;
+  ctx.fillStyle = "#1a1613";
+  ctx.font = "800 32px sans-serif";
+  ctx.fillText(spec.title, 40, y);
+  y += 28;
+  ctx.fillStyle = "#6a5d50";
+  ctx.font = "600 18px sans-serif";
+  ctx.fillText("Prepared " + reportDate() + "  ·  FitterCalcs v" + APP_VERSION, 40, y);
+  y += 26;
+  if (spec.site) {
+    ctx.fillStyle = "#d1243a";
+    ctx.font = "800 20px sans-serif";
+    ctx.fillText("Site / job:  " + spec.site, 40, y);
+    y += 34;
+  } else y += 8;
+  y = drawKvRows(ctx, spec.rows, 40, y, w - 80, 36);
+  y += 18;
+  ctx.fillStyle = "#d1243a";
+  ctx.fillRect(40, y, w - 80, 64);
+  ctx.fillStyle = "#fff";
+  ctx.font = "700 18px sans-serif";
+  ctx.fillText(spec.result.label, 56, y + 24);
+  ctx.font = "800 30px sans-serif";
+  ctx.fillText(spec.result.value, 56, y + 52);
+  y += 92;
+  if (spec.more && spec.more.length) {
+    y = drawKvRows(ctx, spec.more, 40, y, w - 80, 36);
+    y += 20;
+  }
+  ctx.fillStyle = "#1a1613";
+  ctx.font = "800 18px sans-serif";
+  ctx.fillText("Australian Standards referenced", 40, y);
+  y += 26;
+  ctx.fillStyle = "#3a322c";
+  ctx.font = "600 16px sans-serif";
+  spec.standards.forEach(line => {
+    const lines = wrapReport(ctx, "•  " + line, w - 80);
+    lines.forEach(ln => { ctx.fillText(ln, 40, y); y += 22; });
+  });
+  y += 16;
+  ctx.fillStyle = "#1a1613";
+  ctx.font = "800 18px sans-serif";
+  ctx.fillText("Limitations", 40, y);
+  y += 26;
+  ctx.fillStyle = "#3a322c";
+  ctx.font = "600 16px sans-serif";
+  wrapReport(ctx, spec.notes, w - 80).forEach(ln => { ctx.fillText(ln, 40, y); y += 22; });
+  ctx.fillStyle = "#a89b8c";
+  ctx.font = "600 14px sans-serif";
+  ctx.fillText("FitterCalcs field estimate  ·  confirm mill data and the current Standard before sign-off", 40, h - 28);
+  return c.toDataURL("image/png");
+}
+function sendEmailReport(subject, body, dataUrl, fname) {
+  if (window.OnlyFitters && dataUrl) {
+    sendChartToApp("email", dataUrl, fname, subject, body);
+    return;
+  }
+  if (window.OnlyFitters && OnlyFitters.emailText) {
+    OnlyFitters.emailText(subject, body);
+    return;
+  }
+  const a = document.createElement("a");
+  a.href = "mailto:?subject=" + encodeURIComponent(subject) + "&body=" + encodeURIComponent(body);
+  a.click();
+}
+function emailHydroReport() {
+  const s = hydroState();
+  if (!s) {
+    nativeToast("Enter flow, length and pipe size first");
+    return;
+  }
+  const size = s.row.dn ? "DN" + s.row.dn : s.row.nps + '"';
+  const mat = s.set.label + "  ·  " + s.set.material;
+  const od = (s.row.od * 25.4).toFixed(1);
+  const wall = (s.row.wall * 25.4).toFixed(1);
+  const velNote = s.vel > 5 ? " Velocity is high for typical fire pipework — confirm against AS 2118.1 / AS 2419.1 project limits." : "";
+  const subject = "Pipework hydraulic estimate" + (s.site ? " — " + s.site : "");
+  const body = [
+    "PIPEWORK HYDRAULIC ESTIMATE",
+    "FitterCalcs v" + APP_VERSION + "  ·  " + reportDate(),
+    s.site ? "Site / job: " + s.site : "Site / job: (not stated)",
+    "",
+    "1. Scope",
+    "Field hydraulic check of the nominated fire-protection pipe run. Steel dimensions are AS 1074 Light / Medium / Heavy (ISO 65 mill OD). Friction is Hazen–Williams as used for sprinkler and hydrant pipework under AS 2118.1 and AS 2419.1. Static lift is 9.81 kPa per metre of rise.",
+    "",
+    "2. Pipework",
+    "Size: " + size + "  (" + s.row.nps + " in)",
+    "Wall series: " + mat,
+    "Outside diameter: " + od + " mm",
+    "Wall thickness: " + wall + " mm",
+    "Internal diameter: " + s.idMm.toFixed(1) + " mm",
+    "",
+    "3. Duty",
+    "Design flow: " + s.Q.toFixed(2) + " L/s",
+    "Measured / nominated length: " + s.Lm.toFixed(1) + " m",
+    "90° elbows: " + s.nEl.toFixed(0) + "  (equivalent length " + s.elM.toFixed(1) + " m)",
+    "Total equivalent length: " + s.Le.toFixed(1) + " m",
+    "Static rise: " + Math.max(0, s.rise).toFixed(1) + " m",
+    "Hazen–Williams C: " + s.C.toFixed(0) + "  (steel typically 120, stainless/CPVC 150 per AS 2118 practice)",
+    "",
+    "4. Results",
+    "Friction loss: " + s.fricKpa.toFixed(0) + " kPa  (" + s.kpaM.toFixed(1) + " kPa/m)",
+    "Static lift: " + s.statKpa.toFixed(0) + " kPa",
+    "TOTAL PRESSURE LOSS: " + s.total.toFixed(0) + " kPa",
+    "Mean velocity: " + s.vel.toFixed(2) + " m/s." + velNote,
+    "",
+    "5. Standards referenced",
+    "AS 1074-1989 (Reconfirmed 2018) Steel tubes and tubulars for ordinary service.",
+    "AS 2118.1 Automatic fire sprinkler systems — hydraulics and C-factors.",
+    "AS 2419.1 Fire hydrant installations — pipework and residual pressure.",
+    "AS 4118.2.1 Fire sprinkler systems — piping (where listed fire pipe is used).",
+    "",
+    "6. Limitations",
+    "This is a field estimate for the installing contractor / client. It is not a certified hydraulic design, Form 15/16, or a substitute for the current published Australian Standards, mill cut sheets, or the project specification. Fitting equivalent lengths are 90° standard fire-table values. Confirm before construction or sign-off.",
+    "",
+    "Prepared with FitterCalcs " + APP_VERSION
+  ].join("\n");
+  const png = drawFieldReport({
+    tag: "PIPEWORK",
+    title: "Pipework hydraulic estimate",
+    site: s.site,
+    rows: [
+      { k: "Pipe", v: size + "  " + s.set.label },
+      { k: "Material", v: s.set.material.replace(" • ", "  ") },
+      { k: "OD / wall / ID", v: od + " / " + wall + " / " + s.idMm.toFixed(1) + " mm" },
+      { k: "Flow", v: s.Q.toFixed(2) + " L/s" },
+      { k: "Length + elbows", v: s.Lm.toFixed(1) + " m + " + s.nEl.toFixed(0) + " × 90°  =  " + s.Le.toFixed(1) + " m" },
+      { k: "Static rise", v: Math.max(0, s.rise).toFixed(1) + " m  (" + s.statKpa.toFixed(0) + " kPa)" },
+      { k: "C-factor", v: String(s.C.toFixed(0)) },
+      { k: "Velocity", v: s.vel.toFixed(2) + " m/s" }
+    ],
+    result: { label: "Total pressure loss", value: s.total.toFixed(0) + " kPa" },
+    more: [
+      { k: "Friction", v: s.fricKpa.toFixed(0) + " kPa  (" + s.kpaM.toFixed(1) + " kPa/m)" },
+      { k: "Static lift", v: s.statKpa.toFixed(0) + " kPa" }
+    ],
+    standards: [
+      "AS 1074-1989 (R2018) — steel tube dimensions (Light / Medium / Heavy).",
+      "AS 2118.1 — sprinkler hydraulics, Hazen–Williams C-factors.",
+      "AS 2419.1 — hydrant pipework and residual pressure.",
+      "AS 4118.2.1 — listed fire sprinkler piping, where used."
+    ],
+    notes: "Field estimate only. Not a certified hydraulic design or a substitute for the current Standards, mill cut sheets, or the project specification. Confirm before cut-in or sign-off."
+  });
+  sendEmailReport(subject, body, png, reportFile("hydro", s.site));
+}
+function emailTanksReport() {
+  const s = tankState();
+  if (!s) {
+    nativeToast("Enter tank dimensions first");
+    return;
+  }
+  const subject = "Fire tank capacity estimate" + (s.site ? " — " + s.site : "");
+  const demand = Number.isFinite(s.Q) && s.Q > 0 ? s.Q.toFixed(1) + " L/s" : "not stated";
+  const body = [
+    "FIRE WATER STORAGE — EFFECTIVE CAPACITY ESTIMATE",
+    "FitterCalcs v" + APP_VERSION + "  ·  " + reportDate(),
+    s.site ? "Site / job: " + s.site : "Site / job: (not stated)",
+    "",
+    "1. Scope",
+    "Field estimate of usable fire-water storage in the nominated tank, for comparison with sprinkler / hydrant demand under AS 2118.1 and AS 2419.1. Effective capacity follows the AS 2304 / AS 2419 approach of deducting unused water at overflow (air gap) and at suction / vortex inhibitor.",
+    "",
+    "2. Tank",
+    s.dims + ".",
+    "Plan area: " + s.area.toFixed(2) + " m²",
+    "Overflow air gap (top unused): " + s.topMm.toFixed(0) + " mm  (AS/NZS 3500.1 default 20 mm unless the fitted overflow is known)",
+    "Suction / vortex unused (bottom): " + s.botMm.toFixed(0) + " mm  (enter the actual vortex plate / suction height from AS 2304 / AS 2419)",
+    "Effective water height: " + Math.max(0, s.Heff).toFixed(3) + " m",
+    "",
+    "3. Capacity",
+    "Gross internal volume: " + s.kgross.toFixed(0) + " L  (" + (s.kgross / 1000).toFixed(2) + " kL)",
+    "Unusable at overflow: " + (s.Vtop * 1000).toFixed(0) + " L",
+    "Unusable at suction: " + (s.Vbot * 1000).toFixed(0) + " L",
+    "EFFECTIVE CAPACITY: " + s.keff.toFixed(0) + " L  (" + (s.keff / 1000).toFixed(2) + " kL)",
+    "",
+    "4. Duration at stated demand",
+    "Demand flow: " + demand,
+    "Duration on effective storage: " + s.dur,
+    "",
+    "5. Standards referenced",
+    "AS 2304 Water storage tanks for fire protection systems — effective capacity, suction and vortex.",
+    "AS 2419.1 Fire hydrant installations — tank water supplies and duration.",
+    "AS 2118.1 Automatic fire sprinkler systems — water supply duration.",
+    "AS/NZS 3500.1 Plumbing and drainage — Water services (overflow air gap).",
+    "",
+    "6. Limitations",
+    "This is a field estimate of geometric volume. It does not certify structural adequacy, lining, overflow, vortex inhibitor, or inflow arrangement. Confirm as-built internals, the current Standards, and the project water-supply calculation before sign-off.",
+    "",
+    "Prepared with FitterCalcs " + APP_VERSION
+  ].join("\n");
+  const png = drawFieldReport({
+    tag: "TANKS",
+    title: "Fire tank capacity estimate",
+    site: s.site,
+    rows: [
+      { k: "Tank", v: s.dims },
+      { k: "Plan area", v: s.area.toFixed(2) + " m²" },
+      { k: "Top unused (air gap)", v: s.topMm.toFixed(0) + " mm" },
+      { k: "Bottom unused (suction)", v: s.botMm.toFixed(0) + " mm" },
+      { k: "Effective height", v: Math.max(0, s.Heff).toFixed(3) + " m" },
+      { k: "Gross volume", v: (s.kgross / 1000).toFixed(2) + " kL" },
+      { k: "Demand flow", v: demand },
+      { k: "Duration", v: s.dur }
+    ],
+    result: { label: "Effective capacity", value: (s.keff / 1000).toFixed(2) + " kL   (" + s.keff.toFixed(0) + " L)" },
+    more: [],
+    standards: [
+      "AS 2304 — fire tanks: effective capacity, suction and vortex inhibitor.",
+      "AS 2419.1 — hydrant tank water supplies and duration.",
+      "AS 2118.1 — sprinkler water-supply duration.",
+      "AS/NZS 3500.1 — overflow air gap (default 20 mm unless the fitted overflow is known)."
+    ],
+    notes: "Geometric field estimate only. Does not certify structure, lining, overflow or suction arrangement. Confirm as-built internals and the current Standards before sign-off."
+  });
+  sendEmailReport(subject, body, png, reportFile("tank", s.site));
 }
 
 function sendChartToApp(mode, dataUrl, fname, subject, body) {

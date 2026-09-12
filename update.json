@@ -1,6 +1,6 @@
 {
-  "versionCode": 35,
-  "versionName": "2.24",
-  "apkUrl": "https://github.com/macski777/fittercalcs/releases/download/v2.24/FitterCalcs.apk",
-  "notes": "20T/21T K from the medium steel card. Other walls interpolate by ID."
+  "versionCode": 36,
+  "versionName": "2.25",
+  "apkUrl": "https://github.com/macski777/fittercalcs/releases/download/v2.25/FitterCalcs.apk",
+  "notes": "Bigger name. Email a customer report from Hydro-Calcs and Tanks."
 }

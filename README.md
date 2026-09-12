@@ -12,7 +12,7 @@
 </p>
 
 <p align="center">
-  <strong>Current version: 2.24</strong><br>
+  <strong>Current version: 2.25</strong><br>
   <a href="https://github.com/macski777/fittercalcs/releases/latest">Download FitterCalcs.apk</a>
 </p>
 
@@ -28,7 +28,7 @@ The launcher icon and the **FITTER / CALCS** wordmark use **Delta Corps Priest 1
 
 ## Install on Android
 
-1. Download [FitterCalcs.apk](https://github.com/macski777/fittercalcs/releases/download/v2.24/FitterCalcs.apk).
+1. Download [FitterCalcs.apk](https://github.com/macski777/fittercalcs/releases/download/v2.25/FitterCalcs.apk).
 2. Open the file on the phone.
 3. Allow install from this source if Android asks.
 4. Open **FitterCalcs**.
@@ -54,8 +54,8 @@ Phones on **2.17 or older** need a one-time install of 2.18 or later (USB or thi
 | **Annubar** | L/s from inHg for 3/8", 20T, and 21T. Medium-steel card K; other walls interpolate by ID. |
 | **Flange** | AS 2129 Table D/E/F/H, ANSI 150/300, PN16 — OD, PCD, bolts, holes. |
 | **Pump** | kPa vs L/s curve, autosave by job name, save/email PNG, large-chart view. |
-| **Hydro-Calcs** | Hazen-Williams friction + static rise. Steel C=120, stainless and CPVC C=150. |
-| **Tanks** | Cylindrical / rectangular volume, effective kL. |
+| **Hydro-Calcs** | Hazen-Williams friction + static rise. Email a customer report citing AS 1074 / AS 2118.1 / AS 2419.1. |
+| **Tanks** | Cylindrical / rectangular volume, effective kL. Email a customer report citing AS 2304 / AS 2419 / AS 3500.1. |
 | **AS-1851** | Field lookup for AS 1851-2012 routine service. Not a substitute for the Standard. |
 
 ### Pipe
@@ -84,9 +84,15 @@ kPa vs L/s curve, job autosave, save/email PNG, large chart.
 
 ### Hydro-Calcs
 
-Hazen-Williams friction plus static rise.
+Hazen-Williams friction plus static rise. **Email report** sends a customer summary citing AS 1074, AS 2118.1 and AS 2419.1.
 
 <p align="center"><img src="docs/hydro.png" width="320" alt="Hydro-Calcs tab"></p>
+
+### Tanks
+
+Cylindrical or rectangular volume, gross and effective kL. **Email report** cites AS 2304, AS 2419.1, AS 2118.1 and AS/NZS 3500.1.
+
+<p align="center"><img src="docs/tanks.png" width="320" alt="Tanks tab"></p>
 
 ### Annubar K
 

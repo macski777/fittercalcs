@@ -175,6 +175,23 @@ public class MainActivity extends Activity {
         }
 
         @JavascriptInterface
+        public void emailText(String subject, String body) {
+            pendingSubject = subject;
+            pendingBody = body;
+            runOnUiThread(() -> {
+                Intent intent = new Intent(Intent.ACTION_SEND);
+                intent.setType("text/plain");
+                intent.putExtra(Intent.EXTRA_SUBJECT, pendingSubject == null ? "FitterCalcs report" : pendingSubject);
+                intent.putExtra(Intent.EXTRA_TEXT, pendingBody == null ? "" : pendingBody);
+                try {
+                    startActivity(Intent.createChooser(intent, "Email report"));
+                } catch (ActivityNotFoundException e) {
+                    Toast.makeText(MainActivity.this, "No email app installed", Toast.LENGTH_LONG).show();
+                }
+            });
+        }
+
+        @JavascriptInterface
         public void toast(final String msg) {
             runOnUiThread(() -> Toast.makeText(MainActivity.this, msg, Toast.LENGTH_LONG).show());
         }
@@ -376,7 +393,7 @@ public class MainActivity extends Activity {
                 intent.putExtra(Intent.EXTRA_TEXT, pendingBody == null ? "" : pendingBody);
                 intent.setClipData(ClipData.newRawUri(name, shareUri));
                 intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
-                Intent chooser = Intent.createChooser(intent, "Email pump curve");
+                Intent chooser = Intent.createChooser(intent, "Email FitterCalcs report");
                 chooser.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
                 try {
                     startActivity(chooser);
