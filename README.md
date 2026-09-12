@@ -12,7 +12,7 @@
 </p>
 
 <p align="center">
-  <strong>Current version: 2.23</strong><br>
+  <strong>Current version: 2.24</strong><br>
   <a href="https://github.com/macski777/fittercalcs/releases/latest">Download FitterCalcs.apk</a>
 </p>
 
@@ -28,7 +28,7 @@ The launcher icon and the **FITTER / CALCS** wordmark use **Delta Corps Priest 1
 
 ## Install on Android
 
-1. Download [FitterCalcs.apk](https://github.com/macski777/fittercalcs/releases/download/v2.23/FitterCalcs.apk).
+1. Download [FitterCalcs.apk](https://github.com/macski777/fittercalcs/releases/download/v2.24/FitterCalcs.apk).
 2. Open the file on the phone.
 3. Allow install from this source if Android asks.
 4. Open **FitterCalcs**.
@@ -51,7 +51,7 @@ Phones on **2.17 or older** need a one-time install of 2.18 or later (USB or thi
 | Tab | What it does |
 | --- | --- |
 | **Pipe** | OD, wall, ID for AS 1074 Light / Medium / Heavy, SS 10S, SS 40S, CPVC. mm or inch. |
-| **Annubar** | L/s from inHg for 3/8", 20T, and 21T. Type K to match the laminated card. |
+| **Annubar** | L/s from inHg for 3/8", 20T, and 21T. Medium-steel card K; other walls interpolate by ID. |
 | **Flange** | AS 2129 Table D/E/F/H, ANSI 150/300, PN16 — OD, PCD, bolts, holes. |
 | **Pump** | kPa vs L/s curve, autosave by job name, save/email PNG, large-chart view. |
 | **Hydro-Calcs** | Hazen-Williams friction + static rise. Steel C=120, stainless and CPVC C=150. |
@@ -66,7 +66,7 @@ AS 1074 Light, Medium, and Heavy steel, plus stainless and CPVC. Cross-section, 
 
 ### Annubar
 
-3/8", 20T, and 21T. Type a K from the probe card, or use the formula K.
+3/8", 20T, and 21T. 20T/21T K is from the medium steel card; other walls interpolate by ID.
 
 <p align="center"><img src="docs/annubar.png" width="320" alt="Annubar tab — DN50 Medium"></p>
 
@@ -90,9 +90,9 @@ Hazen-Williams friction plus static rise.
 
 ### Annubar K
 
-- **20T** is **0.637** at Sch 40 DN50. Other sizes and walls use the blockage formula on mill ID.
-- **21T** is **0.672** at Sch 40 DN100, same math.
-- You can still type a K from the probe card. **Use probe K** puts the formula back.
+- **20T** (single-mount 3/8″) and **21T** (dual-mount 3/8″) use the medium steel card: DN50 **0.638**, DN65 **0.617**, DN80 **0.665**, DN90 **0.661**, DN100 **0.672**, DN125 **0.671**, DN150 **0.706**.
+- Light, Heavy, SS 10S, SS 40S (Sch 40 ID), and copper interpolate that K against mill ID. DN200+ holds the DN150 K.
+- **3/8″** still uses the Diamond II formula. You can still type a K from another card. **Use probe K** puts the table/formula back.
 
 ## Field use
 
