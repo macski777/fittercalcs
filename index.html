@@ -240,9 +240,9 @@
       overflow: hidden;
     }
     .fill { height: 100%; border-radius: 99px; background: var(--red); }
-    .fill.s10 { background: #d1243a; }
-    .fill.s40 { background: #e8b86d; }
-    .fill.s5 { background: #9aa8b5; }
+    .fill.light { background: #d1243a; }
+    .fill.med { background: #e8b86d; }
+    .fill.heavy { background: #9aa8b5; }
     .fill.ss10 { background: #c5d0dc; }
     .fill.ss40 { background: #8fa0b3; }
     .fill.cpvc { background: #7dcea0; }
@@ -615,11 +615,11 @@
       <div class="brand-text">
         <div class="brand-kicker">FIRE PROTECTION</div>
         <h1 id="appTitle"><img class="wordmark" src="wordmark.svg" alt="FitterCalcs" /></h1>
-        <div class="sub" id="appSub">Fire protection pipe OD, wall, and ID<br>Sch 10 mill • Sch 40 • Sch 5 • CPVC SDR 13.5</div>
+        <div class="sub" id="appSub">Fire protection pipe OD, wall, and ID<br>AS 1074 Light • Medium • Heavy • SS • CPVC</div>
       </div>
     </div>
     <div class="header-right">
-      <div class="build" id="appBuild" title="Check for update">v2.22</div>
+      <div class="build" id="appBuild" title="Check for update">v2.23</div>
       <div class="units" id="pipeUnits" role="group" aria-label="Units">
         <button id="btnIn" type="button">in</button>
         <button id="btnMm" class="on" type="button">mm</button>
@@ -650,8 +650,8 @@
 
   <section class="visual">
     <div class="visual-top">
-      <strong id="titleSize">2 mm Sch 10</strong>
-      <span id="titleMat">Steel • C=120</span>
+      <strong id="titleSize">DN100 Medium</strong>
+      <span id="titleMat">AS 1074 steel • C=120</span>
     </div>
     <div class="stage">
       <svg id="pipe" viewBox="0 0 200 200" aria-label="Pipe cross section"></svg>
@@ -668,7 +668,7 @@
     <table>
       <thead>
         <tr>
-          <th>NPS</th>
+          <th>Size</th>
           <th>OD</th>
           <th>Wall</th>
           <th>ID</th>
@@ -684,11 +684,12 @@
   </section>
 
   <p class="notes">
-    <strong>Steel dimensions</strong> follow UL/FM listed fire-sprinkler mill data (ASTM A135 / A795) used with NFPA 13.
-    8 in and 10 in Schedule 10 fire pipe is commonly <strong>0.188 in wall</strong>, heavier than ASME B36.10 Schedule 10.
-    <strong>SS 10S / SS 40S</strong> follow ASME B36.19 (ASTM A312). 8 in and 10 in 10S is thinner than fire Sch 10 mill steel. Stainless C-factor 150.
-    <strong>CPVC</strong> is SDR 13.5 (ASTM F442 / BlazeMaster), C-factor 150.
-    Steel C-factor 120. ID is what hydraulics use. Confirm against the mill cut sheet and the adopted code edition before you cut or calc.
+    <strong>Steel</strong> is <strong>AS 1074-1989</strong> Light / Medium / Heavy (ISO 65 / BS 1387 dimensions, mill OD).
+    DN 65 / 125 / 150 ODs are <strong>76.1 / 139.7 / 165.1 mm</strong> — not ASME 73.0 / 141.3 / 168.3.
+    AS 1074 is DN 8–150; <strong>DN 200 / 250</strong> are mill fire pipe on the same ISO OD series (Light 4.8 mm, Medium 6.4 mm, Heavy Sch 40 wall).
+    <strong>SS 10S / SS 40S</strong> stay ASME B36.19 (ASTM A312) — stainless 2½″ is still 73.0 mm OD.
+    <strong>CPVC</strong> is SDR 13.5 (ASTM F442). Steel C=120, stainless and CPVC C=150.
+    Confirm against the mill cut sheet before you cut or calc.
   </p>
   </div>
 
@@ -698,7 +699,7 @@
     <div class="chips" id="annuSize"></div>
     <section class="visual">
       <div class="visual-top">
-        <strong id="annuTitle">DN50 Sch 10</strong>
+        <strong id="annuTitle">DN50 Medium</strong>
         <span id="annuProbeLabel">3/8 in OD probe • water</span>
       </div>
       <div class="stats" style="grid-template-columns:1fr 1fr;grid-auto-flow:row;">
@@ -768,9 +769,9 @@
     </section>
     <p class="notes">
       Probe sizes: <strong>3/8 in</strong> (9.53 mm), <strong>20T</strong> (20.0 mm), and <strong>21T</strong> (21.0 mm).
-      DP is inches of mercury (inHg). <strong>20T K = 0.637 at DN50 Sch 40</strong>; <strong>21T K = 0.672 at DN100 Sch 40</strong>. Other sizes and walls use the same blockage formula on the mill ID (thinner wall → bigger ID → higher K).
+      DP is inches of mercury (inHg). <strong>20T K = 0.637 at DN50 Sch 40 card</strong>; <strong>21T K = 0.672 at DN100 Sch 40 card</strong>. Other sizes and walls use the same blockage formula on the mill ID (thinner wall → bigger ID → higher K).
       3/8 in uses Diamond II 15/16 constants. Type a <strong>K factor</strong> to match the laminated card; <strong>Use probe K</strong> puts the formula back.
-      Sch 10/40 are carbon mill IDs; SS 10S/40S are ASME B36.19; Class B copper is AS 1432 Type B.
+      Steel IDs are <strong>AS 1074</strong> Light / Medium / Heavy; SS 10S/40S are ASME B36.19; Class B copper is AS 1432 Type B.
       High blockage on a fat probe in a small pipe is flagged. <strong>Use the laminated chart that shipped with the probe for a certified test.</strong>
     </p>
   </div>
@@ -1033,64 +1034,88 @@
   </div>
 
 <script>
-const APP_VERSION = "2.22";
-const APP_BUILD = 33;
+const APP_VERSION = "2.23";
+const APP_BUILD = 34;
+
+const NPS_TO_DN = {
+  "1/2": "15", "3/4": "20", "1": "25", "1-1/4": "32", "1-1/2": "40",
+  "2": "50", "2-1/2": "65", "3": "80", "3-1/2": "90", "4": "100",
+  "5": "125", "6": "150", "8": "200", "10": "250"
+};
+
+function asRow(dn, nps, odMm, wallMm, kgm) {
+  return {
+    dn: String(dn),
+    nps,
+    od: odMm / 25.4,
+    wall: wallMm / 25.4,
+    id: (odMm - 2 * wallMm) / 25.4,
+    wt: kgm / 1.48816
+  };
+}
+function steelKg(odMm, wallMm) {
+  return 0.0246615 * wallMm * (odMm - wallMm);
+}
 
 const DATA = {
-  sch10: {
-    label: "Sch 10",
-    material: "Steel • C=120",
+  asLight: {
+    label: "Light",
+    material: "AS 1074 Light • C=120",
     color: "#d1243a",
     rows: [
-      { nps: "3/4", od: 1.050, wall: 0.083, id: 0.884, wt: 0.87 },
-      { nps: "1", od: 1.315, wall: 0.109, id: 1.097, wt: 1.41 },
-      { nps: "1-1/4", od: 1.660, wall: 0.109, id: 1.442, wt: 1.81 },
-      { nps: "1-1/2", od: 1.900, wall: 0.109, id: 1.682, wt: 2.09 },
-      { nps: "2", od: 2.375, wall: 0.109, id: 2.157, wt: 2.64 },
-      { nps: "2-1/2", od: 2.875, wall: 0.120, id: 2.635, wt: 3.53 },
-      { nps: "3", od: 3.500, wall: 0.120, id: 3.260, wt: 4.34 },
-      { nps: "3-1/2", od: 4.000, wall: 0.120, id: 3.760, wt: 4.98 },
-      { nps: "4", od: 4.500, wall: 0.120, id: 4.260, wt: 5.62 },
-      { nps: "5", od: 5.563, wall: 0.134, id: 5.295, wt: 7.78 },
-      { nps: "6", od: 6.625, wall: 0.134, id: 6.357, wt: 9.30 },
-      { nps: "8", od: 8.625, wall: 0.188, id: 8.249, wt: 16.96 },
-      { nps: "10", od: 10.750, wall: 0.188, id: 10.374, wt: 21.23 }
+      asRow(15, "1/2", 21.3, 2.0, 0.947),
+      asRow(20, "3/4", 26.9, 2.3, 1.38),
+      asRow(25, "1", 33.7, 2.6, 1.98),
+      asRow(32, "1-1/4", 42.4, 2.6, 2.54),
+      asRow(40, "1-1/2", 48.3, 2.9, 3.23),
+      asRow(50, "2", 60.3, 2.9, 4.08),
+      asRow(65, "2-1/2", 76.1, 3.2, 5.71),
+      asRow(80, "3", 88.9, 3.2, 6.72),
+      asRow(100, "4", 114.3, 3.6, 9.75),
+      asRow(125, "5", 139.7, 3.6, steelKg(139.7, 3.6)),
+      asRow(150, "6", 165.1, 3.6, steelKg(165.1, 3.6)),
+      asRow(200, "8", 219.1, 4.8, steelKg(219.1, 4.8)),
+      asRow(250, "10", 273.0, 4.8, steelKg(273.0, 4.8))
     ]
   },
-  sch40: {
-    label: "Sch 40",
-    material: "Steel • C=120",
+  asMed: {
+    label: "Medium",
+    material: "AS 1074 Medium • C=120",
     color: "#e8b86d",
     rows: [
-      { nps: "3/4", od: 1.050, wall: 0.113, id: 0.824, wt: 1.13 },
-      { nps: "1", od: 1.315, wall: 0.133, id: 1.049, wt: 1.68 },
-      { nps: "1-1/4", od: 1.660, wall: 0.140, id: 1.380, wt: 2.27 },
-      { nps: "1-1/2", od: 1.900, wall: 0.145, id: 1.610, wt: 2.72 },
-      { nps: "2", od: 2.375, wall: 0.154, id: 2.067, wt: 3.65 },
-      { nps: "2-1/2", od: 2.875, wall: 0.203, id: 2.469, wt: 5.79 },
-      { nps: "3", od: 3.500, wall: 0.216, id: 3.068, wt: 7.58 },
-      { nps: "3-1/2", od: 4.000, wall: 0.226, id: 3.548, wt: 9.11 },
-      { nps: "4", od: 4.500, wall: 0.237, id: 4.026, wt: 10.79 },
-      { nps: "5", od: 5.563, wall: 0.258, id: 5.047, wt: 14.62 },
-      { nps: "6", od: 6.625, wall: 0.280, id: 6.065, wt: 18.97 },
-      { nps: "8", od: 8.625, wall: 0.322, id: 7.981, wt: 28.55 },
-      { nps: "10", od: 10.750, wall: 0.365, id: 10.020, wt: 40.48 }
+      asRow(15, "1/2", 21.3, 2.6, 1.21),
+      asRow(20, "3/4", 26.9, 2.6, 1.56),
+      asRow(25, "1", 33.7, 3.2, 2.41),
+      asRow(32, "1-1/4", 42.4, 3.2, 3.10),
+      asRow(40, "1-1/2", 48.3, 3.2, 3.57),
+      asRow(50, "2", 60.3, 3.6, 5.03),
+      asRow(65, "2-1/2", 76.1, 3.6, 6.43),
+      asRow(80, "3", 88.9, 4.0, 8.37),
+      asRow(100, "4", 114.3, 4.5, 12.2),
+      asRow(125, "5", 139.7, 5.0, 16.6),
+      asRow(150, "6", 165.1, 5.0, 19.7),
+      asRow(200, "8", 219.1, 6.4, steelKg(219.1, 6.4)),
+      asRow(250, "10", 273.0, 6.4, steelKg(273.0, 6.4))
     ]
   },
-  sch5: {
-    label: "Sch 5",
-    material: "Steel • C=120",
+  asHeavy: {
+    label: "Heavy",
+    material: "AS 1074 Heavy • C=120",
     color: "#9aa8b5",
     rows: [
-      { nps: "1", od: 1.315, wall: 0.065, id: 1.185, wt: 0.87 },
-      { nps: "1-1/4", od: 1.660, wall: 0.065, id: 1.530, wt: 1.11 },
-      { nps: "1-1/2", od: 1.900, wall: 0.065, id: 1.770, wt: 1.28 },
-      { nps: "2", od: 2.375, wall: 0.065, id: 2.245, wt: 1.61 },
-      { nps: "2-1/2", od: 2.875, wall: 0.083, id: 2.709, wt: 2.48 },
-      { nps: "3", od: 3.500, wall: 0.083, id: 3.334, wt: 3.03 },
-      { nps: "4", od: 4.500, wall: 0.083, id: 4.334, wt: 3.92 },
-      { nps: "6", od: 6.625, wall: 0.109, id: 6.407, wt: 7.60 },
-      { nps: "8", od: 8.625, wall: 0.109, id: 8.407, wt: 9.92 }
+      asRow(15, "1/2", 21.3, 3.2, 1.44),
+      asRow(20, "3/4", 26.9, 3.2, 1.87),
+      asRow(25, "1", 33.7, 4.0, 2.94),
+      asRow(32, "1-1/4", 42.4, 4.0, 3.80),
+      asRow(40, "1-1/2", 48.3, 4.0, 4.38),
+      asRow(50, "2", 60.3, 4.5, 6.19),
+      asRow(65, "2-1/2", 76.1, 4.5, 7.93),
+      asRow(80, "3", 88.9, 5.0, 10.3),
+      asRow(100, "4", 114.3, 5.4, 14.5),
+      asRow(125, "5", 139.7, 5.4, 17.9),
+      asRow(150, "6", 165.1, 5.4, 21.3),
+      asRow(200, "8", 219.1, 8.2, steelKg(219.1, 8.2)),
+      asRow(250, "10", 273.0, 9.3, steelKg(273.0, 9.3))
     ]
   },
   cpvc: {
@@ -1149,12 +1174,24 @@ const DATA = {
   }
 };
 
-const ORDER = ["sch10", "ss10", "sch40", "ss40", "sch5", "cpvc"];
-const BAR_CLASS = { sch10: "s10", ss10: "ss10", sch40: "s40", ss40: "ss40", sch5: "s5", cpvc: "cpvc" };
+const ORDER = ["asLight", "ss10", "asMed", "ss40", "asHeavy", "cpvc"];
+const BAR_CLASS = { asLight: "light", ss10: "ss10", asMed: "med", ss40: "ss40", asHeavy: "heavy", cpvc: "cpvc" };
 
-let schedule = "sch10";
+Object.keys(DATA).forEach(k => {
+  DATA[k].rows.forEach(r => {
+    if (r.dn == null && NPS_TO_DN[r.nps]) r.dn = NPS_TO_DN[r.nps];
+  });
+});
+
+let schedule = "asMed";
 let nps = "4";
 let metric = true;
+
+function sizeLabel(row) {
+  if (!row) return "—";
+  if (metric && row.dn) return "DN" + row.dn;
+  return row.nps + '"';
+}
 
 function fmt(n, d) {
   if (n == null || Number.isNaN(n)) return "—";
@@ -1197,7 +1234,7 @@ function drawPipe(row) {
     <text x="${cx}" y="${cy - outerR - 14}" text-anchor="middle" fill="#e8b86d" font-size="9">OD</text>
     <path d="M ${cx + innerR * 0.15} ${cy} L ${cx + innerR} ${cy}" stroke="#9aa8b5" stroke-width="1"/>
     <text x="${cx + 4}" y="${cy - 6}" fill="#9aa8b5" font-size="9">ID</text>
-    <text x="${cx}" y="${cy + 4}" text-anchor="middle" fill="#f4ede4" font-size="11" font-weight="700">${row.nps}"</text>
+    <text x="${cx}" y="${cy + 4}" text-anchor="middle" fill="#f4ede4" font-size="11" font-weight="700">${sizeLabel(row)}</text>
   `;
 }
 
@@ -1206,7 +1243,7 @@ function renderTable() {
   const body = document.getElementById("rows");
   body.innerHTML = set.rows.map(r => `
     <tr data-nps="${r.nps}" class="${r.nps === nps ? "sel" : ""}">
-      <td>${r.nps}"</td>
+      <td>${sizeLabel(r)}</td>
       <td>${fmt(r.od)}</td>
       <td>${fmt(r.wall)}</td>
       <td>${fmt(r.id)}</td>
@@ -1221,7 +1258,7 @@ function renderTable() {
 }
 
 function renderCompare(row) {
-  document.getElementById("compareTitle").textContent = "Wall thickness at " + row.nps + (metric ? " (mm)" : " in");
+  document.getElementById("compareTitle").textContent = "Wall thickness at " + sizeLabel(row) + (metric ? " (mm)" : "");
   const walls = ORDER.map(key => {
     const found = DATA[key].rows.find(r => r.nps === row.nps);
     return found ? { key, label: DATA[key].label, wall: found.wall } : null;
@@ -1238,7 +1275,7 @@ function render() {
   const set = DATA[schedule];
   if (!set.rows.some(r => r.nps === nps)) nps = set.rows[0].nps;
   const row = currentRow();
-  document.getElementById("titleSize").textContent = row.nps + " in " + set.label;
+  document.getElementById("titleSize").textContent = sizeLabel(row) + " " + set.label;
   document.getElementById("titleMat").textContent = set.material;
   document.getElementById("vOd").textContent = fmt(row.od);
   document.getElementById("vWall").textContent = fmt(row.wall);
@@ -2051,10 +2088,10 @@ function renderAS1851() {
 }
 
 const ELBOW_EL_FT = {
-  "3/4": 2, "1": 2, "1-1/4": 3, "1-1/2": 4, "2": 5, "2-1/2": 6,
+  "1/2": 2, "3/4": 2, "1": 2, "1-1/4": 3, "1-1/2": 4, "2": 5, "2-1/2": 6,
   "3": 7, "3-1/2": 8, "4": 10, "5": 12, "6": 14, "8": 18, "10": 22
 };
-let hcSched = "sch10";
+let hcSched = "asMed";
 let hcNps = "4";
 
 function elbowElM(nps) {
@@ -2090,7 +2127,7 @@ function fillHcSizes() {
   const host = document.getElementById("hcSize");
   const rows = DATA[hcSched].rows;
   host.innerHTML = rows.map(r =>
-    `<button type="button" data-n="${r.nps}" class="${r.nps === hcNps ? "on" : ""}">${r.nps}"</button>`
+    `<button type="button" data-n="${r.nps}" class="${r.nps === hcNps ? "on" : ""}">${sizeLabel(r)}</button>`
   ).join("");
   host.querySelectorAll("button").forEach(b => b.onclick = () => {
     hcNps = b.getAttribute("data-n");
@@ -2224,7 +2261,7 @@ function showPage(page) {
     document.getElementById("appSub").innerHTML = "Routine service of fire protection systems<br>What is in AS 1851 · frequencies · typical field checks";
     renderAS1851();
   } else {
-    document.getElementById("appSub").innerHTML = "Fire protection pipe OD, wall, and ID<br>Sch 10 mill • SS 10S • Sch 40 • SS 40S • Sch 5 • CPVC";
+    document.getElementById("appSub").innerHTML = "Fire protection pipe OD, wall, and ID<br>AS 1074 Light • Medium • Heavy • SS 10S/40S • CPVC";
   }
 }
 
@@ -2234,7 +2271,7 @@ function setAppTitle(page) {
   if (page === "as1851") {
     el.innerHTML = '<span class="brand-fit">AS 1851</span><span class="brand-sep">·</span><span class="brand-calcs">2012</span>';
   } else {
-    el.innerHTML = '<span class="brand-fit">FITTER</span><span class="brand-sep">·</span><span class="brand-calcs">CALCS</span>';
+    el.innerHTML = '<img class="wordmark" src="wordmark.svg" alt="FitterCalcs" />';
   }
 }
 
@@ -2443,8 +2480,8 @@ function setup() {
       render();
     });
   });
-  document.getElementById("btnIn").onclick = () => { metric = false; document.getElementById("btnIn").classList.add("on"); document.getElementById("btnMm").classList.remove("on"); render(); };
-  document.getElementById("btnMm").onclick = () => { metric = true; document.getElementById("btnMm").classList.add("on"); document.getElementById("btnIn").classList.remove("on"); render(); };
+  document.getElementById("btnIn").onclick = () => { metric = false; document.getElementById("btnIn").classList.add("on"); document.getElementById("btnMm").classList.remove("on"); render(); fillHcSizes(); };
+  document.getElementById("btnMm").onclick = () => { metric = true; document.getElementById("btnMm").classList.add("on"); document.getElementById("btnIn").classList.remove("on"); render(); fillHcSizes(); };
   document.querySelectorAll(".nav button").forEach(btn => {
     btn.addEventListener("click", () => {
       const page = btn.getAttribute("data-page");
@@ -2495,35 +2532,20 @@ const ANNU_PROBES = {
   "21T": { label: "21T", dMm: 21.0, c1: -1.4300, c2: 1.2650 }
 };
 
+function pipeIdsByDn(key) {
+  const sizes = {};
+  ((DATA[key] && DATA[key].rows) || []).forEach(r => {
+    const dn = String(r.dn || NPS_TO_DN[r.nps] || "");
+    if (Number(dn) >= 50) sizes[dn] = r.id * 25.4;
+  });
+  return sizes;
+}
 const ANNU_PIPES = {
-  sch10: {
-    label: "Sch 10",
-    sizes: {
-      "50": 54.8, "65": 66.9, "80": 82.8, "90": 95.5,
-      "100": 108.2, "125": 134.5, "150": 161.5, "200": 209.5
-    }
-  },
-  ss10: {
-    label: "SS 10S",
-    sizes: {
-      "50": 54.8, "65": 66.9, "80": 82.8, "90": 95.5,
-      "100": 108.2, "125": 134.5, "150": 161.5, "200": 211.6
-    }
-  },
-  sch40: {
-    label: "Sch 40",
-    sizes: {
-      "50": 52.5, "65": 62.7, "80": 77.9, "90": 90.1,
-      "100": 102.3, "125": 128.2, "150": 154.1, "200": 202.7
-    }
-  },
-  ss40: {
-    label: "SS 40S",
-    sizes: {
-      "50": 52.5, "65": 62.7, "80": 77.9, "90": 90.1,
-      "100": 102.3, "125": 128.2, "150": 154.1, "200": 202.7
-    }
-  },
+  asLight: { label: "Light", sizes: pipeIdsByDn("asLight") },
+  ss10: { label: "SS 10S", sizes: pipeIdsByDn("ss10") },
+  asMed: { label: "Medium", sizes: pipeIdsByDn("asMed") },
+  ss40: { label: "SS 40S", sizes: pipeIdsByDn("ss40") },
+  asHeavy: { label: "Heavy", sizes: pipeIdsByDn("asHeavy") },
   copper: {
     label: "Cu B",
     sizes: {
@@ -2539,11 +2561,11 @@ const ANNU_DN_NPS = {
 };
 const ANNU_DP = [0.5, 1, 1.5, 2, 3, 4, 5, 6, 8, 10, 12, 15, 20, 25, 30];
 const ANNU_K_CAL = {
-  "20T": { k: 0.637, nps: "2" },
-  "21T": { k: 0.672, nps: "4" }
+  "20T": { k: 0.637, idMm: 52.50 },
+  "21T": { k: 0.672, idMm: 102.26 }
 };
 
-let annuKind = "sch10";
+let annuKind = "asMed";
 let annuDn = "50";
 let annuProbe = "3/8";
 let annuKManual = false;
@@ -2562,9 +2584,7 @@ function annuKRaw(idMm, probeKey) {
 }
 function annuCalIdMm(probeKey) {
   const cal = ANNU_K_CAL[probeKey];
-  const nps = cal && cal.nps ? cal.nps : "4";
-  const row = DATA.sch40.rows.find(r => r.nps === nps);
-  return row.id * 25.4;
+  return cal && cal.idMm ? cal.idMm : 102.26;
 }
 function annuK(idMm) {
   const raw = annuKRaw(idMm, annuProbe);
@@ -2595,12 +2615,13 @@ function flowFromInHg(idMm, inHg, kUsed) {
   return { gpm, ls, lpm: ls * 60, ms, K, B, calc };
 }
 function currentAnnuId() {
-  const nps = ANNU_DN_NPS[annuDn];
-  if (nps && DATA[annuKind]) {
-    const row = DATA[annuKind].rows.find(r => r.nps === nps);
+  if (DATA[annuKind]) {
+    const row = DATA[annuKind].rows.find(r =>
+      String(r.dn) === String(annuDn) || r.nps === ANNU_DN_NPS[annuDn]
+    );
     if (row) return row.id * 25.4;
   }
-  return ANNU_PIPES[annuKind].sizes[annuDn] || null;
+  return (ANNU_PIPES[annuKind] && ANNU_PIPES[annuKind].sizes[annuDn]) || null;
 }
 function renderAnnu() {
   const id = currentAnnuId();
@@ -2659,7 +2680,7 @@ function setupAnnu() {
     };
   });
   const p = document.getElementById("annuPipe");
-  p.innerHTML = ["sch10", "ss10", "sch40", "ss40", "copper"].map(k =>
+  p.innerHTML = ["asLight", "ss10", "asMed", "ss40", "asHeavy", "copper"].map(k =>
     `<button type="button" data-k="${k}" class="${k === annuKind ? "on" : ""}">${ANNU_PIPES[k].label}</button>`
   ).join("");
   p.querySelectorAll("button").forEach(btn => {

@@ -8,11 +8,11 @@
 
 <p align="center">
   Field calculator for fire protection fitters.<br>
-  Pipe sizes, Annubar flow, flanges, pump curves, hydro losses, tanks, and AS 1851 lookup.
+  AS 1074 pipe sizes, Annubar flow, flanges, pump curves, hydro losses, tanks, and AS 1851 lookup.
 </p>
 
 <p align="center">
-  <strong>Current version: 2.22</strong><br>
+  <strong>Current version: 2.23</strong><br>
   <a href="https://github.com/macski777/fittercalcs/releases/latest">Download FitterCalcs.apk</a>
 </p>
 
@@ -28,7 +28,7 @@ The launcher icon and the **FITTER / CALCS** wordmark use **Delta Corps Priest 1
 
 ## Install on Android
 
-1. Download [FitterCalcs.apk](https://github.com/macski777/fittercalcs/releases/download/v2.22/FitterCalcs.apk).
+1. Download [FitterCalcs.apk](https://github.com/macski777/fittercalcs/releases/download/v2.23/FitterCalcs.apk).
 2. Open the file on the phone.
 3. Allow install from this source if Android asks.
 4. Open **FitterCalcs**.
@@ -50,7 +50,7 @@ Phones on **2.17 or older** need a one-time install of 2.18 or later (USB or thi
 
 | Tab | What it does |
 | --- | --- |
-| **Pipe** | OD, wall, ID for Sch 10 mill, SS 10S, Sch 40, SS 40S, Sch 5, CPVC. mm or inch. |
+| **Pipe** | OD, wall, ID for AS 1074 Light / Medium / Heavy, SS 10S, SS 40S, CPVC. mm or inch. |
 | **Annubar** | L/s from inHg for 3/8", 20T, and 21T. Type K to match the laminated card. |
 | **Flange** | AS 2129 Table D/E/F/H, ANSI 150/300, PN16 — OD, PCD, bolts, holes. |
 | **Pump** | kPa vs L/s curve, autosave by job name, save/email PNG, large-chart view. |
@@ -60,15 +60,15 @@ Phones on **2.17 or older** need a one-time install of 2.18 or later (USB or thi
 
 ### Pipe
 
-Sch 10 mill, stainless, Sch 40, Sch 5, and CPVC. Cross-section, OD / wall / ID, mm or inch.
+AS 1074 Light, Medium, and Heavy steel, plus stainless and CPVC. Cross-section, OD / wall / ID, mm or inch.
 
-<p align="center"><img src="docs/pipe.png" width="320" alt="Pipe tab — 4 in Sch 10"></p>
+<p align="center"><img src="docs/pipe.png" width="320" alt="Pipe tab — DN100 Medium"></p>
 
 ### Annubar
 
 3/8", 20T, and 21T. Type a K from the probe card, or use the formula K.
 
-<p align="center"><img src="docs/annubar.png" width="320" alt="Annubar tab — DN50 Sch 10"></p>
+<p align="center"><img src="docs/annubar.png" width="320" alt="Annubar tab — DN50 Medium"></p>
 
 ### Flange
 
