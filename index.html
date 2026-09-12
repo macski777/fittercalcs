@@ -629,7 +629,7 @@
       </div>
     </div>
     <div class="header-right">
-      <div class="build" id="appBuild" title="Check for update">v2.25</div>
+      <div class="build" id="appBuild" title="Check for update">v2.26</div>
       <div class="units" id="pipeUnits" role="group" aria-label="Units">
         <button id="btnIn" type="button">in</button>
         <button id="btnMm" class="on" type="button">mm</button>
@@ -873,9 +873,9 @@
     <div class="actions">
       <button type="button" class="ghost" id="newPumpJob">New curve</button>
       <button type="button" class="ghost" id="savePump">Save to device</button>
-      <button type="button" id="emailPump">Email chart</button>
+      <button type="button" id="emailPump">Email report</button>
     </div>
-    <p class="notes"><span id="pumpSaveStatus"></span> Curves <strong>autosave by job name</strong>. PNG still goes to <strong>Pictures/FitterCalcs</strong>. Plot is a field record, not a certified lab curve.</p>
+    <p class="notes"><span id="pumpSaveStatus"></span> Curves <strong>autosave by job name</strong>. Save keeps the chart PNG. Email sends a customer report citing <strong>AS 2941</strong>, <strong>AS 2419.1</strong>, <strong>AS 2118.1</strong> and <strong>AS 1851</strong>, with the curve attached. Field record — not a certified lab curve.</p>
     <div class="jobs-head">
       <h2>History</h2>
     </div>
@@ -1060,8 +1060,8 @@
   </div>
 
 <script>
-const APP_VERSION = "2.25";
-const APP_BUILD = 36;
+const APP_VERSION = "2.26";
+const APP_BUILD = 37;
 
 const NPS_TO_DN = {
   "1/2": "15", "3/4": "20", "1": "25", "1-1/4": "32", "1-1/2": "40",
@@ -3835,6 +3835,165 @@ function sendChartToApp(mode, dataUrl, fname, subject, body) {
   OnlyFitters.finishPng();
 }
 
+function pumpDuty(pts, req) {
+  if (!req || pts.length < 2) return null;
+  const at = monotoneSpline(pts)(req.q);
+  if (!Number.isFinite(at)) return null;
+  return { at, meets: at + 0.5 >= req.p, margin: at - req.p };
+}
+function pumpChartCanvas(pts, job, year, pump, req) {
+  const c = document.createElement("canvas");
+  c.width = 1400; c.height = 1000;
+  const ctx = c.getContext("2d");
+  skipBrandLogo = false;
+  try {
+    drawPumpOn(ctx, c.width, c.height, pts, job, year, pump, true, req);
+    c.toDataURL("image/png");
+  } catch (err) {
+    skipBrandLogo = true;
+    drawPumpOn(ctx, c.width, c.height, pts, job, year, pump, true, req);
+    skipBrandLogo = false;
+  }
+  return c;
+}
+function pumpReportText(pts, job, year, pump, req) {
+  const duty = pumpDuty(pts, req);
+  const shut = pts.find(p => Math.abs(p.q) < 1e-6) || pts[0];
+  const last = pts[pts.length - 1];
+  let finding;
+  if (!req) {
+    finding = "No system duty was entered. This is a field record of measured points only.";
+  } else if (!duty) {
+    finding = "A system duty of " + req.q + " L/s at " + req.p + " kPa was nominated. The curve could not be interpolated at that flow.";
+  } else if (duty.meets) {
+    finding = "The recorded curve MEETS the nominated system duty. At " + req.q + " L/s the curve is "
+      + duty.at.toFixed(0) + " kPa (" + Math.abs(duty.margin).toFixed(0) + " kPa above " + req.p + " kPa).";
+  } else {
+    finding = "The recorded curve is BELOW the nominated system duty. At " + req.q + " L/s the curve is "
+      + duty.at.toFixed(0) + " kPa (" + Math.abs(duty.margin).toFixed(0) + " kPa below " + req.p + " kPa).";
+  }
+  return [
+    "FIRE PUMP PERFORMANCE ESTIMATE",
+    "FitterCalcs v" + APP_VERSION + "  ·  " + reportDate(),
+    job ? "Site / job: " + job : "Site / job: (not stated)",
+    "",
+    "1. Scope",
+    "Field record of a fire pump pressure–flow curve from site test points. Compared with the nominated system duty where entered. Intended as a contractor / client summary of an AS 1851 performance check against the pumpset requirements of AS 2941 and the hydrant / sprinkler water-supply duties in AS 2419.1 and AS 2118.1.",
+    "",
+    "2. Installation",
+    "Site / job: " + (job || "(not stated)"),
+    "Year of test: " + (year || "(not stated)"),
+    "Pump / set: " + (pump || "(not stated)"),
+    req && req.note ? "Duty note: " + req.note : "Duty note: (none)",
+    "",
+    "3. Nominated system duty",
+    req
+      ? "Required flow: " + req.q + " L/s\nRequired pressure: " + req.p + " kPa" + (req.note ? "  (" + req.note + ")" : "")
+      : "No required flow / pressure was entered.",
+    "",
+    "4. Recorded curve",
+    "Shutoff / first point: " + shut.q + " L/s at " + shut.p + " kPa",
+    "Last point: " + last.q + " L/s at " + last.p + " kPa",
+    "Test points (L/s, kPa):",
+    pts.map(p => "  " + p.q + " L/s  @  " + p.p + " kPa").join("\n"),
+    "",
+    "5. Finding",
+    finding,
+    "",
+    "6. Standards referenced",
+    "AS 2941 Fixed fire protection installations — pumpset systems (performance and test).",
+    "AS 2419.1 Fire hydrant installations — pump duty and residual pressure.",
+    "AS 2118.1 Automatic fire sprinkler systems — pump water supplies.",
+    "AS 1851-2012 Routine service of fire protection systems — pump inspect / test (monthly run and yearly performance).",
+    "",
+    "7. Limitations",
+    "This is a field estimate from the points entered on site. It is not a certified factory curve, a Form 15/16, or a substitute for the current published Australian Standards, the pump nameplate, or the project hydraulic calculation. Gauge height, suction conditions, driver speed and test-method details are not recorded here. Confirm against AS 2941 / AS 1851 test sheets before sign-off.",
+    "",
+    "Prepared with FitterCalcs " + APP_VERSION
+  ].join("\n");
+}
+function composePumpReportPng(pts, job, year, pump, req) {
+  const chart = pumpChartCanvas(pts, job, year, pump, req);
+  const w = 1400, h = 1760;
+  const c = document.createElement("canvas");
+  c.width = w; c.height = h;
+  const ctx = c.getContext("2d");
+  ctx.fillStyle = "#f4ede4";
+  ctx.fillRect(0, 0, w, h);
+  ctx.drawImage(chart, 0, 0);
+  const duty = pumpDuty(pts, req);
+  let banner = "Field record — no system duty entered";
+  if (req && duty) {
+    banner = duty.meets
+      ? "MEETS nominated duty  ·  " + duty.at.toFixed(0) + " kPa at " + req.q + " L/s  (" + Math.abs(duty.margin).toFixed(0) + " kPa above " + req.p + " kPa)"
+      : "BELOW nominated duty  ·  " + duty.at.toFixed(0) + " kPa at " + req.q + " L/s  (" + Math.abs(duty.margin).toFixed(0) + " kPa below " + req.p + " kPa)";
+  } else if (req) {
+    banner = "Duty nominated  ·  " + req.q + " L/s @ " + req.p + " kPa";
+  }
+  let y = 1036;
+  ctx.fillStyle = "#d1243a";
+  ctx.fillRect(40, y, w - 80, 64);
+  ctx.fillStyle = "#fff";
+  ctx.font = "800 24px sans-serif";
+  ctx.textAlign = "left";
+  ctx.fillText("Finding", 56, y + 24);
+  ctx.font = "700 22px sans-serif";
+  ctx.fillText(banner, 56, y + 52);
+  y += 100;
+  const rows = [
+    { k: "Site / job", v: job || "(not stated)" },
+    { k: "Year of test", v: year || "(not stated)" },
+    { k: "Pump / set", v: pump || "(not stated)" }
+  ];
+  if (req) {
+    rows.push({ k: "Nominated duty", v: req.q + " L/s @ " + req.p + " kPa" });
+    if (req.note) rows.push({ k: "Duty note", v: req.note });
+    if (duty) rows.push({ k: "Curve at duty flow", v: duty.at.toFixed(0) + " kPa" });
+  }
+  y = drawKvRows(ctx, rows, 40, y, w - 80, 40);
+  y += 10;
+  ctx.fillStyle = "#6a5d50";
+  ctx.font = "600 18px sans-serif";
+  ctx.textAlign = "left";
+  ctx.fillText("Test points (L/s @ kPa)", 52, y);
+  y += 26;
+  ctx.fillStyle = "#1a1613";
+  ctx.font = "700 20px sans-serif";
+  wrapReport(ctx, pts.map(p => p.q + " L/s @ " + p.p).join("    "), w - 100).forEach(ln => {
+    ctx.fillText(ln, 52, y);
+    y += 26;
+  });
+  y += 18;
+  ctx.fillStyle = "#1a1613";
+  ctx.font = "800 20px sans-serif";
+  ctx.fillText("Australian Standards referenced", 40, y);
+  y += 28;
+  ctx.fillStyle = "#3a322c";
+  ctx.font = "600 18px sans-serif";
+  [
+    "AS 2941 — fire pumpset systems: performance and test.",
+    "AS 2419.1 — hydrant pump duty and residual pressure.",
+    "AS 2118.1 — sprinkler pump water supplies.",
+    "AS 1851-2012 — routine service: monthly pump run and yearly performance test."
+  ].forEach(line => {
+    wrapReport(ctx, "•  " + line, w - 80).forEach(ln => { ctx.fillText(ln, 40, y); y += 24; });
+  });
+  y += 16;
+  ctx.fillStyle = "#1a1613";
+  ctx.font = "800 20px sans-serif";
+  ctx.fillText("Limitations", 40, y);
+  y += 28;
+  ctx.fillStyle = "#3a322c";
+  ctx.font = "600 18px sans-serif";
+  wrapReport(ctx,
+    "Field estimate from the points entered on site. Not a certified factory curve, Form 15/16, or a substitute for the current Standards, the pump nameplate, or the project hydraulic calculation. Confirm gauge height, suction, speed and AS 2941 / AS 1851 test sheets before sign-off.",
+    w - 80
+  ).forEach(ln => { ctx.fillText(ln, 40, y); y += 24; });
+  ctx.fillStyle = "#a89b8c";
+  ctx.font = "600 16px sans-serif";
+  ctx.fillText("FitterCalcs field estimate  ·  v" + APP_VERSION + "  ·  " + reportDate(), 40, h - 28);
+  return c.toDataURL("image/png");
+}
 function exportPump(mode) {
   try {
     const pts = readPumpPts();
@@ -3842,30 +4001,19 @@ function exportPump(mode) {
       nativeToast("Add at least two points");
       return;
     }
-    const c = document.createElement("canvas");
-    c.width = 1400; c.height = 1000;
-    const ctx = c.getContext("2d");
     const job = document.getElementById("jobName").value.trim();
     const year = document.getElementById("testYear").value.trim();
     const pump = document.getElementById("pumpId").value.trim();
     const req = readReq();
-    skipBrandLogo = false;
-    drawPumpOn(ctx, c.width, c.height, pts, job, year, pump, true, req);
     let dataUrl;
-    try {
-      dataUrl = c.toDataURL("image/png");
-    } catch (err) {
-      skipBrandLogo = true;
-      drawPumpOn(ctx, c.width, c.height, pts, job, year, pump, true, req);
-      dataUrl = c.toDataURL("image/png");
-      skipBrandLogo = false;
+    if (mode === "email") {
+      dataUrl = composePumpReportPng(pts, job, year, pump, req);
+    } else {
+      dataUrl = pumpChartCanvas(pts, job, year, pump, req).toDataURL("image/png");
     }
     const fname = pumpFileName();
-    const subject = "FitterCalcs pump curve — " + (job || "test") + " " + year;
-    const body = "Job: " + (job || "-") + "\nYear of test: " + (year || "-") + "\nPump: " + (pump || "-") + "\n"
-      + (req ? "System req: " + req.q + " L/s @ " + req.p + " kPa" + (req.note ? " (" + req.note + ")" : "") + "\n" : "")
-      + "\nPoints (L/s, kPa):\n" +
-      pts.map(p => p.q + " L/s  @  " + p.p + " kPa").join("\n");
+    const subject = "Fire pump performance estimate" + (job ? " — " + job : "") + (year ? " (" + year + ")" : "");
+    const body = pumpReportText(pts, job, year, pump, req);
     if (window.OnlyFitters) {
       sendChartToApp(mode, dataUrl, fname, subject, body);
       return;

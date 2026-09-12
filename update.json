@@ -1,6 +1,6 @@
 {
-  "versionCode": 36,
-  "versionName": "2.25",
-  "apkUrl": "https://github.com/macski777/fittercalcs/releases/download/v2.25/FitterCalcs.apk",
-  "notes": "Bigger name. Email a customer report from Hydro-Calcs and Tanks."
+  "versionCode": 37,
+  "versionName": "2.26",
+  "apkUrl": "https://github.com/macski777/fittercalcs/releases/download/v2.26/FitterCalcs.apk",
+  "notes": "Pump email is now an engineer-style customer report, same as Hydro and Tanks."
 }
