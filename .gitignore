@@ -8,3 +8,12 @@ __pycache__/
 *.pyc
 *.class
 .DS_Store
+desktop/build/
+desktop/dist/
+desktop/output/
+desktop/*.spec
+desktop/electron/node_modules/
+desktop/electron/dist/
+desktop/electron/assets/
+*.tar.gz
+/FitterCalcs-Setup.exe

@@ -10,8 +10,8 @@ android {
         applicationId 'com.sprinkler.pipechart'
         minSdk 24
         targetSdk 34
-        versionCode 39
-        versionName '2.28'
+        versionCode 40
+        versionName '2.29'
     }
 
     buildTypes {

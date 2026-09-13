@@ -1,0 +1,39 @@
+{
+  "name": "fittercalcs",
+  "version": "2.29.0",
+  "description": "Field calculator for fire protection fitters",
+  "author": "macski777",
+  "license": "UNLICENSED",
+  "main": "main.js",
+  "private": true,
+  "scripts": {
+    "start": "electron .",
+    "dist:win": "electron-builder --win zip"
+  },
+  "devDependencies": {
+    "electron": "^37.2.0",
+    "electron-builder": "^26.0.12"
+  },
+  "build": {
+    "appId": "com.sprinkler.pipechart",
+    "productName": "FitterCalcs",
+    "copyright": "FitterCalcs",
+    "directories": {
+      "output": "dist"
+    },
+    "files": [
+      "main.js",
+      "preload.js",
+      "assets/**"
+    ],
+    "win": {
+      "icon": "../fittercalcs.ico",
+      "target": [
+        {
+          "target": "zip",
+          "arch": ["x64"]
+        }
+      ]
+    }
+  }
+}
