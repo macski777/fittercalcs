@@ -12,7 +12,7 @@
 </p>
 
 <p align="center">
-  <strong>Current version: 2.27</strong><br>
+  <strong>Current version: 2.28</strong><br>
   <a href="https://github.com/macski777/fittercalcs/releases/latest">Download FitterCalcs.apk</a>
 </p>
 
@@ -28,7 +28,7 @@ The launcher icon and the **FITTER / CALCS** wordmark use **Delta Corps Priest 1
 
 ## Install on Android
 
-1. Download [FitterCalcs.apk](https://github.com/macski777/fittercalcs/releases/download/v2.27/FitterCalcs.apk).
+1. Download [FitterCalcs.apk](https://github.com/macski777/fittercalcs/releases/download/v2.28/FitterCalcs.apk).
 2. Open the file on the phone.
 3. Allow install from this source if Android asks.
 4. Open **FitterCalcs**.
@@ -53,9 +53,9 @@ Phones on **2.17 or older** need a one-time install of 2.18 or later (USB or thi
 | **Pipe** | OD, wall, ID for AS 1074 Light / Medium / Heavy, SS 10S, SS 40S, CPVC. mm or inch. |
 | **Annubar** | L/s from inHg for 3/8", 20T, and 21T. Medium-steel card K; other walls interpolate by ID. |
 | **Flange** | AS 2129 Table D/E/F/H, ANSI 150/300, PN16 — OD, PCD, bolts, holes. |
-| **Pump** | kPa vs L/s curve, autosave by job. Email a customer report citing AS 2941 / AS 2419.1 / AS 2118.1 / AS 1851. |
-| **Hydro-Calcs** | Hazen-Williams friction + static rise. Email a customer report citing AS 1074 / AS 2118.1 / AS 2419.1. |
-| **Tanks** | Cylindrical / rectangular volume, effective kL, hydrant / sprinkler / combined, infill, hours of supply vs AS 2419.1 / AS 2118.1. Email a customer report. |
+| **Pump** | kPa vs L/s curve, autosave by job. Green **PASS** / red **FAIL** vs nominated duty. Email a customer report citing AS 2941 / AS 2419.1 / AS 2118.1 / AS 1851. |
+| **Hydro-Calcs** | Hazen-Williams friction + static rise. Green **PASS** / red **FAIL** on velocity (typical 5 m/s). Email a customer report citing AS 1074 / AS 2118.1 / AS 2419.1. |
+| **Tanks** | Cylindrical / rectangular volume, effective kL, hydrant / sprinkler / combined, infill, hours of supply vs AS 2419.1 / AS 2118.1. Green **PASS** / red **FAIL**. Email a customer report. |
 | **AS-1851** | Field lookup for AS 1851-2012 routine service. Not a substitute for the Standard. |
 
 ### Pipe
@@ -78,21 +78,21 @@ AS 2129 tables, ANSI, and PN16 — OD, PCD, bolts, hole size.
 
 ### Pump
 
-kPa vs L/s curve, job autosave, large chart. **Email report** sends a customer summary citing AS 2941, AS 2419.1, AS 2118.1 and AS 1851, with the curve attached.
+kPa vs L/s curve, job autosave, large chart. Enter a system duty and the tab shows green **PASS** or red **FAIL**. **Email report** sends a customer summary citing AS 2941, AS 2419.1, AS 2118.1 and AS 1851, with the curve attached.
 
-<p align="center"><img src="docs/pump.png" width="320" alt="Pump tab — test curve"></p>
+<p align="center"><img src="docs/pump.png" width="320" alt="Pump tab — PASS against nominated duty"></p>
 
 ### Hydro-Calcs
 
-Hazen-Williams friction plus static rise. **Email report** sends a customer summary citing AS 1074, AS 2118.1 and AS 2419.1.
+Hazen-Williams friction plus static rise. Velocity within 5 m/s is green **PASS**; above is red **FAIL**. **Email report** sends a customer summary citing AS 1074, AS 2118.1 and AS 2419.1.
 
-<p align="center"><img src="docs/hydro.png" width="320" alt="Hydro-Calcs tab"></p>
+<p align="center"><img src="docs/hydro.png" width="320" alt="Hydro-Calcs tab — PASS on velocity"></p>
 
 ### Tanks
 
-Cylindrical or rectangular volume, gross and effective kL. Pick hydrants, sprinklers, or both; type infill / make-up; the tab shows hours of supply against AS 2419.1 (4 h hydrants) and AS 2118.1 (30 / 60 / 90 min by hazard). **Email report** cites AS 2304, AS 2419.1, AS 2118.1 and AS/NZS 3500.1.
+Cylindrical or rectangular volume, gross and effective kL. Pick hydrants, sprinklers, or both; type infill / make-up; the tab shows hours of supply against AS 2419.1 (4 h hydrants) and AS 2118.1 (30 / 60 / 90 min by hazard). Enough storage is green **PASS**; short is red **FAIL**. **Email report** cites AS 2304, AS 2419.1, AS 2118.1 and AS/NZS 3500.1.
 
-<p align="center"><img src="docs/tanks.png" width="320" alt="Tanks tab — combined hydrant and sprinkler, infill, hours vs AS 2419.1 / AS 2118.1"></p>
+<p align="center"><img src="docs/tanks.png" width="320" alt="Tanks tab — combined hydrant and sprinkler, infill, FAIL vs required storage"></p>
 
 ### Annubar K
 

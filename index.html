@@ -565,22 +565,28 @@
     }
     .hc-total label { color: #ffd4d8; }
     .hc-total b { color: #fff; }
-    .hc-ok {
+    .hc-pass, .hc-fail {
       grid-column: 1 / -1;
-      background: #1e3a2f;
-      color: #7dcea0;
-      border: 1px solid #2e5a45;
+      border: 0;
+      padding: 12px 14px;
+      color: #fff;
     }
-    .hc-ok label { color: #9dd4b5; }
-    .hc-ok small { color: #9dd4b5; white-space: normal; display: block; margin-top: 2px; }
-    .hc-short {
-      grid-column: 1 / -1;
-      background: #3a2a12;
-      color: var(--gold);
-      border: 1px solid #6a4a18;
+    .hc-pass { background: #0f6a3a; }
+    .hc-fail { background: #d1243a; }
+    .hc-pass label, .hc-fail label { color: rgba(255,255,255,0.82); }
+    .hc-pass b, .hc-fail b {
+      display: block;
+      color: #fff;
+      font-size: 1.85rem;
+      letter-spacing: 0.18em;
+      line-height: 1.1;
     }
-    .hc-short label { color: #e8c99a; }
-    .hc-short small { color: #e8c99a; white-space: normal; display: block; margin-top: 2px; }
+    .hc-pass small, .hc-fail small {
+      color: rgba(255,255,255,0.92);
+      white-space: normal;
+      display: block;
+      margin-top: 4px;
+    }
     .sysbox .chips { margin-bottom: 8px; }
     .sysbox .chips:last-child { margin-bottom: 0; }
     .sysbox b.subhead { margin-top: 10px; font-size: 0.78rem; color: var(--muted); font-weight: 700; }
@@ -648,7 +654,7 @@
       </div>
     </div>
     <div class="header-right">
-      <div class="build" id="appBuild" title="Check for update">v2.27</div>
+      <div class="build" id="appBuild" title="Check for update">v2.28</div>
       <div class="units" id="pipeUnits" role="group" aria-label="Units">
         <button id="btnIn" type="button">in</button>
         <button id="btnMm" class="on" type="button">mm</button>
@@ -886,7 +892,8 @@
       <canvas id="pumpChart" width="900" height="640" title="Open large chart"></canvas>
       <button type="button" class="chart-expand" id="expandPump">Large chart</button>
     </section>
-    <p class="notes" style="margin-top:0">Enter flow (L/s) and pressure (kPa). The curve is a spline through the points.</p>
+    <div class="hc-out" id="pumpVerdict"></div>
+    <p class="notes" style="margin-top:0">Enter flow (L/s) and pressure (kPa). The curve is a spline through the points. With a system duty entered, the tab and email report show <strong>PASS</strong> (green) or <strong>FAIL</strong> (red).</p>
     <div id="pumpPts"></div>
     <button type="button" class="addpt" id="addPt">+ Add point</button>
     <div class="actions">
@@ -942,6 +949,7 @@
     <p class="notes">
       Hazen-Williams friction plus 9.81 kPa per metre of rise. Elbows use 90° standard equivalent length (fire tables).
       Steel default <strong>C=120</strong>, stainless and CPVC <strong>C=150</strong>.
+      Velocity above <strong>5 m/s</strong> is a <strong>FAIL</strong> (red); within 5 m/s is <strong>PASS</strong> (green).
       Email sends a customer summary citing <strong>AS 1074</strong>, <strong>AS 2118.1</strong> and <strong>AS 2419.1</strong>. Field estimate — not a certified hydraulic design.
     </p>
   </div>
@@ -1030,6 +1038,7 @@
       <strong>Gross</strong> = full internal volume of the shell.
       <strong>Effective</strong> = volume between the usable high water (overflow minus air gap, default 20 mm per AS/NZS 3500.1) and the usable low water (above suction/vortex inhibitor, default 150 mm — typical AS 2304 / AS 2419 field value; enter the actual plate height).
       <strong>Hydrants</strong> need <strong>4 h</strong> at demand (AS 2419.1). <strong>Sprinklers</strong> need <strong>30 / 60 / 90 min</strong> by Light / Ordinary / High Hazard (AS 2118.1). Infill is credited as make-up: duration uses effective litres ÷ (demand − infill). Combined tanks are checked for hydrants, sprinklers, and both running together.
+      Enough storage is a green <strong>PASS</strong>; short is a red <strong>FAIL</strong> on the tab and on the email report.
       Email sends a customer summary citing <strong>AS 2304</strong>, <strong>AS 2419.1</strong>, <strong>AS 2118.1</strong> and <strong>AS/NZS 3500.1</strong>. Field estimate — confirm on the current Standard.
     </p>
   </div>
@@ -1105,8 +1114,8 @@
   </div>
 
 <script>
-const APP_VERSION = "2.27";
-const APP_BUILD = 38;
+const APP_VERSION = "2.28";
+const APP_BUILD = 39;
 
 const NPS_TO_DN = {
   "1/2": "15", "3/4": "20", "1": "25", "1-1/4": "32", "1-1/2": "40",
@@ -2211,6 +2220,30 @@ function fillHcSizes() {
   });
 }
 
+const HYDRO_VEL_MAX = 5;
+const PASS_COL = "#0f6a3a";
+const FAIL_COL = "#d1243a";
+
+function verdictLabel(ok) { return ok ? "PASS" : "FAIL"; }
+function verdictHtml(v) {
+  if (!v) return "";
+  return '<div class="stat ' + (v.ok ? "hc-pass" : "hc-fail") + '"><label>Result</label><b>' + verdictLabel(v.ok) + '</b> <small>' + v.detail + '</small></div>';
+}
+function resultPrefix(v) {
+  if (!v) return [];
+  return ["RESULT: " + verdictLabel(v.ok), v.detail, ""];
+}
+function subjectWithResult(base, site, v) {
+  return base + (v ? " — " + verdictLabel(v.ok) : "") + (site ? " — " + site : "");
+}
+function hydroVerdict(s) {
+  if (!s || !Number.isFinite(s.vel)) return null;
+  if (s.vel > HYDRO_VEL_MAX) {
+    return { ok: false, tag: "FAIL", detail: "Velocity " + s.vel.toFixed(2) + " m/s exceeds the typical " + HYDRO_VEL_MAX + " m/s fire-pipework limit. Confirm against AS 2118.1 / AS 2419.1 project limits." };
+  }
+  return { ok: true, tag: "PASS", detail: "Velocity " + s.vel.toFixed(2) + " m/s is within the typical " + HYDRO_VEL_MAX + " m/s fire-pipework limit." };
+}
+
 function hydroState() {
   const set = DATA[hcSched];
   const row = set.rows.find(r => r.nps === hcNps) || set.rows[0];
@@ -2233,7 +2266,9 @@ function hydroState() {
   const kpaM = Le > 0 ? fricKpa / Le : 0;
   const areaM2 = Math.PI * Math.pow(idIn * 0.0254 / 2, 2);
   const vel = (Q / 1000) / areaM2;
-  return { set, row, Q, Lm, nEl, rise, C, idIn, idMm, elM, Le, fricKpa, statKpa, total, vel, kpaM, site };
+  const out = { set, row, Q, Lm, nEl, rise, C, idIn, idMm, elM, Le, fricKpa, statKpa, total, vel, kpaM, site };
+  out.verdict = hydroVerdict(out);
+  return out;
 }
 
 function renderHydro() {
@@ -2250,8 +2285,9 @@ function renderHydro() {
     <div class="stat"><label>Equiv. length</label><b>${s.Le.toFixed(1)}</b> <small>m (${s.elM.toFixed(1)} m elbows)</small></div>
     <div class="stat"><label>Friction</label><b>${s.fricKpa.toFixed(0)}</b> <small>kPa · ${s.kpaM.toFixed(1)} kPa/m</small></div>
     <div class="stat"><label>Static rise</label><b>${s.statKpa.toFixed(0)}</b> <small>kPa · ${Math.max(0, s.rise).toFixed(1)} m</small></div>
-    <div class="stat"><label>Velocity</label><b>${s.vel.toFixed(2)}</b> <small>m/s</small></div>
-    <div class="stat hc-total"><label>Total pressure loss</label><b>${s.total.toFixed(0)}</b> <small>kPa</small></div>`;
+    <div class="stat"><label>Velocity</label><b>${s.vel.toFixed(2)}</b> <small>m/s · limit ${HYDRO_VEL_MAX}</small></div>
+    <div class="stat hc-total"><label>Total pressure loss</label><b>${s.total.toFixed(0)}</b> <small>kPa</small></div>
+    ${verdictHtml(s.verdict)}`;
 }
 
 let tkShape = "cyl";
@@ -2316,12 +2352,12 @@ function combinedNeedL(Qh, Qs, Qi, sprMin) {
 function tankStatus(keff, need) {
   if (need == null) return null;
   if (need === 0) {
-    return { ok: true, tag: "INFILL COVERS", detail: "Infill ≥ demand — tank does not draw down for the nominated duration. Confirm the infill is automatic and reliable." };
+    return { ok: true, tag: "PASS", detail: "Infill ≥ demand — tank does not draw down for the nominated duration. Confirm the infill is automatic and reliable." };
   }
   if (keff + 1 >= need) {
-    return { ok: true, tag: "MEETS", detail: "Spare " + fmtKL(keff - need) + " effective above the required storage." };
+    return { ok: true, tag: "PASS", detail: "Spare " + fmtKL(keff - need) + " effective above the required storage." };
   }
-  return { ok: false, tag: "SHORT", detail: "Need " + fmtKL(need) + " effective, have " + fmtKL(keff) + " (" + fmtKL(need - keff) + " short)." };
+  return { ok: false, tag: "FAIL", detail: "Need " + fmtKL(need) + " effective, have " + fmtKL(keff) + " (" + fmtKL(need - keff) + " short)." };
 }
 
 function setupTanks() {
@@ -2447,8 +2483,7 @@ function renderTanks() {
     <div class="stat"><label>Both running</label><b>${fmtDurMin(s.comb.min)}</b> <small>${fmtLs(s.hyd.dem + s.spr.dem)} − ${s.inf.toFixed(1)} L/s infill</small></div>` : "";
   const needStat = s.need != null ? `
     <div class="stat"><label>Required storage</label><b>${fmtKL(s.need)}</b> <small>effective, with infill credited</small></div>` : "";
-  const statusHtml = s.status ? `
-    <div class="stat ${s.status.ok ? "hc-ok" : "hc-short"}"><label>Against the Standard</label><b>${s.status.tag}</b> <small>${s.status.detail}</small></div>` : "";
+  const statusHtml = verdictHtml(s.status);
   out.innerHTML = `
     <div class="stat"><label>Plan area</label><b>${s.area.toFixed(2)}</b> <small>m²</small></div>
     <div class="stat"><label>Effective water height</label><b>${Math.max(0, s.Heff).toFixed(3)}</b> <small>m</small></div>
@@ -3590,7 +3625,12 @@ function drawPumpOn(ctx, w, h, pts, job, year, pump, forExport, req) {
     ctx.stroke();
     ctx.setLineDash([]);
     const s = 7;
-    ctx.fillStyle = "#e8b86d";
+    let meets = null;
+    if (pts.length >= 2) {
+      const at = monotoneSpline(pts)(req.q);
+      if (Number.isFinite(at)) meets = at + 0.5 >= req.p;
+    }
+    ctx.fillStyle = meets === null ? "#e8b86d" : (meets ? PASS_COL : FAIL_COL);
     ctx.strokeStyle = "#14110f";
     ctx.lineWidth = 1.6;
     ctx.beginPath();
@@ -3601,15 +3641,12 @@ function drawPumpOn(ctx, w, h, pts, job, year, pump, forExport, req) {
     ctx.closePath();
     ctx.fill();
     ctx.stroke();
-    ctx.fillStyle = "#6a4208";
+    ctx.fillStyle = meets === null ? "#6a4208" : (meets ? PASS_COL : FAIL_COL);
     ctx.font = "800 16px sans-serif";
     ctx.textAlign = X > (padL + w - padR) / 2 ? "right" : "left";
     ctx.textBaseline = "bottom";
     let tag = "Req " + req.q + " L/s @ " + req.p + " kPa";
-    if (pts.length >= 2) {
-      const at = monotoneSpline(pts)(req.q);
-      if (Number.isFinite(at)) tag += at + 0.5 >= req.p ? "  (meets)" : "  (below)";
-    }
+    if (meets !== null) tag += meets ? "  PASS" : "  FAIL";
     ctx.fillText(tag, X + (ctx.textAlign === "left" ? 10 : -10), Y - 10);
     ctx.restore();
   }
@@ -3623,6 +3660,7 @@ function drawPump() {
   const pump = document.getElementById("pumpId").value.trim();
   drawPumpOn(ctx, canvas.width, canvas.height, readPumpPts(), job, year, pump, true, readReq());
   drawPumpBig();
+  renderPumpVerdict();
 }
 
 let pumpOverlayOpen = false;
@@ -3763,9 +3801,28 @@ function drawKvRows(ctx, rows, x, y, w, rowH) {
   ctx.textAlign = "left";
   return y;
 }
+function drawVerdictBanner(ctx, verdict, x, y, w) {
+  ctx.save();
+  ctx.textAlign = "left";
+  ctx.textBaseline = "alphabetic";
+  ctx.font = "700 16px sans-serif";
+  const detailLines = wrapReport(ctx, verdict.detail || "", w - 36);
+  const show = detailLines.slice(0, 3);
+  const h = 56 + show.length * 20;
+  ctx.fillStyle = verdict.ok ? PASS_COL : FAIL_COL;
+  ctx.fillRect(x, y, w, h);
+  ctx.fillStyle = "#fff";
+  ctx.font = "800 42px sans-serif";
+  ctx.fillText(verdictLabel(verdict.ok), x + 18, y + 44);
+  ctx.font = "700 16px sans-serif";
+  let ty = y + 68;
+  show.forEach(ln => { ctx.fillText(ln, x + 18, ty); ty += 20; });
+  ctx.restore();
+  return y + h;
+}
 function drawFieldReport(spec) {
   const w = 900;
-  const extra = Math.max(0, (spec.rows.length - 8) * 36) + Math.max(0, ((spec.more || []).length - 2) * 36);
+  const extra = Math.max(0, (spec.rows.length - 8) * 36) + Math.max(0, ((spec.more || []).length - 2) * 36) + (spec.verdict ? 120 : 0);
   const h = 1480 + extra;
   const c = document.createElement("canvas");
   c.width = w; c.height = h;
@@ -3790,6 +3847,10 @@ function drawFieldReport(spec) {
     ctx.fillText("Site / job:  " + spec.site, 40, y);
     y += 34;
   } else y += 8;
+  if (spec.verdict) {
+    y = drawVerdictBanner(ctx, spec.verdict, 40, y, w - 80);
+    y += 18;
+  }
   y = drawKvRows(ctx, spec.rows, 40, y, w - 80, 36);
   y += 18;
   ctx.fillStyle = "#d1243a";
@@ -3850,13 +3911,14 @@ function emailHydroReport() {
   const mat = s.set.label + "  ·  " + s.set.material;
   const od = (s.row.od * 25.4).toFixed(1);
   const wall = (s.row.wall * 25.4).toFixed(1);
-  const velNote = s.vel > 5 ? " Velocity is high for typical fire pipework — confirm against AS 2118.1 / AS 2419.1 project limits." : "";
-  const subject = "Pipework hydraulic estimate" + (s.site ? " — " + s.site : "");
+  const velNote = s.verdict && !s.verdict.ok ? " " + s.verdict.detail : "";
+  const subject = subjectWithResult("Pipework hydraulic estimate", s.site, s.verdict);
   const body = [
     "PIPEWORK HYDRAULIC ESTIMATE",
     "FitterCalcs v" + APP_VERSION + "  ·  " + reportDate(),
     s.site ? "Site / job: " + s.site : "Site / job: (not stated)",
     "",
+    ...resultPrefix(s.verdict),
     "1. Scope",
     "Field hydraulic check of the nominated fire-protection pipe run. Steel dimensions are AS 1074 Light / Medium / Heavy (ISO 65 mill OD). Friction is Hazen–Williams as used for sprinkler and hydrant pipework under AS 2118.1 and AS 2419.1. Static lift is 9.81 kPa per metre of rise.",
     "",
@@ -3907,9 +3969,11 @@ function emailHydroReport() {
       { k: "Velocity", v: s.vel.toFixed(2) + " m/s" }
     ],
     result: { label: "Total pressure loss", value: s.total.toFixed(0) + " kPa" },
+    verdict: s.verdict,
     more: [
       { k: "Friction", v: s.fricKpa.toFixed(0) + " kPa  (" + s.kpaM.toFixed(1) + " kPa/m)" },
-      { k: "Static lift", v: s.statKpa.toFixed(0) + " kPa" }
+      { k: "Static lift", v: s.statKpa.toFixed(0) + " kPa" },
+      { k: "Velocity", v: s.vel.toFixed(2) + " m/s  (typical limit " + HYDRO_VEL_MAX + " m/s)" }
     ],
     standards: [
       "AS 1074-1989 (R2018) — steel tube dimensions (Light / Medium / Heavy).",
@@ -3927,7 +3991,7 @@ function emailTanksReport() {
     nativeToast("Enter tank dimensions first");
     return;
   }
-  const subject = "Fire tank capacity estimate" + (s.site ? " — " + s.site : "");
+  const subject = subjectWithResult("Fire tank capacity estimate", s.site, s.status);
   const infillTxt = s.inf > 0 ? s.inf.toFixed(1) + " L/s" : "nil (no make-up credited)";
   const netLine = function(draw) {
     if (!(draw.dem > 0)) return "Demand not stated.";
@@ -3971,15 +4035,16 @@ function emailTanksReport() {
   }
   sysLines.push("");
   if (s.status) {
-    sysLines.push("ASSESSMENT: " + s.status.tag + " — " + s.status.detail);
+    sysLines.push("RESULT: " + verdictLabel(s.status.ok) + " — " + s.status.detail);
   } else {
-    sysLines.push("ASSESSMENT: enter hydrant and/or sprinkler demand (L/s) to compare this tank with the Standard duration.");
+    sysLines.push("RESULT: enter hydrant and/or sprinkler demand (L/s) to compare this tank with the Standard duration.");
   }
   const body = [
     "FIRE WATER STORAGE — EFFECTIVE CAPACITY AND DURATION ESTIMATE",
     "FitterCalcs v" + APP_VERSION + "  ·  " + reportDate(),
     s.site ? "Site / job: " + s.site : "Site / job: (not stated)",
     "",
+    ...resultPrefix(s.status),
     "1. Scope",
     "Field estimate of usable fire-water storage in the nominated tank, and of how many hours that storage lasts with the stated infill / make-up, for comparison with hydrant and sprinkler duration under AS 2419.1 and AS 2118.1. Effective capacity follows the AS 2304 / AS 2419 approach of deducting unused water at overflow (air gap) and at suction / vortex inhibitor.",
     "",
@@ -4027,13 +4092,14 @@ function emailTanksReport() {
   if (s.sys.id === "combined") rows.push({ k: "Both running", v: fmtDurMin(s.comb.min) });
   const more = [];
   if (s.need != null) more.push({ k: "Required storage", v: fmtKL(s.need) + " effective, infill credited" });
-  if (s.status) more.push({ k: "Assessment", v: s.status.tag + (s.need != null && s.need > 0 ? "  ·  " + fmtKL(s.need) + " required" : "") });
+  if (s.status) more.push({ k: "Result", v: verdictLabel(s.status.ok) + (s.need != null && s.need > 0 ? "  ·  " + fmtKL(s.need) + " required" : "") });
   const png = drawFieldReport({
     tag: "TANKS",
     title: "Fire tank capacity estimate",
     site: s.site,
     rows: rows,
     result: { label: s.durLabel, value: s.dur + "   ·   " + (s.keff / 1000).toFixed(2) + " kL effective" },
+    verdict: s.status,
     more: more,
     standards: [
       "AS 2304 — fire tanks: effective capacity, suction and vortex inhibitor.",
@@ -4067,6 +4133,19 @@ function pumpDuty(pts, req) {
   if (!Number.isFinite(at)) return null;
   return { at, meets: at + 0.5 >= req.p, margin: at - req.p };
 }
+function pumpVerdict(pts, req) {
+  const duty = pumpDuty(pts, req);
+  if (!duty || !req) return null;
+  if (duty.meets) {
+    return { ok: true, tag: "PASS", detail: "Curve " + duty.at.toFixed(0) + " kPa at " + req.q + " L/s  (" + Math.abs(duty.margin).toFixed(0) + " kPa above the " + req.p + " kPa duty)." };
+  }
+  return { ok: false, tag: "FAIL", detail: "Curve " + duty.at.toFixed(0) + " kPa at " + req.q + " L/s  (" + Math.abs(duty.margin).toFixed(0) + " kPa below the " + req.p + " kPa duty)." };
+}
+function renderPumpVerdict() {
+  const el = document.getElementById("pumpVerdict");
+  if (!el) return;
+  el.innerHTML = verdictHtml(pumpVerdict(readPumpPts(), readReq()));
+}
 function pumpChartCanvas(pts, job, year, pump, req) {
   const c = document.createElement("canvas");
   c.width = 1400; c.height = 1000;
@@ -4084,6 +4163,7 @@ function pumpChartCanvas(pts, job, year, pump, req) {
 }
 function pumpReportText(pts, job, year, pump, req) {
   const duty = pumpDuty(pts, req);
+  const verdict = pumpVerdict(pts, req);
   const shut = pts.find(p => Math.abs(p.q) < 1e-6) || pts[0];
   const last = pts[pts.length - 1];
   let finding;
@@ -4092,10 +4172,10 @@ function pumpReportText(pts, job, year, pump, req) {
   } else if (!duty) {
     finding = "A system duty of " + req.q + " L/s at " + req.p + " kPa was nominated. The curve could not be interpolated at that flow.";
   } else if (duty.meets) {
-    finding = "The recorded curve MEETS the nominated system duty. At " + req.q + " L/s the curve is "
+    finding = "RESULT: PASS. The recorded curve meets the nominated system duty. At " + req.q + " L/s the curve is "
       + duty.at.toFixed(0) + " kPa (" + Math.abs(duty.margin).toFixed(0) + " kPa above " + req.p + " kPa).";
   } else {
-    finding = "The recorded curve is BELOW the nominated system duty. At " + req.q + " L/s the curve is "
+    finding = "RESULT: FAIL. The recorded curve is below the nominated system duty. At " + req.q + " L/s the curve is "
       + duty.at.toFixed(0) + " kPa (" + Math.abs(duty.margin).toFixed(0) + " kPa below " + req.p + " kPa).";
   }
   return [
@@ -4103,6 +4183,7 @@ function pumpReportText(pts, job, year, pump, req) {
     "FitterCalcs v" + APP_VERSION + "  ·  " + reportDate(),
     job ? "Site / job: " + job : "Site / job: (not stated)",
     "",
+    ...resultPrefix(verdict),
     "1. Scope",
     "Field record of a fire pump pressure–flow curve from site test points. Compared with the nominated system duty where entered. Intended as a contractor / client summary of an AS 1851 performance check against the pumpset requirements of AS 2941 and the hydrant / sprinkler water-supply duties in AS 2419.1 and AS 2118.1.",
     "",
@@ -4148,24 +4229,22 @@ function composePumpReportPng(pts, job, year, pump, req) {
   ctx.fillRect(0, 0, w, h);
   ctx.drawImage(chart, 0, 0);
   const duty = pumpDuty(pts, req);
-  let banner = "Field record — no system duty entered";
-  if (req && duty) {
-    banner = duty.meets
-      ? "MEETS nominated duty  ·  " + duty.at.toFixed(0) + " kPa at " + req.q + " L/s  (" + Math.abs(duty.margin).toFixed(0) + " kPa above " + req.p + " kPa)"
-      : "BELOW nominated duty  ·  " + duty.at.toFixed(0) + " kPa at " + req.q + " L/s  (" + Math.abs(duty.margin).toFixed(0) + " kPa below " + req.p + " kPa)";
-  } else if (req) {
-    banner = "Duty nominated  ·  " + req.q + " L/s @ " + req.p + " kPa";
-  }
+  const verdict = pumpVerdict(pts, req);
   let y = 1036;
-  ctx.fillStyle = "#d1243a";
-  ctx.fillRect(40, y, w - 80, 64);
-  ctx.fillStyle = "#fff";
-  ctx.font = "800 24px sans-serif";
   ctx.textAlign = "left";
-  ctx.fillText("Finding", 56, y + 24);
-  ctx.font = "700 22px sans-serif";
-  ctx.fillText(banner, 56, y + 52);
-  y += 100;
+  if (verdict) {
+    y = drawVerdictBanner(ctx, verdict, 40, y, w - 80);
+    y += 18;
+  } else {
+    ctx.fillStyle = "#3a322c";
+    ctx.fillRect(40, y, w - 80, 64);
+    ctx.fillStyle = "#fff";
+    ctx.font = "800 24px sans-serif";
+    ctx.fillText("Finding", 56, y + 24);
+    ctx.font = "700 20px sans-serif";
+    ctx.fillText(req ? ("Duty nominated  ·  " + req.q + " L/s @ " + req.p + " kPa") : "Field record — no system duty entered", 56, y + 52);
+    y += 100;
+  }
   const rows = [
     { k: "Site / job", v: job || "(not stated)" },
     { k: "Year of test", v: year || "(not stated)" },
@@ -4175,6 +4254,7 @@ function composePumpReportPng(pts, job, year, pump, req) {
     rows.push({ k: "Nominated duty", v: req.q + " L/s @ " + req.p + " kPa" });
     if (req.note) rows.push({ k: "Duty note", v: req.note });
     if (duty) rows.push({ k: "Curve at duty flow", v: duty.at.toFixed(0) + " kPa" });
+    if (verdict) rows.push({ k: "Result", v: verdictLabel(verdict.ok) });
   }
   y = drawKvRows(ctx, rows, 40, y, w - 80, 40);
   y += 10;
@@ -4238,7 +4318,7 @@ function exportPump(mode) {
       dataUrl = pumpChartCanvas(pts, job, year, pump, req).toDataURL("image/png");
     }
     const fname = pumpFileName();
-    const subject = "Fire pump performance estimate" + (job ? " — " + job : "") + (year ? " (" + year + ")" : "");
+    const subject = subjectWithResult("Fire pump performance estimate", job, pumpVerdict(pts, req)) + (year ? " (" + year + ")" : "");
     const body = pumpReportText(pts, job, year, pump, req);
     if (window.OnlyFitters) {
       sendChartToApp(mode, dataUrl, fname, subject, body);

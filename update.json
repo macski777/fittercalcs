@@ -1,6 +1,6 @@
 {
-  "versionCode": 38,
-  "versionName": "2.27",
-  "apkUrl": "https://github.com/macski777/fittercalcs/releases/download/v2.27/FitterCalcs.apk",
-  "notes": "Tanks: pick hydrants / sprinklers / both, add infill, and see hours of supply vs AS 2419.1 and AS 2118.1."
+  "versionCode": 39,
+  "versionName": "2.28",
+  "apkUrl": "https://github.com/macski777/fittercalcs/releases/download/v2.28/FitterCalcs.apk",
+  "notes": "Reports show PASS in green or FAIL in red — tanks vs Standard duration, hydro velocity, pump vs duty."
 }
