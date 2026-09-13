@@ -12,7 +12,7 @@
 </p>
 
 <p align="center">
-  <strong>Current version: 2.26</strong><br>
+  <strong>Current version: 2.27</strong><br>
   <a href="https://github.com/macski777/fittercalcs/releases/latest">Download FitterCalcs.apk</a>
 </p>
 
@@ -28,7 +28,7 @@ The launcher icon and the **FITTER / CALCS** wordmark use **Delta Corps Priest 1
 
 ## Install on Android
 
-1. Download [FitterCalcs.apk](https://github.com/macski777/fittercalcs/releases/download/v2.26/FitterCalcs.apk).
+1. Download [FitterCalcs.apk](https://github.com/macski777/fittercalcs/releases/download/v2.27/FitterCalcs.apk).
 2. Open the file on the phone.
 3. Allow install from this source if Android asks.
 4. Open **FitterCalcs**.
@@ -55,7 +55,7 @@ Phones on **2.17 or older** need a one-time install of 2.18 or later (USB or thi
 | **Flange** | AS 2129 Table D/E/F/H, ANSI 150/300, PN16 — OD, PCD, bolts, holes. |
 | **Pump** | kPa vs L/s curve, autosave by job. Email a customer report citing AS 2941 / AS 2419.1 / AS 2118.1 / AS 1851. |
 | **Hydro-Calcs** | Hazen-Williams friction + static rise. Email a customer report citing AS 1074 / AS 2118.1 / AS 2419.1. |
-| **Tanks** | Cylindrical / rectangular volume, effective kL. Email a customer report citing AS 2304 / AS 2419 / AS 3500.1. |
+| **Tanks** | Cylindrical / rectangular volume, effective kL, hydrant / sprinkler / combined, infill, hours of supply vs AS 2419.1 / AS 2118.1. Email a customer report. |
 | **AS-1851** | Field lookup for AS 1851-2012 routine service. Not a substitute for the Standard. |
 
 ### Pipe
@@ -90,7 +90,7 @@ Hazen-Williams friction plus static rise. **Email report** sends a customer summ
 
 ### Tanks
 
-Cylindrical or rectangular volume, gross and effective kL. **Email report** cites AS 2304, AS 2419.1, AS 2118.1 and AS/NZS 3500.1.
+Cylindrical or rectangular volume, gross and effective kL. Pick hydrants, sprinklers, or both; type infill / make-up; the tab shows hours of supply against AS 2419.1 (4 h hydrants) and AS 2118.1 (30 / 60 / 90 min by hazard). **Email report** cites AS 2304, AS 2419.1, AS 2118.1 and AS/NZS 3500.1.
 
 <p align="center"><img src="docs/tanks.png" width="320" alt="Tanks tab"></p>
 

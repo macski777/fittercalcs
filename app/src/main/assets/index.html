@@ -565,6 +565,25 @@
     }
     .hc-total label { color: #ffd4d8; }
     .hc-total b { color: #fff; }
+    .hc-ok {
+      grid-column: 1 / -1;
+      background: #1e3a2f;
+      color: #7dcea0;
+      border: 1px solid #2e5a45;
+    }
+    .hc-ok label { color: #9dd4b5; }
+    .hc-ok small { color: #9dd4b5; white-space: normal; display: block; margin-top: 2px; }
+    .hc-short {
+      grid-column: 1 / -1;
+      background: #3a2a12;
+      color: var(--gold);
+      border: 1px solid #6a4a18;
+    }
+    .hc-short label { color: #e8c99a; }
+    .hc-short small { color: #e8c99a; white-space: normal; display: block; margin-top: 2px; }
+    .sysbox .chips { margin-bottom: 8px; }
+    .sysbox .chips:last-child { margin-bottom: 0; }
+    .sysbox b.subhead { margin-top: 10px; font-size: 0.78rem; color: var(--muted); font-weight: 700; }
     .hidden { display: none !important; }
     html.pc .chips { padding: 6px 2px 8px; }
     html.pc .nav { padding: 4px 2px; }
@@ -629,7 +648,7 @@
       </div>
     </div>
     <div class="header-right">
-      <div class="build" id="appBuild" title="Check for update">v2.26</div>
+      <div class="build" id="appBuild" title="Check for update">v2.27</div>
       <div class="units" id="pipeUnits" role="group" aria-label="Units">
         <button id="btnIn" type="button">in</button>
         <button id="btnMm" class="on" type="button">mm</button>
@@ -961,6 +980,22 @@
       </div>
     </div>
     <div class="sysbox">
+      <b>System this tank supplies</b>
+      <div class="chips" id="tkSys">
+        <button type="button" class="on" data-s="hydrant">Hydrants</button>
+        <button type="button" data-s="sprinkler">Sprinklers</button>
+        <button type="button" data-s="combined">Hydrants + sprinklers</button>
+      </div>
+      <div id="tkHazardWrap" class="hidden">
+        <b class="subhead">Sprinkler hazard — AS 2118.1 duration</b>
+        <div class="chips" id="tkHazard">
+          <button type="button" data-h="LH">Light · 30 min</button>
+          <button type="button" class="on" data-h="OH">Ordinary · 60 min</button>
+          <button type="button" data-h="HH">High · 90 min</button>
+        </div>
+      </div>
+    </div>
+    <div class="sysbox">
       <b>Effective capacity (AS 2304 / AS 2419 / AS 3500.1)</b>
       <div class="hc-grid">
         <div class="field" style="margin:0">
@@ -971,9 +1006,19 @@
           <label for="tkBot">Bottom unused — suction / vortex (mm)</label>
           <input id="tkBot" type="number" inputmode="decimal" step="1" value="150" />
         </div>
-        <div class="field" style="margin:0">
-          <label for="tkQ">Demand flow (L/s) — optional</label>
-          <input id="tkQ" type="number" inputmode="decimal" step="0.1" placeholder="e.g. 20" />
+      </div>
+      <div class="hc-grid" style="margin-bottom:0">
+        <div class="field" id="tkHydrantFlow" style="margin:0">
+          <label for="tkQh">Hydrant demand (L/s)</label>
+          <input id="tkQh" type="number" inputmode="decimal" step="0.1" placeholder="e.g. 20" />
+        </div>
+        <div class="field hidden" id="tkSprinklerFlow" style="margin:0">
+          <label for="tkQs">Sprinkler demand (L/s)</label>
+          <input id="tkQs" type="number" inputmode="decimal" step="0.1" placeholder="e.g. 15" />
+        </div>
+        <div class="field" id="tkInfillFlow" style="margin:0">
+          <label for="tkQi">Infill / make-up (L/s)</label>
+          <input id="tkQi" type="number" inputmode="decimal" step="0.1" placeholder="e.g. 5" />
         </div>
       </div>
     </div>
@@ -984,7 +1029,7 @@
     <p class="notes">
       <strong>Gross</strong> = full internal volume of the shell.
       <strong>Effective</strong> = volume between the usable high water (overflow minus air gap, default 20 mm per AS/NZS 3500.1) and the usable low water (above suction/vortex inhibitor, default 150 mm — typical AS 2304 / AS 2419 field value; enter the actual plate height).
-      Duration uses effective litres ÷ flow.
+      <strong>Hydrants</strong> need <strong>4 h</strong> at demand (AS 2419.1). <strong>Sprinklers</strong> need <strong>30 / 60 / 90 min</strong> by Light / Ordinary / High Hazard (AS 2118.1). Infill is credited as make-up: duration uses effective litres ÷ (demand − infill). Combined tanks are checked for hydrants, sprinklers, and both running together.
       Email sends a customer summary citing <strong>AS 2304</strong>, <strong>AS 2419.1</strong>, <strong>AS 2118.1</strong> and <strong>AS/NZS 3500.1</strong>. Field estimate — confirm on the current Standard.
     </p>
   </div>
@@ -1060,8 +1105,8 @@
   </div>
 
 <script>
-const APP_VERSION = "2.26";
-const APP_BUILD = 37;
+const APP_VERSION = "2.27";
+const APP_BUILD = 38;
 
 const NPS_TO_DN = {
   "1/2": "15", "3/4": "20", "1": "25", "1-1/4": "32", "1-1/2": "40",
@@ -2210,6 +2255,74 @@ function renderHydro() {
 }
 
 let tkShape = "cyl";
+let tkSys = "hydrant";
+let tkHazard = "OH";
+
+const TK_SYS = {
+  hydrant: { id: "hydrant", label: "Hydrant system", short: "Hydrants" },
+  sprinkler: { id: "sprinkler", label: "Sprinkler system", short: "Sprinklers" },
+  combined: { id: "combined", label: "Combined hydrant and sprinkler system", short: "Hydrants + sprinklers" }
+};
+const TK_HAZARD = {
+  LH: { id: "LH", label: "Light Hazard", durMin: 30 },
+  OH: { id: "OH", label: "Ordinary Hazard", durMin: 60 },
+  HH: { id: "HH", label: "High Hazard", durMin: 90 }
+};
+const HYDRANT_MIN = 240;
+
+function fmtDurMin(min) {
+  if (min === Infinity) return "unlimited";
+  if (!Number.isFinite(min) || min < 0) return "—";
+  if (min >= 60) {
+    const h = min / 60;
+    if (Math.abs(h - Math.round(h)) < 0.005) return Math.round(h) + " h";
+    return (h >= 10 ? h.toFixed(1) : h.toFixed(2)) + " h";
+  }
+  return Math.round(min) + " min";
+}
+function fmtKL(L) {
+  if (!Number.isFinite(L)) return "—";
+  return (L / 1000).toFixed(2) + " kL";
+}
+function fmtLs(q) {
+  return Number.isFinite(q) && q > 0 ? q.toFixed(1) + " L/s" : "not stated";
+}
+function tankDrawdown(volL, demandLs, infillLs) {
+  const inf = Number.isFinite(infillLs) && infillLs > 0 ? infillLs : 0;
+  const dem = Number.isFinite(demandLs) && demandLs > 0 ? demandLs : 0;
+  const net = dem - inf;
+  if (!(dem > 0)) return { dem, inf, net, min: null, covers: false };
+  if (net <= 0) return { dem, inf, net, min: Infinity, covers: true };
+  return { dem, inf, net, min: volL / (net * 60), covers: false };
+}
+function tankNeedL(demandLs, infillLs, durMin) {
+  const inf = Number.isFinite(infillLs) && infillLs > 0 ? infillLs : 0;
+  const dem = Number.isFinite(demandLs) && demandLs > 0 ? demandLs : 0;
+  if (!(dem > 0) || !(durMin > 0)) return null;
+  const net = dem - inf;
+  if (net <= 0) return 0;
+  return net * 60 * durMin;
+}
+function combinedNeedL(Qh, Qs, Qi, sprMin) {
+  if (!(Qh > 0) || !(Qs > 0) || !(sprMin > 0)) return null;
+  const inf = Number.isFinite(Qi) && Qi > 0 ? Qi : 0;
+  const rem = Math.max(0, HYDRANT_MIN - sprMin);
+  const overlapNet = (Qh + Qs) - inf;
+  const hydNet = Qh - inf;
+  const v1 = overlapNet > 0 ? overlapNet * 60 * sprMin : 0;
+  const v2 = hydNet > 0 ? hydNet * 60 * rem : 0;
+  return v1 + v2;
+}
+function tankStatus(keff, need) {
+  if (need == null) return null;
+  if (need === 0) {
+    return { ok: true, tag: "INFILL COVERS", detail: "Infill ≥ demand — tank does not draw down for the nominated duration. Confirm the infill is automatic and reliable." };
+  }
+  if (keff + 1 >= need) {
+    return { ok: true, tag: "MEETS", detail: "Spare " + fmtKL(keff - need) + " effective above the required storage." };
+  }
+  return { ok: false, tag: "SHORT", detail: "Need " + fmtKL(need) + " effective, have " + fmtKL(keff) + " (" + fmtKL(need - keff) + " short)." };
+}
 
 function setupTanks() {
   const host = document.getElementById("tkShape");
@@ -2220,18 +2333,43 @@ function setupTanks() {
     document.getElementById("tkRect").classList.toggle("hidden", tkShape !== "rect");
     renderTanks();
   });
-  ["tkD", "tkH", "tkL", "tkW", "tkHr", "tkTop", "tkBot", "tkQ"].forEach(id => {
+  const sysHost = document.getElementById("tkSys");
+  sysHost.querySelectorAll("button").forEach(b => b.onclick = () => {
+    tkSys = b.getAttribute("data-s");
+    sysHost.querySelectorAll("button").forEach(x => x.classList.toggle("on", x === b));
+    syncTankSysUi();
+    renderTanks();
+  });
+  const hazHost = document.getElementById("tkHazard");
+  hazHost.querySelectorAll("button").forEach(b => b.onclick = () => {
+    tkHazard = b.getAttribute("data-h");
+    hazHost.querySelectorAll("button").forEach(x => x.classList.toggle("on", x === b));
+    renderTanks();
+  });
+  ["tkD", "tkH", "tkL", "tkW", "tkHr", "tkTop", "tkBot", "tkQh", "tkQs", "tkQi"].forEach(id => {
     document.getElementById(id).addEventListener("input", renderTanks);
   });
   document.getElementById("emailTanks").onclick = () => emailTanksReport();
+  syncTankSysUi();
   renderTanks();
+}
+
+function syncTankSysUi() {
+  document.getElementById("tkHydrantFlow").classList.toggle("hidden", tkSys === "sprinkler");
+  document.getElementById("tkSprinklerFlow").classList.toggle("hidden", tkSys === "hydrant");
+  document.getElementById("tkHazardWrap").classList.toggle("hidden", tkSys === "hydrant");
 }
 
 function tankState() {
   const topMm = parseFloat(document.getElementById("tkTop").value);
   const botMm = parseFloat(document.getElementById("tkBot").value);
-  const Q = parseFloat(document.getElementById("tkQ").value);
+  const Qh = parseFloat(document.getElementById("tkQh").value);
+  const Qs = parseFloat(document.getElementById("tkQs").value);
+  const QiIn = parseFloat(document.getElementById("tkQi").value);
+  const inf = Number.isFinite(QiIn) && QiIn > 0 ? QiIn : 0;
   const site = (document.getElementById("tkSite").value || "").trim();
+  const sys = TK_SYS[tkSys] || TK_SYS.hydrant;
+  const haz = TK_HAZARD[tkHazard] || TK_HAZARD.OH;
   let area = 0, H = 0, dims = "";
   if (tkShape === "cyl") {
     const D = parseFloat(document.getElementById("tkD").value);
@@ -2259,16 +2397,37 @@ function tankState() {
   const Veff = area * Math.max(0, Heff);
   const kgross = Vgross * 1000;
   const keff = Veff * 1000;
-  let dur = "—";
-  let durMin = null;
-  if (Number.isFinite(Q) && Q > 0 && keff > 0) {
-    durMin = keff / (Q * 60);
-    dur = durMin >= 60 ? (durMin / 60).toFixed(2) + " h" : durMin.toFixed(0) + " min";
+  const hyd = tankDrawdown(keff, Qh, inf);
+  const spr = tankDrawdown(keff, Qs, inf);
+  const qComb = (hyd.dem || 0) + (spr.dem || 0);
+  const comb = tankDrawdown(keff, qComb > 0 ? qComb : NaN, inf);
+  const hydNeed = sys.id === "sprinkler" ? null : tankNeedL(Qh, inf, HYDRANT_MIN);
+  const sprNeed = sys.id === "hydrant" ? null : tankNeedL(Qs, inf, haz.durMin);
+  const combNeed = sys.id === "combined" ? combinedNeedL(Qh, Qs, inf, haz.durMin) : null;
+  let need = null;
+  if (sys.id === "hydrant") need = hydNeed;
+  else if (sys.id === "sprinkler") need = sprNeed;
+  else need = combNeed;
+  const status = tankStatus(keff, need);
+  let durObj = hyd;
+  let durLabel = "Hydrant supply with infill";
+  let durSmall = "AS 2419.1 requires 4 h";
+  if (sys.id === "sprinkler") {
+    durObj = spr;
+    durLabel = "Sprinkler supply with infill";
+    durSmall = "AS 2118.1 " + haz.label + " requires " + fmtDurMin(haz.durMin);
+  } else if (sys.id === "combined") {
+    durObj = comb;
+    durLabel = "Simultaneous supply with infill";
+    durSmall = "hydrants + sprinklers − infill";
   }
   return {
     site, dims, area, H, topMm: Number.isFinite(topMm) ? Math.max(0, topMm) : 0,
     botMm: Number.isFinite(botMm) ? Math.max(0, botMm) : 0,
-    Heff, Vgross, Vtop, Vbot, Veff, kgross, keff, Q, dur, durMin, shape: tkShape
+    Heff, Vgross, Vtop, Vbot, Veff, kgross, keff, shape: tkShape,
+    sys, haz, Qh, Qs, inf,
+    hyd, spr, comb, hydNeed, sprNeed, combNeed, need, status,
+    durMin: durObj.min, dur: fmtDurMin(durObj.min), durLabel, durSmall, durObj
   };
 }
 
@@ -2280,14 +2439,25 @@ function renderTanks() {
     return;
   }
   const warn = s.Heff <= 0 ? '<p class="notes" style="grid-column:1/-1;color:var(--gold)">Top + bottom unused is bigger than the shell height.</p>' : "";
+  const hydStat = s.sys.id !== "sprinkler" ? `
+    <div class="stat"><label>Hydrant duration</label><b>${fmtDurMin(s.hyd.min)}</b> <small>need 4 h · AS 2419.1</small></div>` : "";
+  const sprStat = s.sys.id !== "hydrant" ? `
+    <div class="stat"><label>Sprinkler duration</label><b>${fmtDurMin(s.spr.min)}</b> <small>need ${fmtDurMin(s.haz.durMin)} · ${s.haz.label}</small></div>` : "";
+  const combStat = s.sys.id === "combined" ? `
+    <div class="stat"><label>Both running</label><b>${fmtDurMin(s.comb.min)}</b> <small>${fmtLs(s.hyd.dem + s.spr.dem)} − ${s.inf.toFixed(1)} L/s infill</small></div>` : "";
+  const needStat = s.need != null ? `
+    <div class="stat"><label>Required storage</label><b>${fmtKL(s.need)}</b> <small>effective, with infill credited</small></div>` : "";
+  const statusHtml = s.status ? `
+    <div class="stat ${s.status.ok ? "hc-ok" : "hc-short"}"><label>Against the Standard</label><b>${s.status.tag}</b> <small>${s.status.detail}</small></div>` : "";
   out.innerHTML = `
     <div class="stat"><label>Plan area</label><b>${s.area.toFixed(2)}</b> <small>m²</small></div>
     <div class="stat"><label>Effective water height</label><b>${Math.max(0, s.Heff).toFixed(3)}</b> <small>m</small></div>
     <div class="stat"><label>Gross volume</label><b>${s.kgross.toFixed(0)}</b> <small>L · ${(s.kgross / 1000).toFixed(2)} kL</small></div>
-    <div class="stat"><label>Unusable top</label><b>${(s.Vtop * 1000).toFixed(0)}</b> <small>L</small></div>
-    <div class="stat"><label>Unusable bottom</label><b>${(s.Vbot * 1000).toFixed(0)}</b> <small>L</small></div>
-    <div class="stat"><label>Duration at demand</label><b>${s.dur}</b> <small>${Number.isFinite(s.Q) && s.Q > 0 ? s.Q + " L/s" : "enter flow"}</small></div>
+    <div class="stat"><label>Unusable top / bottom</label><b>${(s.Vtop * 1000).toFixed(0)}</b> <small>L / ${(s.Vbot * 1000).toFixed(0)} L</small></div>
+    ${hydStat}${sprStat}${combStat}${needStat}
     <div class="stat hc-total"><label>Effective capacity</label><b>${(s.keff / 1000).toFixed(2)}</b> <small>kL · ${s.keff.toFixed(0)} L</small></div>
+    <div class="stat hc-total"><label>${s.durLabel}</label><b>${s.dur}</b> <small>${s.durSmall}</small></div>
+    ${statusHtml}
     ${warn}`;
 }
 
@@ -2313,7 +2483,7 @@ function showPage(page) {
     document.getElementById("appSub").innerHTML = "Hydro-Calcs • friction + static kPa<br>Pipe size, length, elbows, rise";
     renderHydro();
   } else if (page === "tanks") {
-    document.getElementById("appSub").innerHTML = "Tank volume • gross and effective kL<br>AS 2304 / AS 2419 / AS 3500.1";
+    document.getElementById("appSub").innerHTML = "Tank volume • system type • infill hours<br>AS 2304 / AS 2419.1 / AS 2118.1";
     renderTanks();
   } else if (page === "as1851") {
     document.getElementById("appSub").innerHTML = "Routine service of fire protection systems<br>What is in AS 1851 · frequencies · typical field checks";
@@ -3594,7 +3764,9 @@ function drawKvRows(ctx, rows, x, y, w, rowH) {
   return y;
 }
 function drawFieldReport(spec) {
-  const w = 900, h = 1480;
+  const w = 900;
+  const extra = Math.max(0, (spec.rows.length - 8) * 36) + Math.max(0, ((spec.more || []).length - 2) * 36);
+  const h = 1480 + extra;
   const c = document.createElement("canvas");
   c.width = w; c.height = h;
   const ctx = c.getContext("2d");
@@ -3756,14 +3928,60 @@ function emailTanksReport() {
     return;
   }
   const subject = "Fire tank capacity estimate" + (s.site ? " — " + s.site : "");
-  const demand = Number.isFinite(s.Q) && s.Q > 0 ? s.Q.toFixed(1) + " L/s" : "not stated";
+  const infillTxt = s.inf > 0 ? s.inf.toFixed(1) + " L/s" : "nil (no make-up credited)";
+  const netLine = function(draw) {
+    if (!(draw.dem > 0)) return "Demand not stated.";
+    if (draw.covers) return "Demand " + draw.dem.toFixed(1) + " L/s, infill " + infillTxt + " — infill covers demand, tank does not draw down.";
+    return "Demand " + draw.dem.toFixed(1) + " L/s, infill " + infillTxt + ", net drawdown " + draw.net.toFixed(1) + " L/s.";
+  };
+  const needLine = function(need, durLabel) {
+    if (need == null) return "Required storage: enter demand to calculate.";
+    if (need === 0) return "Required storage: 0 kL on these figures (infill covers the " + durLabel + " duration).";
+    return "Required effective storage: " + fmtKL(need) + "  (" + durLabel + ", infill credited).";
+  };
+  const sysLines = [];
+  sysLines.push("Nominated system: " + s.sys.label + ".");
+  if (s.sys.id !== "sprinkler") {
+    sysLines.push("");
+    sysLines.push("4.1 Hydrant system — AS 2419.1");
+    sysLines.push("AS 2419.1 requires the hydrant water supply to maintain the hydrant demand for not less than 4 hours. Where town-main make-up / infill is available to the tank, on-site storage is assessed on the difference between hydrant demand and infill, still for 4 hours.");
+    sysLines.push(netLine(s.hyd));
+    sysLines.push("Required duration: 4 h.");
+    sysLines.push("Duration available on this tank (effective ÷ net hydrant drawdown): " + fmtDurMin(s.hyd.min) + ".");
+    sysLines.push(needLine(s.hydNeed, "4 h hydrant"));
+  }
+  if (s.sys.id !== "hydrant") {
+    sysLines.push("");
+    sysLines.push("4." + (s.sys.id === "combined" ? "2" : "1") + " Sprinkler system — AS 2118.1 " + s.haz.label);
+    sysLines.push("AS 2118.1 water-supply duration for " + s.haz.label + " is " + fmtDurMin(s.haz.durMin) + " at the sprinkler demand. Infill is credited the same way as hydrant make-up: storage is (sprinkler demand − infill) × duration.");
+    sysLines.push(netLine(s.spr));
+    sysLines.push("Required duration: " + fmtDurMin(s.haz.durMin) + ".");
+    sysLines.push("Duration available on this tank (effective ÷ net sprinkler drawdown): " + fmtDurMin(s.spr.min) + ".");
+    sysLines.push(needLine(s.sprNeed, fmtDurMin(s.haz.durMin) + " sprinkler"));
+  }
+  if (s.sys.id === "combined") {
+    sysLines.push("");
+    sysLines.push("4.3 Combined simultaneous operation — AS 2419.1 and AS 2118.1");
+    sysLines.push("Where the tank supplies both hydrants and sprinklers, the water supply must additionally cater for the sprinkler flow for the AS 2118 duration as well as the 4-hour hydrant duration. Field method used here:");
+    sysLines.push("  • First " + fmtDurMin(s.haz.durMin) + ": hydrants + sprinklers − infill.");
+    sysLines.push("  • Remaining " + fmtDurMin(Math.max(0, HYDRANT_MIN - s.haz.durMin)) + ": hydrants − infill (sprinkler duration complete).");
+    sysLines.push("Simultaneous demand: " + fmtLs(s.hyd.dem + s.spr.dem) + ", infill " + infillTxt + ".");
+    sysLines.push("Duration if both run together from this tank: " + fmtDurMin(s.comb.min) + ".");
+    sysLines.push(needLine(s.combNeed, "combined simultaneous"));
+  }
+  sysLines.push("");
+  if (s.status) {
+    sysLines.push("ASSESSMENT: " + s.status.tag + " — " + s.status.detail);
+  } else {
+    sysLines.push("ASSESSMENT: enter hydrant and/or sprinkler demand (L/s) to compare this tank with the Standard duration.");
+  }
   const body = [
-    "FIRE WATER STORAGE — EFFECTIVE CAPACITY ESTIMATE",
+    "FIRE WATER STORAGE — EFFECTIVE CAPACITY AND DURATION ESTIMATE",
     "FitterCalcs v" + APP_VERSION + "  ·  " + reportDate(),
     s.site ? "Site / job: " + s.site : "Site / job: (not stated)",
     "",
     "1. Scope",
-    "Field estimate of usable fire-water storage in the nominated tank, for comparison with sprinkler / hydrant demand under AS 2118.1 and AS 2419.1. Effective capacity follows the AS 2304 / AS 2419 approach of deducting unused water at overflow (air gap) and at suction / vortex inhibitor.",
+    "Field estimate of usable fire-water storage in the nominated tank, and of how many hours that storage lasts with the stated infill / make-up, for comparison with hydrant and sprinkler duration under AS 2419.1 and AS 2118.1. Effective capacity follows the AS 2304 / AS 2419 approach of deducting unused water at overflow (air gap) and at suction / vortex inhibitor.",
     "",
     "2. Tank",
     s.dims + ".",
@@ -3777,45 +3995,53 @@ function emailTanksReport() {
     "Unusable at overflow: " + (s.Vtop * 1000).toFixed(0) + " L",
     "Unusable at suction: " + (s.Vbot * 1000).toFixed(0) + " L",
     "EFFECTIVE CAPACITY: " + s.keff.toFixed(0) + " L  (" + (s.keff / 1000).toFixed(2) + " kL)",
+    "Infill / make-up to the tank: " + infillTxt,
     "",
-    "4. Duration at stated demand",
-    "Demand flow: " + demand,
-    "Duration on effective storage: " + s.dur,
+    "4. System duration against Australian Standards",
+    sysLines.join("\n"),
     "",
     "5. Standards referenced",
     "AS 2304 Water storage tanks for fire protection systems — effective capacity, suction and vortex.",
-    "AS 2419.1 Fire hydrant installations — tank water supplies and duration.",
-    "AS 2118.1 Automatic fire sprinkler systems — water supply duration.",
+    "AS 2419.1 Fire hydrant installations — 4-hour hydrant supply; make-up / infill credited as the difference between hydrant demand and infill; combined hydrant and sprinkler water supplies.",
+    "AS 2118.1 Automatic fire sprinkler systems — water-supply duration by hazard (Light 30 min, Ordinary 60 min, High 90 min).",
     "AS/NZS 3500.1 Plumbing and drainage — Water services (overflow air gap).",
     "",
     "6. Limitations",
-    "This is a field estimate of geometric volume. It does not certify structural adequacy, lining, overflow, vortex inhibitor, or inflow arrangement. Confirm as-built internals, the current Standards, and the project water-supply calculation before sign-off.",
+    "This is a field estimate of geometric volume and of duration at the flows typed in. It does not certify structural adequacy, lining, overflow, vortex inhibitor, infill reliability, or the hydraulic design of the fire system. Hydrant demand is typically 10 L/s per flowing outlet (often 20 L/s for two simultaneous hydrants) — confirm the project duty. Combined simultaneous operation is a conservative shared-supply check, not a substitute for the project water-supply calculation. Confirm as-built internals, that infill is automatic and available during a fire, the current Standards, and the design documents before sign-off.",
     "",
     "Prepared with FitterCalcs " + APP_VERSION
   ].join("\n");
+  const rows = [
+    { k: "Tank", v: s.dims },
+    { k: "System", v: s.sys.short + (s.sys.id !== "hydrant" ? "  ·  " + s.haz.label : "") },
+    { k: "Plan area", v: s.area.toFixed(2) + " m²" },
+    { k: "Top / bottom unused", v: s.topMm.toFixed(0) + " / " + s.botMm.toFixed(0) + " mm" },
+    { k: "Effective height", v: Math.max(0, s.Heff).toFixed(3) + " m" },
+    { k: "Gross volume", v: (s.kgross / 1000).toFixed(2) + " kL" }
+  ];
+  if (s.sys.id !== "sprinkler") rows.push({ k: "Hydrant demand", v: fmtLs(s.hyd.dem) });
+  if (s.sys.id !== "hydrant") rows.push({ k: "Sprinkler demand", v: fmtLs(s.spr.dem) });
+  rows.push({ k: "Infill / make-up", v: infillTxt });
+  if (s.sys.id !== "sprinkler") rows.push({ k: "Hydrant duration", v: fmtDurMin(s.hyd.min) + "  (need 4 h)" });
+  if (s.sys.id !== "hydrant") rows.push({ k: "Sprinkler duration", v: fmtDurMin(s.spr.min) + "  (need " + fmtDurMin(s.haz.durMin) + ")" });
+  if (s.sys.id === "combined") rows.push({ k: "Both running", v: fmtDurMin(s.comb.min) });
+  const more = [];
+  if (s.need != null) more.push({ k: "Required storage", v: fmtKL(s.need) + " effective, infill credited" });
+  if (s.status) more.push({ k: "Assessment", v: s.status.tag + (s.need != null && s.need > 0 ? "  ·  " + fmtKL(s.need) + " required" : "") });
   const png = drawFieldReport({
     tag: "TANKS",
     title: "Fire tank capacity estimate",
     site: s.site,
-    rows: [
-      { k: "Tank", v: s.dims },
-      { k: "Plan area", v: s.area.toFixed(2) + " m²" },
-      { k: "Top unused (air gap)", v: s.topMm.toFixed(0) + " mm" },
-      { k: "Bottom unused (suction)", v: s.botMm.toFixed(0) + " mm" },
-      { k: "Effective height", v: Math.max(0, s.Heff).toFixed(3) + " m" },
-      { k: "Gross volume", v: (s.kgross / 1000).toFixed(2) + " kL" },
-      { k: "Demand flow", v: demand },
-      { k: "Duration", v: s.dur }
-    ],
-    result: { label: "Effective capacity", value: (s.keff / 1000).toFixed(2) + " kL   (" + s.keff.toFixed(0) + " L)" },
-    more: [],
+    rows: rows,
+    result: { label: s.durLabel, value: s.dur + "   ·   " + (s.keff / 1000).toFixed(2) + " kL effective" },
+    more: more,
     standards: [
       "AS 2304 — fire tanks: effective capacity, suction and vortex inhibitor.",
-      "AS 2419.1 — hydrant tank water supplies and duration.",
-      "AS 2118.1 — sprinkler water-supply duration.",
+      "AS 2419.1 — hydrant supply 4 h; infill credited as demand minus make-up; combined supplies also cover sprinklers.",
+      "AS 2118.1 — sprinkler duration: Light 30 min, Ordinary 60 min, High 90 min.",
       "AS/NZS 3500.1 — overflow air gap (default 20 mm unless the fitted overflow is known)."
     ],
-    notes: "Geometric field estimate only. Does not certify structure, lining, overflow or suction arrangement. Confirm as-built internals and the current Standards before sign-off."
+    notes: "Geometric field estimate only. Does not certify structure, lining, overflow, suction or infill reliability. Confirm as-built internals, that infill is automatic during a fire, and the current Standards before sign-off."
   });
   sendEmailReport(subject, body, png, reportFile("tank", s.site));
 }
