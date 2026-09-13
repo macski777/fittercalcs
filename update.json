@@ -1,6 +1,6 @@
 {
-  "versionCode": 40,
-  "versionName": "2.29",
-  "apkUrl": "https://github.com/macski777/fittercalcs/releases/download/v2.29/FitterCalcs.apk",
-  "notes": "PC typing and arrow keys stay in the field. Windows installer and Linux desktop build are on the GitHub release."
+  "versionCode": 41,
+  "versionName": "2.30",
+  "apkUrl": "https://github.com/macski777/fittercalcs/releases/download/v2.30/FitterCalcs.apk",
+  "notes": "Reports are A4 for printing. Emails lead with a clear PASS or FAIL."
 }

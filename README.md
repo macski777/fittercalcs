@@ -12,7 +12,7 @@
 </p>
 
 <p align="center">
-  <strong>Current version: 2.29</strong><br>
+  <strong>Current version: 2.30</strong><br>
   <a href="https://github.com/macski777/fittercalcs/releases/latest">Download FitterCalcs.apk</a>
   ·
   <a href="https://github.com/macski777/fittercalcs/releases/latest">Windows</a>
@@ -32,7 +32,7 @@ The launcher icon and the **FITTER / CALCS** wordmark use **Delta Corps Priest 1
 
 ## Install on Android
 
-1. Download [FitterCalcs.apk](https://github.com/macski777/fittercalcs/releases/download/v2.29/FitterCalcs.apk).
+1. Download [FitterCalcs.apk](https://github.com/macski777/fittercalcs/releases/download/v2.30/FitterCalcs.apk).
 2. Open the file on the phone.
 3. Allow install from this source if Android asks.
 4. Open **FitterCalcs**.
@@ -41,7 +41,7 @@ Needs Android 7 or newer.
 
 ## Install on Windows
 
-1. Download [FitterCalcs-Setup.exe](https://github.com/macski777/fittercalcs/releases/download/v2.29/FitterCalcs-Setup.exe).
+1. Download [FitterCalcs-Setup.exe](https://github.com/macski777/fittercalcs/releases/download/v2.30/FitterCalcs-Setup.exe).
 2. Double-click it. No admin, no wizard — it is a portable Windows app.
 3. Pin it to the taskbar or copy it to the Desktop if you want it handy.
 
@@ -49,7 +49,7 @@ Needs 64-bit Windows 10 or 11.
 
 ## Install on Linux
 
-1. Download [FitterCalcs-linux.tar.gz](https://github.com/macski777/fittercalcs/releases/download/v2.29/FitterCalcs-linux.tar.gz).
+1. Download [FitterCalcs-linux.tar.gz](https://github.com/macski777/fittercalcs/releases/download/v2.30/FitterCalcs-linux.tar.gz).
 2. Unpack it and run `./install.sh` (installs for your user only).
 3. Open **FitterCalcs** from the app menu, or run `fittercalcs`.
 
@@ -106,19 +106,19 @@ AS 2129 tables, ANSI, and PN16 — OD, PCD, bolts, hole size.
 
 ### Pump
 
-kPa vs L/s curve, job autosave, large chart. Enter a system duty and the tab shows green **PASS** or red **FAIL**. **Email report** sends a customer summary citing AS 2941, AS 2419.1, AS 2118.1 and AS 1851, with the curve attached.
+kPa vs L/s curve, job autosave, large chart. Enter a system duty and the tab shows green **PASS** or red **FAIL**. **Email report** is an A4 PNG plus a PASS/FAIL letter citing AS 2941, AS 2419.1, AS 2118.1 and AS 1851.
 
 <p align="center"><img src="docs/pump.png" width="320" alt="Pump tab — PASS against nominated duty"></p>
 
 ### Hydro-Calcs
 
-Hazen-Williams friction plus static rise. Velocity within 5 m/s is green **PASS**; above is red **FAIL**. **Email report** sends a customer summary citing AS 1074, AS 2118.1 and AS 2419.1.
+Hazen-Williams friction plus static rise. Velocity within 5 m/s is green **PASS**; above is red **FAIL**. **Email report** is an A4 PNG plus a PASS/FAIL letter citing AS 1074, AS 2118.1 and AS 2419.1.
 
 <p align="center"><img src="docs/hydro.png" width="320" alt="Hydro-Calcs tab — PASS on velocity"></p>
 
 ### Tanks
 
-Cylindrical or rectangular volume, gross and effective kL. Pick hydrants, sprinklers, or both; type infill / make-up; the tab shows hours of supply against AS 2419.1 (4 h hydrants) and AS 2118.1 (30 / 60 / 90 min by hazard). Enough storage is green **PASS**; short is red **FAIL**. **Email report** cites AS 2304, AS 2419.1, AS 2118.1 and AS/NZS 3500.1.
+Cylindrical or rectangular volume, gross and effective kL. Pick hydrants, sprinklers, or both; type infill / make-up; the tab shows hours of supply against AS 2419.1 (4 h hydrants) and AS 2118.1 (30 / 60 / 90 min by hazard). Enough storage is green **PASS**; short is red **FAIL**. **Email report** is an A4 PNG plus a PASS/FAIL letter citing AS 2304, AS 2419.1, AS 2118.1 and AS/NZS 3500.1.
 
 <p align="center"><img src="docs/tanks.png" width="320" alt="Tanks tab — combined hydrant and sprinkler, infill, FAIL vs required storage"></p>
 
