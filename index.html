@@ -654,7 +654,7 @@
       </div>
     </div>
     <div class="header-right">
-      <div class="build" id="appBuild" title="Check for update">v2.30</div>
+      <div class="build" id="appBuild" title="Check for update">v2.31</div>
       <div class="units" id="pipeUnits" role="group" aria-label="Units">
         <button id="btnIn" type="button">in</button>
         <button id="btnMm" class="on" type="button">mm</button>
@@ -959,36 +959,18 @@
       <label for="tkSite">Site / job</label>
       <input id="tkSite" type="text" placeholder="e.g. 12 Smith St fire tank" autocomplete="off" />
     </div>
-    <div class="chips" id="tkShape">
-      <button type="button" class="on" data-s="cyl">Cylindrical</button>
-      <button type="button" data-s="rect">Rectangular</button>
-    </div>
-    <div class="hc-grid" id="tkCyl">
-      <div class="field" style="margin:0">
-        <label for="tkD">Internal diameter (m)</label>
-        <input id="tkD" type="number" inputmode="decimal" step="0.01" value="6.5" />
-      </div>
-      <div class="field" style="margin:0">
-        <label for="tkH">Shell height (m)</label>
-        <input id="tkH" type="number" inputmode="decimal" step="0.01" value="3.6" />
-      </div>
-    </div>
-    <div class="hc-grid hidden" id="tkRect">
-      <div class="field" style="margin:0">
-        <label for="tkL">Internal length (m)</label>
-        <input id="tkL" type="number" inputmode="decimal" step="0.01" value="6" />
-      </div>
-      <div class="field" style="margin:0">
-        <label for="tkW">Internal width (m)</label>
-        <input id="tkW" type="number" inputmode="decimal" step="0.01" value="4" />
-      </div>
-      <div class="field" style="margin:0">
-        <label for="tkHr">Water height (m)</label>
-        <input id="tkHr" type="number" inputmode="decimal" step="0.01" value="3.6" />
-      </div>
-    </div>
     <div class="sysbox">
-      <b>System this tank supplies</b>
+      <b>How many tanks</b>
+      <div class="chips" id="tkCount">
+        <button type="button" class="on" data-n="1">1</button>
+        <button type="button" data-n="2">2</button>
+        <button type="button" data-n="3">3</button>
+        <button type="button" data-n="4">4</button>
+      </div>
+    </div>
+    <div id="tkUnits"></div>
+    <div class="sysbox">
+      <b id="tkSysLabel">System this tank supplies</b>
       <div class="chips" id="tkSys">
         <button type="button" class="on" data-s="hydrant">Hydrants</button>
         <button type="button" data-s="sprinkler">Sprinklers</button>
@@ -1035,9 +1017,10 @@
       <button type="button" id="emailTanks">Email report</button>
     </div>
     <p class="notes">
+      Pick <strong>1 to 4 tanks</strong>. Effective capacities add. Infill is the combined make-up into the bank.
       <strong>Gross</strong> = full internal volume of the shell.
       <strong>Effective</strong> = volume between the usable high water (overflow minus air gap, default 20 mm per AS/NZS 3500.1) and the usable low water (above suction/vortex inhibitor, default 150 mm — typical AS 2304 / AS 2419 field value; enter the actual plate height).
-      <strong>Hydrants</strong> need <strong>4 h</strong> at demand (AS 2419.1). <strong>Sprinklers</strong> need <strong>30 / 60 / 90 min</strong> by Light / Ordinary / High Hazard (AS 2118.1). Infill is credited as make-up: duration uses effective litres ÷ (demand − infill). Combined tanks are checked for hydrants, sprinklers, and both running together.
+      <strong>Hydrants</strong> need <strong>4 h</strong> at demand (AS 2419.1). <strong>Sprinklers</strong> need <strong>30 / 60 / 90 min</strong> by Light / Ordinary / High Hazard (AS 2118.1). Infill is credited as make-up: duration uses combined effective litres ÷ (demand − infill). Combined hydrant + sprinkler storage is checked for hydrants, sprinklers, and both running together.
       Enough storage is a green <strong>PASS</strong>; short is a red <strong>FAIL</strong> on the tab and on the email report.
       Email sends a customer summary citing <strong>AS 2304</strong>, <strong>AS 2419.1</strong>, <strong>AS 2118.1</strong> and <strong>AS/NZS 3500.1</strong>. Field estimate — confirm on the current Standard.
     </p>
@@ -1114,8 +1097,8 @@
   </div>
 
 <script>
-const APP_VERSION = "2.30";
-const APP_BUILD = 41;
+const APP_VERSION = "2.31";
+const APP_BUILD = 42;
 
 const NPS_TO_DN = {
   "1/2": "15", "3/4": "20", "1": "25", "1-1/4": "32", "1-1/2": "40",
@@ -2323,7 +2306,8 @@ function renderHydro() {
     ${verdictHtml(s.verdict)}`;
 }
 
-let tkShape = "cyl";
+let tkCount = 1;
+let tkShapes = ["cyl", "cyl", "cyl", "cyl"];
 let tkSys = "hydrant";
 let tkHazard = "OH";
 
@@ -2393,13 +2377,79 @@ function tankStatus(keff, need) {
   return { ok: false, tag: "FAIL", detail: "Need " + fmtKL(need) + " effective, have " + fmtKL(keff) + " (" + fmtKL(need - keff) + " short)." };
 }
 
+function tankUnitHtml(i) {
+  const n = i + 1;
+  return `
+    <div class="sysbox" id="tkUnit${i}">
+      <b>Tank ${n}</b>
+      <div class="chips" data-shape-for="${i}">
+        <button type="button" class="on" data-s="cyl">Cylindrical</button>
+        <button type="button" data-s="rect">Rectangular</button>
+      </div>
+      <div class="hc-grid" id="tkCyl${i}">
+        <div class="field" style="margin:0">
+          <label for="tkD${i}">Internal diameter (m)</label>
+          <input id="tkD${i}" type="number" inputmode="decimal" step="0.01" value="6.5" />
+        </div>
+        <div class="field" style="margin:0">
+          <label for="tkH${i}">Shell height (m)</label>
+          <input id="tkH${i}" type="number" inputmode="decimal" step="0.01" value="3.6" />
+        </div>
+      </div>
+      <div class="hc-grid hidden" id="tkRect${i}">
+        <div class="field" style="margin:0">
+          <label for="tkL${i}">Internal length (m)</label>
+          <input id="tkL${i}" type="number" inputmode="decimal" step="0.01" value="6" />
+        </div>
+        <div class="field" style="margin:0">
+          <label for="tkW${i}">Internal width (m)</label>
+          <input id="tkW${i}" type="number" inputmode="decimal" step="0.01" value="4" />
+        </div>
+        <div class="field" style="margin:0">
+          <label for="tkHr${i}">Water height (m)</label>
+          <input id="tkHr${i}" type="number" inputmode="decimal" step="0.01" value="3.6" />
+        </div>
+      </div>
+    </div>`;
+}
+
+function updateTankUnitShapeUi(i) {
+  const cyl = tkShapes[i] !== "rect";
+  document.getElementById("tkCyl" + i).classList.toggle("hidden", !cyl);
+  document.getElementById("tkRect" + i).classList.toggle("hidden", cyl);
+  document.querySelectorAll('[data-shape-for="' + i + '"] button').forEach(b => {
+    b.classList.toggle("on", b.getAttribute("data-s") === tkShapes[i]);
+  });
+}
+
+function syncTankCount() {
+  for (let i = 0; i < 4; i++) {
+    document.getElementById("tkUnit" + i).classList.toggle("hidden", i >= tkCount);
+  }
+  const lab = document.getElementById("tkSysLabel");
+  if (lab) lab.textContent = tkCount > 1 ? "System these tanks supply" : "System this tank supplies";
+}
+
 function setupTanks() {
-  const host = document.getElementById("tkShape");
-  host.querySelectorAll("button").forEach(b => b.onclick = () => {
-    tkShape = b.getAttribute("data-s");
-    host.querySelectorAll("button").forEach(x => x.classList.toggle("on", x === b));
-    document.getElementById("tkCyl").classList.toggle("hidden", tkShape !== "cyl");
-    document.getElementById("tkRect").classList.toggle("hidden", tkShape !== "rect");
+  const host = document.getElementById("tkUnits");
+  host.innerHTML = [0, 1, 2, 3].map(tankUnitHtml).join("");
+  for (let i = 0; i < 4; i++) {
+    host.querySelectorAll('[data-shape-for="' + i + '"] button').forEach(b => {
+      b.onclick = () => {
+        tkShapes[i] = b.getAttribute("data-s");
+        updateTankUnitShapeUi(i);
+        renderTanks();
+      };
+    });
+    ["D", "H", "L", "W", "Hr"].forEach(k => {
+      document.getElementById("tk" + k + i).addEventListener("input", renderTanks);
+    });
+  }
+  const countHost = document.getElementById("tkCount");
+  countHost.querySelectorAll("button").forEach(b => b.onclick = () => {
+    tkCount = +b.getAttribute("data-n");
+    countHost.querySelectorAll("button").forEach(x => x.classList.toggle("on", x === b));
+    syncTankCount();
     renderTanks();
   });
   const sysHost = document.getElementById("tkSys");
@@ -2415,10 +2465,11 @@ function setupTanks() {
     hazHost.querySelectorAll("button").forEach(x => x.classList.toggle("on", x === b));
     renderTanks();
   });
-  ["tkD", "tkH", "tkL", "tkW", "tkHr", "tkTop", "tkBot", "tkQh", "tkQs", "tkQi"].forEach(id => {
+  ["tkTop", "tkBot", "tkQh", "tkQs", "tkQi"].forEach(id => {
     document.getElementById(id).addEventListener("input", renderTanks);
   });
   document.getElementById("emailTanks").onclick = () => emailTanksReport();
+  syncTankCount();
   syncTankSysUi();
   renderTanks();
 }
@@ -2427,6 +2478,39 @@ function syncTankSysUi() {
   document.getElementById("tkHydrantFlow").classList.toggle("hidden", tkSys === "sprinkler");
   document.getElementById("tkSprinklerFlow").classList.toggle("hidden", tkSys === "hydrant");
   document.getElementById("tkHazardWrap").classList.toggle("hidden", tkSys === "hydrant");
+}
+
+function readTankGeom(i, topM, botM) {
+  const shape = tkShapes[i] || "cyl";
+  let area = 0, H = 0, dims = "", dimShort = "";
+  if (shape !== "rect") {
+    const D = parseFloat(document.getElementById("tkD" + i).value);
+    H = parseFloat(document.getElementById("tkH" + i).value);
+    if (Number.isFinite(D) && D > 0 && Number.isFinite(H) && H > 0) {
+      area = Math.PI * (D / 2) * (D / 2);
+      dims = "Cylindrical, internal diameter " + D.toFixed(2) + " m, shell height " + H.toFixed(2) + " m";
+      dimShort = "Ø" + D.toFixed(2) + " × " + H.toFixed(2) + " m";
+    }
+  } else {
+    const L = parseFloat(document.getElementById("tkL" + i).value);
+    const W = parseFloat(document.getElementById("tkW" + i).value);
+    H = parseFloat(document.getElementById("tkHr" + i).value);
+    if (Number.isFinite(L) && Number.isFinite(W) && L > 0 && W > 0 && Number.isFinite(H) && H > 0) {
+      area = L * W;
+      dims = "Rectangular, internal " + L.toFixed(2) + " m × " + W.toFixed(2) + " m, water height " + H.toFixed(2) + " m";
+      dimShort = L.toFixed(2) + " × " + W.toFixed(2) + " × " + H.toFixed(2) + " m";
+    }
+  }
+  if (!(area > 0) || !(H > 0)) return { i, n: i + 1, ok: false, shape };
+  const Heff = H - topM - botM;
+  const Vgross = area * H;
+  const Vtop = area * topM;
+  const Vbot = area * botM;
+  const Veff = area * Math.max(0, Heff);
+  return {
+    i, n: i + 1, ok: true, shape, dims, dimShort, area, H, Heff,
+    Vgross, Vtop, Vbot, Veff, kgross: Vgross * 1000, keff: Veff * 1000
+  };
 }
 
 function tankState() {
@@ -2439,33 +2523,25 @@ function tankState() {
   const site = (document.getElementById("tkSite").value || "").trim();
   const sys = TK_SYS[tkSys] || TK_SYS.hydrant;
   const haz = TK_HAZARD[tkHazard] || TK_HAZARD.OH;
-  let area = 0, H = 0, dims = "";
-  if (tkShape === "cyl") {
-    const D = parseFloat(document.getElementById("tkD").value);
-    H = parseFloat(document.getElementById("tkH").value);
-    if (Number.isFinite(D) && D > 0) {
-      area = Math.PI * (D / 2) * (D / 2);
-      dims = "Cylindrical tank, internal diameter " + D.toFixed(2) + " m, shell height " + (Number.isFinite(H) ? H.toFixed(2) : "—") + " m";
-    }
-  } else {
-    const L = parseFloat(document.getElementById("tkL").value);
-    const W = parseFloat(document.getElementById("tkW").value);
-    H = parseFloat(document.getElementById("tkHr").value);
-    if (Number.isFinite(L) && Number.isFinite(W) && L > 0 && W > 0) {
-      area = L * W;
-      dims = "Rectangular tank, internal " + L.toFixed(2) + " m × " + W.toFixed(2) + " m, water height " + (Number.isFinite(H) ? H.toFixed(2) : "—") + " m";
-    }
-  }
-  if (!(area > 0) || !(H > 0)) return null;
   const topM = (Number.isFinite(topMm) ? Math.max(0, topMm) : 0) / 1000;
   const botM = (Number.isFinite(botMm) ? Math.max(0, botMm) : 0) / 1000;
-  const Heff = H - topM - botM;
-  const Vgross = area * H;
-  const Vtop = area * topM;
-  const Vbot = area * botM;
-  const Veff = area * Math.max(0, Heff);
+  const n = Math.max(1, Math.min(4, tkCount || 1));
+  const tanks = [];
+  for (let i = 0; i < n; i++) tanks.push(readTankGeom(i, topM, botM));
+  const okTanks = tanks.filter(t => t.ok);
+  if (!okTanks.length) return null;
+  const area = okTanks.reduce((a, t) => a + t.area, 0);
+  const Vgross = okTanks.reduce((a, t) => a + t.Vgross, 0);
+  const Vtop = okTanks.reduce((a, t) => a + t.Vtop, 0);
+  const Vbot = okTanks.reduce((a, t) => a + t.Vbot, 0);
+  const Veff = okTanks.reduce((a, t) => a + t.Veff, 0);
   const kgross = Vgross * 1000;
   const keff = Veff * 1000;
+  const Heff = okTanks.length === 1 ? okTanks[0].Heff : okTanks.reduce((a, t) => a + t.Heff, 0) / okTanks.length;
+  const dims = n === 1
+    ? okTanks[0].dims
+    : n + " tanks, combined storage";
+  const incomplete = tanks.filter(t => !t.ok).map(t => t.n);
   const hyd = tankDrawdown(keff, Qh, inf);
   const spr = tankDrawdown(keff, Qs, inf);
   const qComb = (hyd.dem || 0) + (spr.dem || 0);
@@ -2491,9 +2567,10 @@ function tankState() {
     durSmall = "hydrants + sprinklers − infill";
   }
   return {
-    site, dims, area, H, topMm: Number.isFinite(topMm) ? Math.max(0, topMm) : 0,
+    site, dims, area, tanks, n, incomplete,
+    topMm: Number.isFinite(topMm) ? Math.max(0, topMm) : 0,
     botMm: Number.isFinite(botMm) ? Math.max(0, botMm) : 0,
-    Heff, Vgross, Vtop, Vbot, Veff, kgross, keff, shape: tkShape,
+    Heff, Vgross, Vtop, Vbot, Veff, kgross, keff,
     sys, haz, Qh, Qs, inf,
     hyd, spr, comb, hydNeed, sprNeed, combNeed, need, status,
     durMin: durObj.min, dur: fmtDurMin(durObj.min), durLabel, durSmall, durObj
@@ -2507,7 +2584,11 @@ function renderTanks() {
     out.innerHTML = '<div class="stat hc-total"><label>Effective capacity</label><b>—</b> <small>kL</small></div>';
     return;
   }
-  const warn = s.Heff <= 0 ? '<p class="notes" style="grid-column:1/-1;color:var(--gold)">Top + bottom unused is bigger than the shell height.</p>' : "";
+  const badHeff = s.tanks.some(t => t.ok && t.Heff <= 0);
+  const warn = [
+    badHeff ? '<p class="notes" style="grid-column:1/-1;color:var(--gold)">Top + bottom unused is bigger than the shell height on at least one tank.</p>' : "",
+    s.incomplete.length ? '<p class="notes" style="grid-column:1/-1;color:var(--gold)">Enter dimensions for tank ' + s.incomplete.join(", ") + ".</p>" : ""
+  ].join("");
   const hydStat = s.sys.id !== "sprinkler" ? `
     <div class="stat"><label>Hydrant duration</label><b>${fmtDurMin(s.hyd.min)}</b> <small>need 4 h · AS 2419.1</small></div>` : "";
   const sprStat = s.sys.id !== "hydrant" ? `
@@ -2517,13 +2598,22 @@ function renderTanks() {
   const needStat = s.need != null ? `
     <div class="stat"><label>Required storage</label><b>${fmtKL(s.need)}</b> <small>effective, with infill credited</small></div>` : "";
   const statusHtml = verdictHtml(s.status);
+  const tankStats = s.n > 1
+    ? s.tanks.map(t => t.ok
+      ? `<div class="stat"><label>Tank ${t.n}</label><b>${(t.keff / 1000).toFixed(2)}</b> <small>kL · ${t.dimShort}</small></div>`
+      : `<div class="stat"><label>Tank ${t.n}</label><b>—</b> <small>enter size</small></div>`).join("")
+    : "";
+  const countStat = s.n > 1
+    ? `<div class="stat"><label>Tanks</label><b>${s.n}</b> <small>combined storage</small></div>`
+    : `<div class="stat"><label>Plan area</label><b>${s.area.toFixed(2)}</b> <small>m²</small></div>
+       <div class="stat"><label>Effective water height</label><b>${Math.max(0, s.Heff).toFixed(3)}</b> <small>m</small></div>`;
   out.innerHTML = `
-    <div class="stat"><label>Plan area</label><b>${s.area.toFixed(2)}</b> <small>m²</small></div>
-    <div class="stat"><label>Effective water height</label><b>${Math.max(0, s.Heff).toFixed(3)}</b> <small>m</small></div>
+    ${countStat}
+    ${tankStats}
     <div class="stat"><label>Gross volume</label><b>${s.kgross.toFixed(0)}</b> <small>L · ${(s.kgross / 1000).toFixed(2)} kL</small></div>
     <div class="stat"><label>Unusable top / bottom</label><b>${(s.Vtop * 1000).toFixed(0)}</b> <small>L / ${(s.Vbot * 1000).toFixed(0)} L</small></div>
     ${hydStat}${sprStat}${combStat}${needStat}
-    <div class="stat hc-total"><label>Effective capacity</label><b>${(s.keff / 1000).toFixed(2)}</b> <small>kL · ${s.keff.toFixed(0)} L</small></div>
+    <div class="stat hc-total"><label>${s.n > 1 ? "Combined effective" : "Effective capacity"}</label><b>${(s.keff / 1000).toFixed(2)}</b> <small>kL · ${s.keff.toFixed(0)} L</small></div>
     <div class="stat hc-total"><label>${s.durLabel}</label><b>${s.dur}</b> <small>${s.durSmall}</small></div>
     ${statusHtml}
     ${warn}`;
@@ -2551,7 +2641,7 @@ function showPage(page) {
     document.getElementById("appSub").innerHTML = "Hydro-Calcs • friction + static kPa<br>Pipe size, length, elbows, rise";
     renderHydro();
   } else if (page === "tanks") {
-    document.getElementById("appSub").innerHTML = "Tank volume • system type • infill hours<br>AS 2304 / AS 2419.1 / AS 2118.1";
+    document.getElementById("appSub").innerHTML = "Tank volume • 1–4 tanks • infill hours<br>AS 2304 / AS 2419.1 / AS 2118.1";
     renderTanks();
   } else if (page === "as1851") {
     document.getElementById("appSub").innerHTML = "Routine service of fire protection systems<br>What is in AS 1851 · frequencies · typical field checks";
@@ -4083,7 +4173,7 @@ function emailTanksReport() {
     sysLines.push("AS 2419.1 requires the hydrant water supply to maintain the hydrant demand for not less than 4 hours. Where town-main make-up / infill is available to the tank, on-site storage is assessed on the difference between hydrant demand and infill, still for 4 hours.");
     sysLines.push(netLine(s.hyd));
     sysLines.push("Required duration: 4 h.");
-    sysLines.push("Duration available on this tank (effective ÷ net hydrant drawdown): " + fmtDurMin(s.hyd.min) + ".");
+    sysLines.push("Duration available on this storage (effective ÷ net hydrant drawdown): " + fmtDurMin(s.hyd.min) + ".");
     sysLines.push(needLine(s.hydNeed, "4 h hydrant"));
   }
   if (s.sys.id !== "hydrant") {
@@ -4092,7 +4182,7 @@ function emailTanksReport() {
     sysLines.push("AS 2118.1 water-supply duration for " + s.haz.label + " is " + fmtDurMin(s.haz.durMin) + " at the sprinkler demand. Infill is credited the same way as hydrant make-up: storage is (sprinkler demand − infill) × duration.");
     sysLines.push(netLine(s.spr));
     sysLines.push("Required duration: " + fmtDurMin(s.haz.durMin) + ".");
-    sysLines.push("Duration available on this tank (effective ÷ net sprinkler drawdown): " + fmtDurMin(s.spr.min) + ".");
+    sysLines.push("Duration available on this storage (effective ÷ net sprinkler drawdown): " + fmtDurMin(s.spr.min) + ".");
     sysLines.push(needLine(s.sprNeed, fmtDurMin(s.haz.durMin) + " sprinkler"));
   }
   if (s.sys.id === "combined") {
@@ -4102,7 +4192,7 @@ function emailTanksReport() {
     sysLines.push("  • First " + fmtDurMin(s.haz.durMin) + ": hydrants + sprinklers − infill.");
     sysLines.push("  • Remaining " + fmtDurMin(Math.max(0, HYDRANT_MIN - s.haz.durMin)) + ": hydrants − infill (sprinkler duration complete).");
     sysLines.push("Simultaneous demand: " + fmtLs(s.hyd.dem + s.spr.dem) + ", infill " + infillTxt + ".");
-    sysLines.push("Duration if both run together from this tank: " + fmtDurMin(s.comb.min) + ".");
+    sysLines.push("Duration if both run together from this storage: " + fmtDurMin(s.comb.min) + ".");
     sysLines.push(needLine(s.combNeed, "combined simultaneous"));
   }
   if (!s.status) {
@@ -4114,19 +4204,20 @@ function emailTanksReport() {
     site: s.site,
     verdict: s.status,
     sections: [
-      { title: "1. TANK", lines: [
-        s.dims + ".",
-        "Plan area: " + s.area.toFixed(2) + " m²",
+      { title: "1. TANK" + (s.n > 1 ? "S" : ""), lines: [
+        "Number of tanks: " + s.n,
+        ...s.tanks.map(t => t.ok
+          ? "Tank " + t.n + ": " + t.dims + ". Effective " + (t.keff / 1000).toFixed(2) + " kL."
+          : "Tank " + t.n + ": dimensions not entered."),
         "Overflow air gap (top unused): " + s.topMm.toFixed(0) + " mm",
-        "Suction / vortex unused (bottom): " + s.botMm.toFixed(0) + " mm",
-        "Effective water height: " + Math.max(0, s.Heff).toFixed(3) + " m"
+        "Suction / vortex unused (bottom): " + s.botMm.toFixed(0) + " mm"
       ]},
       { title: "2. CAPACITY", lines: [
         "Gross internal volume: " + s.kgross.toFixed(0) + " L  (" + (s.kgross / 1000).toFixed(2) + " kL)",
         "Unusable at overflow: " + (s.Vtop * 1000).toFixed(0) + " L",
         "Unusable at suction: " + (s.Vbot * 1000).toFixed(0) + " L",
-        "EFFECTIVE CAPACITY: " + s.keff.toFixed(0) + " L  (" + (s.keff / 1000).toFixed(2) + " kL)",
-        "Infill / make-up to the tank: " + infillTxt
+        (s.n > 1 ? "COMBINED EFFECTIVE: " : "EFFECTIVE CAPACITY: ") + s.keff.toFixed(0) + " L  (" + (s.keff / 1000).toFixed(2) + " kL)",
+        "Infill / make-up to the bank: " + infillTxt
       ]},
       { title: "3. SYSTEM DURATION vs AUSTRALIAN STANDARDS", lines: sysLines },
       { title: "4. STANDARDS", lines: [
@@ -4138,13 +4229,16 @@ function emailTanksReport() {
     ]
   });
   const rows = [
-    { k: "Tank", v: s.dims },
-    { k: "System", v: s.sys.short + (s.sys.id !== "hydrant" ? "  ·  " + s.haz.label : "") },
-    { k: "Plan area", v: s.area.toFixed(2) + " m²" },
-    { k: "Top / bottom unused", v: s.topMm.toFixed(0) + " / " + s.botMm.toFixed(0) + " mm" },
-    { k: "Effective height", v: Math.max(0, s.Heff).toFixed(3) + " m" },
-    { k: "Gross volume", v: (s.kgross / 1000).toFixed(2) + " kL" }
+    { k: "Tanks", v: String(s.n) }
   ];
+  s.tanks.forEach(t => {
+    rows.push({ k: "Tank " + t.n, v: t.ok ? t.dimShort + "  ·  " + (t.keff / 1000).toFixed(2) + " kL" : "not entered" });
+  });
+  rows.push(
+    { k: "System", v: s.sys.short + (s.sys.id !== "hydrant" ? "  ·  " + s.haz.label : "") },
+    { k: "Top / bottom unused", v: s.topMm.toFixed(0) + " / " + s.botMm.toFixed(0) + " mm" },
+    { k: s.n > 1 ? "Combined gross" : "Gross volume", v: (s.kgross / 1000).toFixed(2) + " kL" }
+  );
   if (s.sys.id !== "sprinkler") rows.push({ k: "Hydrant demand", v: fmtLs(s.hyd.dem) });
   if (s.sys.id !== "hydrant") rows.push({ k: "Sprinkler demand", v: fmtLs(s.spr.dem) });
   rows.push({ k: "Infill / make-up", v: infillTxt });
@@ -4159,7 +4253,7 @@ function emailTanksReport() {
     title: "Fire tank capacity estimate",
     site: s.site,
     rows: rows,
-    result: { label: s.durLabel, value: s.dur + "   ·   " + (s.keff / 1000).toFixed(2) + " kL effective" },
+    result: { label: s.durLabel, value: s.dur + "   ·   " + (s.keff / 1000).toFixed(2) + " kL " + (s.n > 1 ? "combined" : "effective") },
     verdict: s.status,
     more: more,
     standards: [

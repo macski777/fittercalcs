@@ -1,6 +1,6 @@
 {
-  "versionCode": 41,
-  "versionName": "2.30",
-  "apkUrl": "https://github.com/macski777/fittercalcs/releases/download/v2.30/FitterCalcs.apk",
-  "notes": "Reports are A4 for printing. Emails lead with a clear PASS or FAIL."
+  "versionCode": 42,
+  "versionName": "2.31",
+  "apkUrl": "https://github.com/macski777/fittercalcs/releases/download/v2.31/FitterCalcs.apk",
+  "notes": "Tanks tab: pick 1, 2, 3 or 4 tanks. Effective volumes add."
 }
