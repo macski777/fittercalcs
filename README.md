@@ -8,7 +8,7 @@
 
 <p align="center">
   Field calculator for fire protection fitters.<br>
-  AS 1074 pipe sizes, Annubar flow, flanges, pump curves, hydro losses, tanks, and AS 1851 lookup.
+  AS 1074 pipe sizes, Annubar flow, flanges, pump curves, hydro losses, tanks with infill hours vs AS 2419.1 / AS 2118.1, and AS 1851 lookup.
 </p>
 
 <p align="center">
@@ -92,7 +92,7 @@ Hazen-Williams friction plus static rise. **Email report** sends a customer summ
 
 Cylindrical or rectangular volume, gross and effective kL. Pick hydrants, sprinklers, or both; type infill / make-up; the tab shows hours of supply against AS 2419.1 (4 h hydrants) and AS 2118.1 (30 / 60 / 90 min by hazard). **Email report** cites AS 2304, AS 2419.1, AS 2118.1 and AS/NZS 3500.1.
 
-<p align="center"><img src="docs/tanks.png" width="320" alt="Tanks tab"></p>
+<p align="center"><img src="docs/tanks.png" width="320" alt="Tanks tab — combined hydrant and sprinkler, infill, hours vs AS 2419.1 / AS 2118.1"></p>
 
 ### Annubar K
 
