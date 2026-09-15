@@ -12,7 +12,7 @@
 </p>
 
 <p align="center">
-  <strong>Current version: 2.32</strong><br>
+  <strong>Current version: 2.33</strong><br>
   <a href="https://github.com/macski777/fittercalcs/releases/latest">Download FitterCalcs.apk</a>
   ·
   <a href="https://github.com/macski777/fittercalcs/releases/latest">Windows</a>
@@ -32,7 +32,7 @@ The launcher icon and the **FITTER / CALCS** wordmark use **Delta Corps Priest 1
 
 ## Install on Android
 
-1. Download [FitterCalcs.apk](https://github.com/macski777/fittercalcs/releases/download/v2.32/FitterCalcs.apk).
+1. Download [FitterCalcs.apk](https://github.com/macski777/fittercalcs/releases/download/v2.33/FitterCalcs.apk).
 2. Open the file on the phone.
 3. Allow install from this source if Android asks.
 4. Open **FitterCalcs**.
@@ -41,7 +41,7 @@ Needs Android 7 or newer.
 
 ## Install on Windows
 
-1. Download [FitterCalcs-Setup.exe](https://github.com/macski777/fittercalcs/releases/download/v2.32/FitterCalcs-Setup.exe).
+1. Download [FitterCalcs-Setup.exe](https://github.com/macski777/fittercalcs/releases/download/v2.33/FitterCalcs-Setup.exe).
 2. Double-click it. No admin, no wizard — it is a portable Windows app.
 3. Pin it to the taskbar or copy it to the Desktop if you want it handy.
 
@@ -49,7 +49,7 @@ Needs 64-bit Windows 10 or 11.
 
 ## Install on Linux
 
-1. Download [FitterCalcs-linux.tar.gz](https://github.com/macski777/fittercalcs/releases/download/v2.32/FitterCalcs-linux.tar.gz).
+1. Download [FitterCalcs-linux.tar.gz](https://github.com/macski777/fittercalcs/releases/download/v2.33/FitterCalcs-linux.tar.gz).
 2. Unpack it and run `./install.sh` (installs for your user only).
 3. Open **FitterCalcs** from the app menu, or run `fittercalcs`.
 
@@ -79,7 +79,7 @@ Phones on **2.17 or older** need a one-time install of 2.18 or later (USB or thi
 | Tab | What it does |
 | --- | --- |
 | **Pipe** | OD, wall, ID for AS 1074 Light / Medium / Heavy, SS 10S, SS 40S, CPVC. mm or inch. |
-| **Annubar** | Type L/min or inHg for 3/8", 20T, and 21T. Table highlights the next inHg up. Medium-steel card K; other walls interpolate by ID. |
+| **Annubar** | Type L/min or inHg for 3/8", 20T, and 21T. Table is 1–12 inHg; highlights the next inHg up. Medium-steel card K; other walls interpolate by ID. |
 | **Flange** | AS 2129 Table D/E/F/H, ANSI 150/300, PN16 — OD, PCD, bolts, holes. |
 | **Pump** | kPa vs L/s curve, autosave by job. Green **PASS** / red **FAIL** vs nominated duty. Email a customer report citing AS 2941 / AS 2419.1 / AS 2118.1 / AS 1851. |
 | **Hydro-Calcs** | Hazen-Williams friction + static rise. Green **PASS** / red **FAIL** on velocity (typical 5 m/s). Email a customer report citing AS 1074 / AS 2118.1 / AS 2419.1. |
@@ -94,7 +94,7 @@ AS 1074 Light, Medium, and Heavy steel, plus stainless and CPVC. Cross-section, 
 
 ### Annubar
 
-3/8", 20T, and 21T. Type **L/min** and the table highlights the next listed **inHg** up (1.73 → 2.0). Type inHg to see the flow. 20T/21T K is from the medium steel card; other walls interpolate by ID.
+3/8", 20T, and 21T. Type **L/min** and the table (1–12 inHg) highlights the next listed **inHg** up (1.73 → 2). Type inHg to see the flow. 20T/21T K is from the medium steel card; other walls interpolate by ID.
 
 <p align="center"><img src="docs/annubar.png" width="320" alt="Annubar tab — L/min to inHg"></p>
 

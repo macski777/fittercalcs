@@ -654,7 +654,7 @@
       </div>
     </div>
     <div class="header-right">
-      <div class="build" id="appBuild" title="Check for update">v2.32</div>
+      <div class="build" id="appBuild" title="Check for update">v2.33</div>
       <div class="units" id="pipeUnits" role="group" aria-label="Units">
         <button id="btnIn" type="button">in</button>
         <button id="btnMm" class="on" type="button">mm</button>
@@ -741,13 +741,13 @@
         <div class="stat"><label>Pipe ID</label><b id="annuId"></b> <small>mm</small></div>
         <div class="stat"><label>Probe K</label><b id="annuKCalc"></b></div>
         <div class="stat"><label>Probe</label><b id="annuProbeOd">9.53</b> <small>mm OD</small></div>
-        <div class="stat"><label>Range</label><b>0–30</b> <small>inHg</small></div>
+        <div class="stat"><label>Range</label><b>1–12</b> <small>inHg</small></div>
       </div>
     </section>
     <div class="lookup">
       <div>
         <label for="inHg">DP (inHg)</label>
-        <input id="inHg" type="number" inputmode="decimal" min="0" max="30" step="0.1" value="5" />
+        <input id="inHg" type="number" inputmode="decimal" min="1" max="12" step="1" value="5" />
       </div>
       <div>
         <label for="annuKIn">K factor</label>
@@ -783,7 +783,7 @@
       K comes from the <strong>medium steel card Rev 03</strong>: DN50 0.638, DN65 0.617, DN80 0.665, DN90 0.661, DN100 0.672, DN125 0.671, DN150 0.706.
       Light, Heavy, SS 10S, SS 40S (ASME Sch 40 ID), and copper <strong>interpolate that K against mill ID</strong>. Sizes bigger than DN150 hold the DN150 K.
       <strong>3/8″</strong> still uses Diamond II 15/16 formula K. Type a K to match a different card; <strong>Use probe K</strong> puts the table/formula back.
-      Type <strong>flow (L/min)</strong> and the table highlights the next listed <strong>inHg</strong> up (1.73 → 2.0). Type inHg to see the flow.
+      Type <strong>flow (L/min)</strong> and the table highlights the next listed <strong>inHg</strong> up (1.73 → 2). Range is <strong>1–12 inHg</strong>. Type inHg to see the flow.
       Steel IDs are <strong>AS 1074</strong> Light / Medium / Heavy. <strong>Use the laminated chart that shipped with the probe for a certified test.</strong>
     </p>
   </div>
@@ -1074,8 +1074,8 @@
   </div>
 
 <script>
-const APP_VERSION = "2.32";
-const APP_BUILD = 43;
+const APP_VERSION = "2.33";
+const APP_BUILD = 44;
 
 const NPS_TO_DN = {
   "1/2": "15", "3/4": "20", "1": "25", "1-1/4": "32", "1-1/2": "40",
@@ -2944,7 +2944,7 @@ const ANNU_DN_NPS = {
   "50": "2", "65": "2-1/2", "80": "3", "90": "3-1/2",
   "100": "4", "125": "5", "150": "6", "200": "8"
 };
-const ANNU_DP = [0.5, 1, 1.5, 2, 3, 4, 5, 6, 8, 10, 12, 15, 20, 25, 30];
+const ANNU_DP = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
 const ANNU_K_CARD = [
   [53.1, 0.638],
   [68.9, 0.617],

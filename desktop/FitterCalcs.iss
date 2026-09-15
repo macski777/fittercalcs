@@ -1,5 +1,5 @@
 #define AppName "FitterCalcs"
-#define AppVersion "2.32"
+#define AppVersion "2.33"
 #define AppPublisher "macski777"
 #define AppURL "https://github.com/macski777/fittercalcs"
 

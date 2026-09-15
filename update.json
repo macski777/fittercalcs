@@ -1,6 +1,6 @@
 {
-  "versionCode": 43,
-  "versionName": "2.32",
-  "apkUrl": "https://github.com/macski777/fittercalcs/releases/download/v2.32/FitterCalcs.apk",
-  "notes": "Annubar: type L/min and the table highlights the next inHg up."
+  "versionCode": 44,
+  "versionName": "2.33",
+  "apkUrl": "https://github.com/macski777/fittercalcs/releases/download/v2.33/FitterCalcs.apk",
+  "notes": "Annubar table is 1–12 inHg in whole numbers."
 }
