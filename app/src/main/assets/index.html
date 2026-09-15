@@ -654,7 +654,7 @@
       </div>
     </div>
     <div class="header-right">
-      <div class="build" id="appBuild" title="Check for update">v2.31</div>
+      <div class="build" id="appBuild" title="Check for update">v2.32</div>
       <div class="units" id="pipeUnits" role="group" aria-label="Units">
         <button id="btnIn" type="button">in</button>
         <button id="btnMm" class="on" type="button">mm</button>
@@ -756,11 +756,9 @@
     </div>
     <div class="lookup">
       <div>
-        <label>Flow</label>
-        <div class="stat" style="margin:0;padding:10px;">
-          <b id="annuLs"></b> <small>L/s</small><br>
-          <small id="annuLpm"></small>
-        </div>
+        <label for="annuLsIn">Flow (L/min)</label>
+        <input id="annuLsIn" type="number" inputmode="decimal" min="0" step="1" />
+        <small id="annuLpm"></small>
       </div>
       <div>
         <label>&nbsp;</label>
@@ -780,33 +778,12 @@
         <tbody id="annuRows"></tbody>
       </table>
     </div>
-    <section class="compare">
-      <h2>Rosemount 485 probe by pipe size</h2>
-      <div class="table-wrap" style="margin:0;border:0;">
-        <table>
-          <thead>
-            <tr>
-              <th>NPS</th>
-              <th>Sensor</th>
-              <th>Width</th>
-              <th>Drill</th>
-              <th>Use</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr><td>2–5"</td><td>Size 1</td><td>0.590 in</td><td>3/4 in</td><td>50–125 mm</td></tr>
-            <tr><td>6–8"</td><td>1 or 2</td><td>0.590 / 1.060</td><td>3/4 or 1-5/16</td><td>150–200 mm</td></tr>
-            <tr><td>10–12"</td><td>Size 2</td><td>1.060 in</td><td>1-5/16 in</td><td>250–300 mm</td></tr>
-            <tr><td>&gt;12"</td><td>Size 2 or 3</td><td>1.060 / 1.935</td><td>1-5/16 or 2-1/2</td><td>300 mm+</td></tr>
-          </tbody>
-        </table>
-      </div>
-    </section>
     <p class="notes">
       <strong>20T</strong> is single-mount 3/8″ and <strong>21T</strong> is dual-mount 3/8″ (both 9.53 mm).
       K comes from the <strong>medium steel card Rev 03</strong>: DN50 0.638, DN65 0.617, DN80 0.665, DN90 0.661, DN100 0.672, DN125 0.671, DN150 0.706.
       Light, Heavy, SS 10S, SS 40S (ASME Sch 40 ID), and copper <strong>interpolate that K against mill ID</strong>. Sizes bigger than DN150 hold the DN150 K.
       <strong>3/8″</strong> still uses Diamond II 15/16 formula K. Type a K to match a different card; <strong>Use probe K</strong> puts the table/formula back.
+      Type <strong>flow (L/min)</strong> and the table highlights the next listed <strong>inHg</strong> up (1.73 → 2.0). Type inHg to see the flow.
       Steel IDs are <strong>AS 1074</strong> Light / Medium / Heavy. <strong>Use the laminated chart that shipped with the probe for a certified test.</strong>
     </p>
   </div>
@@ -1097,8 +1074,8 @@
   </div>
 
 <script>
-const APP_VERSION = "2.31";
-const APP_BUILD = 42;
+const APP_VERSION = "2.32";
+const APP_BUILD = 43;
 
 const NPS_TO_DN = {
   "1/2": "15", "3/4": "20", "1": "25", "1-1/4": "32", "1-1/2": "40",
@@ -2982,6 +2959,7 @@ let annuKind = "asMed";
 let annuDn = "50";
 let annuProbe = "20T";
 let annuKManual = false;
+let annuFromFlow = false;
 
 function probeSpec() { return ANNU_PROBES[annuProbe]; }
 function annuKCard(idMm) {
@@ -3036,6 +3014,24 @@ function flowFromInHg(idMm, inHg, kUsed) {
   const ms = (ls / 1000) / area;
   return { gpm, ls, lpm: ls * 60, ms, K, B, calc };
 }
+function inHgFromFlow(idMm, ls, kUsed) {
+  const D = idMm / 25.4;
+  const calc = annuK(idMm);
+  const K = Number.isFinite(kUsed) && kUsed > 0 ? kUsed : calc;
+  if (!Number.isFinite(K) || !(idMm > 0) || !(ls >= 0)) return NaN;
+  const den = 5.6664 * K * D * D;
+  if (!(den > 0)) return NaN;
+  const gpm = ls * GPM_PER_LS;
+  const x = gpm / den;
+  return (x * x) / INHG_TO_INH2O;
+}
+function ceilAnnuDp(inHg) {
+  if (!Number.isFinite(inHg) || inHg <= 0) return ANNU_DP[0];
+  for (let i = 0; i < ANNU_DP.length; i++) {
+    if (ANNU_DP[i] + 1e-6 >= inHg) return ANNU_DP[i];
+  }
+  return ANNU_DP[ANNU_DP.length - 1];
+}
 function currentAnnuId() {
   if (DATA[annuKind]) {
     const row = DATA[annuKind].rows.find(r =>
@@ -3052,14 +3048,35 @@ function renderAnnu() {
     if (!kind.sizes[annuDn]) annuDn = Object.keys(kind.sizes)[0];
     return renderAnnu();
   }
-  const inHg = parseFloat(document.getElementById("inHg").value) || 0;
   const calc = annuK(id);
   const kEl = document.getElementById("annuKIn");
   if (!annuKManual && kEl && document.activeElement !== kEl) {
     kEl.value = Number.isFinite(calc) ? calc.toFixed(3) : "";
   }
   const usedK = readAnnuK(id);
-  const q = flowFromInHg(id, Math.max(inHg, 0), usedK);
+  const dpEl = document.getElementById("inHg");
+  const flowEl = document.getElementById("annuLsIn");
+  let inHg = parseFloat(dpEl.value);
+  let q;
+  let exactInHg = NaN;
+  if (annuFromFlow) {
+    const lpm = parseFloat(flowEl.value);
+    if (Number.isFinite(lpm) && lpm >= 0) {
+      exactInHg = inHgFromFlow(id, lpm / 60, usedK);
+      if (Number.isFinite(exactInHg)) {
+        inHg = ceilAnnuDp(exactInHg);
+        if (document.activeElement !== dpEl) dpEl.value = inHg.toFixed(1);
+      }
+    }
+    if (!Number.isFinite(inHg) || inHg < 0) inHg = 0;
+    q = flowFromInHg(id, inHg, usedK);
+  } else {
+    if (!Number.isFinite(inHg) || inHg < 0) inHg = 0;
+    q = flowFromInHg(id, inHg, usedK);
+    if (Number.isFinite(q.lpm) && document.activeElement !== flowEl) {
+      flowEl.value = q.lpm.toFixed(0);
+    }
+  }
   const p = probeSpec();
   document.getElementById("annuTitle").textContent = "DN" + annuDn + " " + kind.label + " • " + p.label;
   document.getElementById("annuProbeLabel").textContent = p.label + "  " + p.dMm.toFixed(2) + " mm OD • water";
@@ -3067,20 +3084,22 @@ function renderAnnu() {
   document.getElementById("annuKCalc").textContent = Number.isFinite(calc) ? calc.toFixed(3) : "—";
   document.getElementById("annuProbeOd").textContent = p.dMm.toFixed(2);
   if (!Number.isFinite(q.ls)) {
-    document.getElementById("annuLs").textContent = "—";
     document.getElementById("annuLpm").textContent = "Probe too large for this pipe ID";
-  } else {
-    document.getElementById("annuLs").textContent = q.ls.toFixed(2);
+  } else if (annuFromFlow && Number.isFinite(exactInHg)) {
     const note = q.B > 0.35 ? "  •  high blockage" : "";
-    document.getElementById("annuLpm").textContent = q.lpm.toFixed(0) + " L/min  •  " + q.ms.toFixed(2) + " m/s" + note;
+    document.getElementById("annuLpm").textContent = exactInHg.toFixed(2) + " inHg exact  →  table " + inHg.toFixed(1) + note;
+  } else {
+    const note = q.B > 0.35 ? "  •  high blockage" : "";
+    document.getElementById("annuLpm").textContent = q.ls.toFixed(2) + " L/s  •  " + q.ms.toFixed(2) + " m/s" + note;
   }
+  const near = ceilAnnuDp(inHg);
   document.getElementById("annuRows").innerHTML = ANNU_DP.map(dp => {
     const r = flowFromInHg(id, dp, usedK);
     if (!Number.isFinite(r.ls)) {
       return `<tr><td>${dp.toFixed(1)}</td><td>—</td><td>—</td><td>—</td></tr>`;
     }
     const cls = (r.ms > 5 || r.B > 0.35) ? "warn" : "";
-    return `<tr class="${Math.abs(dp - inHg) < 0.05 ? "sel" : ""}">
+    return `<tr class="${dp === near ? "sel" : ""}">
       <td>${dp.toFixed(1)}</td>
       <td>${r.ls.toFixed(2)}</td>
       <td>${r.lpm.toFixed(0)}</td>
@@ -3116,7 +3135,14 @@ function setupAnnu() {
     };
   });
   paintAnnuSizes();
-  document.getElementById("inHg").addEventListener("input", renderAnnu);
+  document.getElementById("inHg").addEventListener("input", () => {
+    annuFromFlow = false;
+    renderAnnu();
+  });
+  document.getElementById("annuLsIn").addEventListener("input", () => {
+    annuFromFlow = true;
+    renderAnnu();
+  });
   document.getElementById("annuKIn").addEventListener("input", () => {
     annuKManual = true;
     renderAnnu();

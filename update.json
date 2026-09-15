@@ -1,6 +1,6 @@
 {
-  "versionCode": 42,
-  "versionName": "2.31",
-  "apkUrl": "https://github.com/macski777/fittercalcs/releases/download/v2.31/FitterCalcs.apk",
-  "notes": "Tanks tab: pick 1, 2, 3 or 4 tanks. Effective volumes add."
+  "versionCode": 43,
+  "versionName": "2.32",
+  "apkUrl": "https://github.com/macski777/fittercalcs/releases/download/v2.32/FitterCalcs.apk",
+  "notes": "Annubar: type L/min and the table highlights the next inHg up."
 }
