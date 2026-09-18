@@ -719,11 +719,11 @@
   </section>
 
   <p class="notes">
-    <strong>Steel</strong> is <strong>AS 1074-1989</strong> Light / Medium / Heavy (ISO 65 / BS 1387 dimensions, mill OD).
+    <strong>Steel</strong> is <strong>AS 1074-1989 (R2018) Cl 2.3</strong>, <strong>Table 2.1</strong> Light, <strong>Table 2.2</strong> Medium, <strong>Table 2.3</strong> Heavy (ISO 65 / BS 1387 dimensions, mill OD).
     DN 65 / 125 / 150 ODs are <strong>76.1 / 139.7 / 165.1 mm</strong> — not ASME 73.0 / 141.3 / 168.3.
     AS 1074 is DN 8–150; <strong>DN 90</strong> is mill 3½″ (101.6 mm OD). <strong>DN 200 / 250</strong> are mill fire pipe on the same ISO OD series (Light 4.8 mm, Medium 6.4 mm, Heavy Sch 40 wall).
     <strong>SS 10S / SS 40S</strong> stay ASME B36.19 (ASTM A312) — stainless 2½″ is still 73.0 mm OD.
-    <strong>CPVC</strong> is SDR 13.5 (ASTM F442). Steel C=120, stainless and CPVC C=150.
+    <strong>CPVC</strong> is SDR 13.5 (ASTM F442). Steel <strong>C=120</strong>, stainless and CPVC <strong>C=150</strong> from <strong>AS 2118.1:2017 Cl 14.10</strong>.
     Confirm against the mill cut sheet before you cut or calc.
   </p>
   </div>
@@ -784,7 +784,7 @@
       Light, Heavy, SS 10S, SS 40S (ASME Sch 40 ID), and copper <strong>interpolate that K against mill ID</strong>. Sizes bigger than DN150 hold the DN150 K.
       <strong>3/8″</strong> still uses Diamond II 15/16 formula K. Type a K to match a different card; <strong>Use probe K</strong> puts the table/formula back.
       Type <strong>flow (L/min)</strong> and the table highlights the next listed <strong>inHg</strong> up (1.73 → 2). Range is <strong>1–12 inHg</strong>. Type inHg to see the flow.
-      Steel IDs are <strong>AS 1074</strong> Light / Medium / Heavy. <strong>Use the laminated chart that shipped with the probe for a certified test.</strong>
+      Steel IDs are <strong>AS 1074-1989 (R2018) Cl 2.3, Tables 2.1–2.3</strong> Light / Medium / Heavy. <strong>Use the laminated chart that shipped with the probe for a certified test.</strong>
     </p>
   </div>
 
@@ -826,7 +826,7 @@
       <div id="flMatch"></div>
     </section>
     <p class="notes">
-      <strong>AS 2129</strong> Table D (~700 kPa), E (~1400 kPa), F (~2100 kPa), H (~3500 kPa).
+      <strong>AS 2129-2000</strong> <strong>Table D</strong> (~700 kPa), <strong>Table E</strong> (~1400 kPa), <strong>Table F</strong> (~2100 kPa), <strong>Table H</strong> (~3500 kPa).
       Table D and E often share OD/PCD on small sizes; from about DN90/100, Table E has more bolts and/or is thicker — they do not always mate.
       <strong>ANSI / ASME B16.5</strong> Class 150 and 300. <strong>PN16</strong> is EN 1092-1.
       Field ID: count the bolts, measure OD and PCD. Confirm against the current standard before you drill or bolt up.
@@ -878,7 +878,7 @@
       <button type="button" class="ghost" id="savePump">Save to device</button>
       <button type="button" id="emailPump">Email report</button>
     </div>
-    <p class="notes"><span id="pumpSaveStatus"></span> Curves <strong>autosave by job name</strong>. Save keeps the chart PNG. Email sends a customer report citing <strong>AS 2941</strong>, <strong>AS 2419.1</strong>, <strong>AS 2118.1</strong> and <strong>AS 1851</strong>, with the curve attached. Field record — not a certified lab curve.</p>
+    <p class="notes"><span id="pumpSaveStatus"></span> Curves <strong>autosave by job name</strong>. Save keeps the chart PNG. Email sends a customer report citing <strong>AS 2941-2013 Cl 10.3</strong> (shop performance), <strong>AS 2419.1:2021 Cl 4.2.7.1.2</strong> (residual pressure), <strong>AS 2118.1:2017 Cl 14.9</strong> (sprinkler pumpsets) and <strong>AS 1851-2012 Table 3.4.3</strong> (yearly performance), with the curve attached. Field record — not a certified lab curve.</p>
     <div class="jobs-head">
       <h2>History</h2>
     </div>
@@ -924,10 +924,10 @@
       <button type="button" id="emailHydro">Email report</button>
     </div>
     <p class="notes">
-      Hazen-Williams friction plus 9.81 kPa per metre of rise. Elbows use 90° standard equivalent length (fire tables).
-      Steel default <strong>C=120</strong>, stainless and CPVC <strong>C=150</strong>.
-      Velocity above <strong>5 m/s</strong> is a <strong>FAIL</strong> (red); within 5 m/s is <strong>PASS</strong> (green).
-      Email sends a customer summary citing <strong>AS 1074</strong>, <strong>AS 2118.1</strong> and <strong>AS 2419.1</strong>. Field estimate — not a certified hydraulic design.
+      Hazen-Williams friction plus 9.81 kPa per metre of rise. Elbows use 90° equivalent length from fire hydraulic tables (<strong>AS 2118.1:2017 Cl 14.10 / 14.11</strong>).
+      Steel default <strong>C=120</strong>, stainless and CPVC <strong>C=150</strong> (<strong>AS 2118.1:2017 Cl 14.10</strong>).
+      Velocity above <strong>5 m/s</strong> is a field <strong>FAIL</strong> (red); within 5 m/s is <strong>PASS</strong> (green). That 5 m/s is a typical project limit — <strong>AS 2118.1-1999 Cl 12.14</strong> allows <strong>10 m/s</strong> in pipe and <strong>6 m/s</strong> at valves.
+      Email cites <strong>AS 1074-1989 (R2018) Cl 2.3 Tables 2.1–2.3</strong>, <strong>AS 2118.1:2017 Cl 14.10</strong> and <strong>AS 2419.1:2021 Cl 4.2.7.1.2</strong>. Field estimate — not a certified hydraulic design.
     </p>
   </div>
 
@@ -954,16 +954,16 @@
         <button type="button" data-s="combined">Hydrants + sprinklers</button>
       </div>
       <div id="tkHazardWrap" class="hidden">
-        <b class="subhead">Sprinkler hazard — AS 2118.1 duration</b>
+        <b class="subhead">Sprinkler hazard — AS 2118.1:2017 duration</b>
         <div class="chips" id="tkHazard">
-          <button type="button" data-h="LH">Light · 30 min</button>
-          <button type="button" class="on" data-h="OH">Ordinary · 60 min</button>
-          <button type="button" data-h="HH">High · 90 min</button>
+          <button type="button" data-h="LH">Light · 30 min · Cl 9.3</button>
+          <button type="button" class="on" data-h="OH">Ordinary · 60 min · Cl 10.3</button>
+          <button type="button" data-h="HH">High · 90 min · Sec 11</button>
         </div>
       </div>
     </div>
     <div class="sysbox">
-      <b>Effective capacity (AS 2304 / AS 2419 / AS 3500.1)</b>
+      <b>Effective capacity (AS 2304:2019 Cl 7.5 · AS 2419.1:2021 Cl 4.2.6 · AS/NZS 3500.1:2021 Cl 8.3.2)</b>
       <div class="hc-grid">
         <div class="field" style="margin:0">
           <label for="tkTop">Top unused — overflow air gap (mm)</label>
@@ -996,10 +996,10 @@
     <p class="notes">
       Pick <strong>1 to 4 tanks</strong>. Effective capacities add. Infill is the combined make-up into the bank.
       <strong>Gross</strong> = full internal volume of the shell.
-      <strong>Effective</strong> = volume between the usable high water (overflow minus air gap, default 20 mm per AS/NZS 3500.1) and the usable low water (above suction/vortex inhibitor, default 150 mm — typical AS 2304 / AS 2419 field value; enter the actual plate height).
-      <strong>Hydrants</strong> need <strong>4 h</strong> at demand (AS 2419.1). <strong>Sprinklers</strong> need <strong>30 / 60 / 90 min</strong> by Light / Ordinary / High Hazard (AS 2118.1). Infill is credited as make-up: duration uses combined effective litres ÷ (demand − infill). Combined hydrant + sprinkler storage is checked for hydrants, sprinklers, and both running together.
+      <strong>Effective</strong> = volume between the usable high water (overflow minus air gap, default <strong>20 mm</strong> per <strong>AS/NZS 3500.1:2021 Cl 8.3.2</strong> — water surface 20 mm below overflow) and the usable low water (above suction / vortex inhibitor, default 150 mm — typical field plate height; confirm <strong>AS 2304:2019 Cl 7.3.5</strong> vortex inhibitor and <strong>Cl 7.5</strong> capacities; enter the actual plate height). Overflow fittings: <strong>AS 2304:2019 Cl 7.3.6</strong>.
+      <strong>Hydrants</strong> need <strong>4 h</strong> at demand (<strong>AS 2419.1:2021 Cl 4.2.1</strong> primary supply and <strong>Cl 4.2.6.3</strong> full-capacity tanks). <strong>Sprinklers</strong> need <strong>30 min</strong> Light (<strong>AS 2118.1:2017 Cl 9.3</strong>), <strong>60 min</strong> Ordinary (<strong>Cl 10.3</strong>), <strong>90 min</strong> High Hazard (<strong>Section 11</strong>). Infill is credited as make-up: duration uses combined effective litres ÷ (demand − infill). Combined hydrant + sprinkler storage is checked for hydrants, sprinklers, and both running together (<strong>AS 2419.1:2021 Cl 4.2.3</strong> multiple firefighting systems).
       Enough storage is a green <strong>PASS</strong>; short is a red <strong>FAIL</strong> on the tab and on the email report.
-      Email sends a customer summary citing <strong>AS 2304</strong>, <strong>AS 2419.1</strong>, <strong>AS 2118.1</strong> and <strong>AS/NZS 3500.1</strong>. Field estimate — confirm on the current Standard.
+      Email cites those clauses. Field estimate — confirm on the current Standard.
     </p>
   </div>
 
@@ -1009,7 +1009,7 @@
       <p>
         <strong>AS 1851-2012</strong> (plus Amendment 1:2016) is the Australian Standard for
         <strong>routine service</strong> of fire protection that is already installed.
-        It is not the design/install Standard. Sprinklers are designed to AS 2118, hydrants to AS 2419,
+        It is not the design/install Standard. Sprinklers are designed to AS 2118.1, hydrants to AS 2419.1,
         pumps to AS 2941, tanks to AS 2304, detection to AS 1670, hose reels to AS 2441, and so on.
         AS 1851 tells you how often to come back, what to look at, what to test, and what to write down
         so the installed system still works the way it was designed.
@@ -1074,8 +1074,8 @@
   </div>
 
 <script>
-const APP_VERSION = "2.33";
-const APP_BUILD = 44;
+const APP_VERSION = "2.34";
+const APP_BUILD = 45;
 
 const NPS_TO_DN = {
   "1/2": "15", "3/4": "20", "1": "25", "1-1/4": "32", "1-1/2": "40",
@@ -1488,7 +1488,7 @@ const AS1851 = [
   {
     group: "Pumps", system: "Fire pumps", freq: "About", table: "Section 3 · fire pumpsets",
     tags: "pumpset diesel electric jockey controller AS 2941 suction discharge churn rated flow battery fuel cooling",
-    why: "Section 3 is the installed fire pumpset — diesel, electric, or both — plus jockey/pressure-maintenance pump and controllers. Design/install is AS 2941. The sprinkler or hydrant system is useless if this does not start.",
+    why: "Section 3 is the installed fire pumpset — diesel, electric, or both — plus jockey/pressure-maintenance pump and controllers. Design/install is AS 2941-2013. The sprinkler or hydrant system is useless if this does not start.",
     checks: [
       "Electric: controller in auto, reliable power, short proving run. Diesel: start system, batteries, charger, fuel, cooling, exhaust, a longer run to temperature.",
       "Jockey/pressure-maintenance pump holds system pressure so the main pump is not hammering on and off. Record cut-in / cut-out.",
@@ -1497,7 +1497,7 @@ const AS1851 = [
     ]
   },
   {
-    group: "Pumps", system: "Fire pumps", freq: "Monthly", table: "Sec 3 · 3.4.1 monthly",
+    group: "Pumps", system: "Fire pumps", freq: "Monthly", table: "AS 1851-2012 Table 3.4.1 monthly",
     tags: "pump monthly diesel electric start run battery fuel cooling suction jockey controller packing leak churn heater",
     why: "Prove the pump will start by itself and run without cooking, starving, or sitting on a fault lamp.",
     checks: [
@@ -1514,7 +1514,7 @@ const AS1851 = [
     also: "Log engine hours, pressures, any alarms that came up, and that you left it in AUTO."
   },
   {
-    group: "Pumps", system: "Fire pumps", freq: "6-monthly", table: "Sec 3 · 3.4.2 six-monthly",
+    group: "Pumps", system: "Fire pumps", freq: "6-monthly", table: "AS 1851-2012 Table 3.4.2 six-monthly",
     tags: "pump six monthly performance controller fuel batteries cooling packing seals",
     why: "Monthly run plus a harder look at the things that fail slowly: batteries, fuel, cooling, packing, controller.",
     checks: [
@@ -1527,7 +1527,7 @@ const AS1851 = [
     ]
   },
   {
-    group: "Pumps", system: "Fire pumps", freq: "Yearly", table: "Sec 3 · 3.4.3 yearly",
+    group: "Pumps", system: "Fire pumps", freq: "Yearly", table: "AS 1851-2012 Table 3.4.3 yearly",
     tags: "pump yearly flow test churn rated duty curve performance hydrant header annubar",
     why: "This is the performance visit. Churn pressure in the room is not a flow test.",
     checks: [
@@ -1542,7 +1542,7 @@ const AS1851 = [
     also: "Take the curve with you (Pump tab in this app can store job curves). If performance is down, look at impeller wear, suction issues, and engine power before you blame the sprinkler system."
   },
   {
-    group: "Pumps", system: "Fire pumps", freq: "2-yearly", table: "Sec 3 · selected items (Table 3.4.3 item 3.5 class)",
+    group: "Pumps", system: "Fire pumps", freq: "2-yearly", table: "AS 1851-2012 Table 3.4.3 item 3.5 class",
     tags: "pump 2 yearly extra overhaul interval",
     why: "A small set of pump items is listed at 2-yearly rather than every year.",
     checks: [
@@ -1552,7 +1552,7 @@ const AS1851 = [
     ]
   },
   {
-    group: "Pumps", system: "Fire pumps", freq: "5-yearly", table: "Sec 3 · 3.4.4 five-yearly",
+    group: "Pumps", system: "Fire pumps", freq: "5-yearly", table: "AS 1851-2012 Cl 3.4.4 five-yearly",
     tags: "pump five yearly overhaul survey impeller wear ring engine",
     why: "Condition and overhaul-level look at the pumpset, not just another yearly flow test.",
     checks: [
@@ -2232,9 +2232,9 @@ function subjectWithResult(base, site, v) {
 function hydroVerdict(s) {
   if (!s || !Number.isFinite(s.vel)) return null;
   if (s.vel > HYDRO_VEL_MAX) {
-    return { ok: false, tag: "FAIL", detail: "Velocity " + s.vel.toFixed(2) + " m/s exceeds the typical " + HYDRO_VEL_MAX + " m/s fire-pipework limit. Confirm against AS 2118.1 / AS 2419.1 project limits." };
+    return { ok: false, tag: "FAIL", detail: "Velocity " + s.vel.toFixed(2) + " m/s exceeds the typical " + HYDRO_VEL_MAX + " m/s field limit. AS 2118.1-1999 Cl 12.14 allows 10 m/s in pipe and 6 m/s at valves — confirm the project spec." };
   }
-  return { ok: true, tag: "PASS", detail: "Velocity " + s.vel.toFixed(2) + " m/s is within the typical " + HYDRO_VEL_MAX + " m/s fire-pipework limit." };
+  return { ok: true, tag: "PASS", detail: "Velocity " + s.vel.toFixed(2) + " m/s is within the typical " + HYDRO_VEL_MAX + " m/s field limit (AS 2118.1-1999 Cl 12.14 allows 10 m/s in pipe, 6 m/s at valves)." };
 }
 
 function hydroState() {
@@ -2294,9 +2294,9 @@ const TK_SYS = {
   combined: { id: "combined", label: "Combined hydrant and sprinkler system", short: "Hydrants + sprinklers" }
 };
 const TK_HAZARD = {
-  LH: { id: "LH", label: "Light Hazard", durMin: 30 },
-  OH: { id: "OH", label: "Ordinary Hazard", durMin: 60 },
-  HH: { id: "HH", label: "High Hazard", durMin: 90 }
+  LH: { id: "LH", label: "Light Hazard", durMin: 30, cite: "AS 2118.1:2017 Cl 9.3" },
+  OH: { id: "OH", label: "Ordinary Hazard", durMin: 60, cite: "AS 2118.1:2017 Cl 10.3" },
+  HH: { id: "HH", label: "High Hazard", durMin: 90, cite: "AS 2118.1:2017 Section 11" }
 };
 const HYDRANT_MIN = 240;
 
@@ -2533,11 +2533,11 @@ function tankState() {
   const status = tankStatus(keff, need);
   let durObj = hyd;
   let durLabel = "Hydrant supply with infill";
-  let durSmall = "AS 2419.1 requires 4 h";
+  let durSmall = "AS 2419.1:2021 Cl 4.2.1 / Cl 4.2.6.3 requires 4 h";
   if (sys.id === "sprinkler") {
     durObj = spr;
     durLabel = "Sprinkler supply with infill";
-    durSmall = "AS 2118.1 " + haz.label + " requires " + fmtDurMin(haz.durMin);
+    durSmall = haz.cite + " requires " + fmtDurMin(haz.durMin);
   } else if (sys.id === "combined") {
     durObj = comb;
     durLabel = "Simultaneous supply with infill";
@@ -2567,9 +2567,9 @@ function renderTanks() {
     s.incomplete.length ? '<p class="notes" style="grid-column:1/-1;color:var(--gold)">Enter dimensions for tank ' + s.incomplete.join(", ") + ".</p>" : ""
   ].join("");
   const hydStat = s.sys.id !== "sprinkler" ? `
-    <div class="stat"><label>Hydrant duration</label><b>${fmtDurMin(s.hyd.min)}</b> <small>need 4 h · AS 2419.1</small></div>` : "";
+    <div class="stat"><label>Hydrant duration</label><b>${fmtDurMin(s.hyd.min)}</b> <small>need 4 h · AS 2419.1:2021 Cl 4.2.1 / Cl 4.2.6.3</small></div>` : "";
   const sprStat = s.sys.id !== "hydrant" ? `
-    <div class="stat"><label>Sprinkler duration</label><b>${fmtDurMin(s.spr.min)}</b> <small>need ${fmtDurMin(s.haz.durMin)} · ${s.haz.label}</small></div>` : "";
+    <div class="stat"><label>Sprinkler duration</label><b>${fmtDurMin(s.spr.min)}</b> <small>need ${fmtDurMin(s.haz.durMin)} · ${s.haz.cite}</small></div>` : "";
   const combStat = s.sys.id === "combined" ? `
     <div class="stat"><label>Both running</label><b>${fmtDurMin(s.comb.min)}</b> <small>${fmtLs(s.hyd.dem + s.spr.dem)} − ${s.inf.toFixed(1)} L/s infill</small></div>` : "";
   const needStat = s.need != null ? `
@@ -2618,7 +2618,7 @@ function showPage(page) {
     document.getElementById("appSub").innerHTML = "Hydro-Calcs • friction + static kPa<br>Pipe size, length, elbows, rise";
     renderHydro();
   } else if (page === "tanks") {
-    document.getElementById("appSub").innerHTML = "Tank volume • 1–4 tanks • infill hours<br>AS 2304 / AS 2419.1 / AS 2118.1";
+    document.getElementById("appSub").innerHTML = "Tank volume • 1–4 tanks • infill hours<br>AS 2304:2019 Cl 7.5 · AS 2419.1:2021 Cl 4.2.6 · AS 2118.1:2017";
     renderTanks();
   } else if (page === "as1851") {
     document.getElementById("appSub").innerHTML = "Routine service of fire protection systems<br>What is in AS 1851 · frequencies · typical field checks";
@@ -4132,12 +4132,13 @@ function emailHydroReport() {
         "Friction loss: " + s.fricKpa.toFixed(0) + " kPa  (" + s.kpaM.toFixed(1) + " kPa/m)",
         "Static lift: " + s.statKpa.toFixed(0) + " kPa",
         "TOTAL PRESSURE LOSS: " + s.total.toFixed(0) + " kPa",
-        "Mean velocity: " + s.vel.toFixed(2) + " m/s  (typical limit " + HYDRO_VEL_MAX + " m/s)"
+        "Mean velocity: " + s.vel.toFixed(2) + " m/s  (typical field " + HYDRO_VEL_MAX + " m/s; AS 2118.1-1999 Cl 12.14: 10 m/s pipe / 6 m/s valves)"
       ]},
       { title: "4. STANDARDS", lines: [
-        "AS 1074-1989 (R2018) — steel tube dimensions (Light / Medium / Heavy).",
-        "AS 2118.1 — sprinkler hydraulics, Hazen–Williams C-factors.",
-        "AS 2419.1 — hydrant pipework and residual pressure.",
+        "AS 1074-1989 (R2018) Cl 2.3 — Tables 2.1 Light, 2.2 Medium, 2.3 Heavy (steel tube dimensions).",
+        "AS 2118.1:2017 Cl 14.10 — Hazen–Williams C-factors (steel C=120, stainless/CPVC C=150); Cl 14.11 pressure losses.",
+        "AS 2118.1-1999 Cl 12.14 — velocity not more than 10 m/s in pipe, 6 m/s at valves (5 m/s used here as a typical field limit).",
+        "AS 2419.1:2021 Cl 4.2.7.1.2 — minimum design residual pressure.",
         "AS 4118.2.1 — listed fire sprinkler piping, where used."
       ]}
     ]
@@ -4161,13 +4162,13 @@ function emailHydroReport() {
     more: [
       { k: "Friction", v: s.fricKpa.toFixed(0) + " kPa  (" + s.kpaM.toFixed(1) + " kPa/m)" },
       { k: "Static lift", v: s.statKpa.toFixed(0) + " kPa" },
-      { k: "Velocity", v: s.vel.toFixed(2) + " m/s  (typical limit " + HYDRO_VEL_MAX + " m/s)" }
+      { k: "Velocity", v: s.vel.toFixed(2) + " m/s  (typical field " + HYDRO_VEL_MAX + " m/s; AS 2118.1-1999 Cl 12.14: 10 m/s pipe / 6 m/s valves)" }
     ],
     standards: [
-      "AS 1074-1989 (R2018) — steel tube dimensions (Light / Medium / Heavy).",
-      "AS 2118.1 — sprinkler hydraulics, Hazen–Williams C-factors.",
-      "AS 2419.1 — hydrant pipework and residual pressure.",
-      "AS 4118.2.1 — listed fire sprinkler piping, where used."
+      "AS 1074-1989 (R2018) Cl 2.3 — Tables 2.1 Light, 2.2 Medium, 2.3 Heavy.",
+      "AS 2118.1:2017 Cl 14.10 — Hazen–Williams C (steel 120, stainless/CPVC 150); Cl 14.11 pressure losses.",
+      "AS 2118.1-1999 Cl 12.14 — 10 m/s in pipe, 6 m/s at valves (5 m/s is the typical field check used here).",
+      "AS 2419.1:2021 Cl 4.2.7.1.2 — minimum design residual pressure."
     ],
     notes: "Field estimate only. Not a certified hydraulic design or a substitute for the current Standards, mill cut sheets, or the project specification. Confirm before cut-in or sign-off."
   });
@@ -4195,8 +4196,8 @@ function emailTanksReport() {
   sysLines.push("Nominated system: " + s.sys.label + ".");
   if (s.sys.id !== "sprinkler") {
     sysLines.push("");
-    sysLines.push("4.1 Hydrant system — AS 2419.1");
-    sysLines.push("AS 2419.1 requires the hydrant water supply to maintain the hydrant demand for not less than 4 hours. Where town-main make-up / infill is available to the tank, on-site storage is assessed on the difference between hydrant demand and infill, still for 4 hours.");
+    sysLines.push("4.1 Hydrant system — AS 2419.1:2021 Cl 4.2.1 and Cl 4.2.6.3");
+    sysLines.push("AS 2419.1:2021 Cl 4.2.1 (primary water supply) and Cl 4.2.6.3 (full-capacity tanks) require the hydrant water supply to maintain the hydrant demand for not less than 4 hours. Where town-main make-up / infill is available to the tank, on-site storage is assessed on the difference between hydrant demand and infill, still for 4 hours.");
     sysLines.push(netLine(s.hyd));
     sysLines.push("Required duration: 4 h.");
     sysLines.push("Duration available on this storage (effective ÷ net hydrant drawdown): " + fmtDurMin(s.hyd.min) + ".");
@@ -4204,8 +4205,8 @@ function emailTanksReport() {
   }
   if (s.sys.id !== "hydrant") {
     sysLines.push("");
-    sysLines.push("4." + (s.sys.id === "combined" ? "2" : "1") + " Sprinkler system — AS 2118.1 " + s.haz.label);
-    sysLines.push("AS 2118.1 water-supply duration for " + s.haz.label + " is " + fmtDurMin(s.haz.durMin) + " at the sprinkler demand. Infill is credited the same way as hydrant make-up: storage is (sprinkler demand − infill) × duration.");
+    sysLines.push("4." + (s.sys.id === "combined" ? "2" : "1") + " Sprinkler system — " + s.haz.cite + " " + s.haz.label);
+    sysLines.push(s.haz.cite + " water-supply duration for " + s.haz.label + " is " + fmtDurMin(s.haz.durMin) + " at the sprinkler demand. Infill is credited the same way as hydrant make-up: storage is (sprinkler demand − infill) × duration.");
     sysLines.push(netLine(s.spr));
     sysLines.push("Required duration: " + fmtDurMin(s.haz.durMin) + ".");
     sysLines.push("Duration available on this storage (effective ÷ net sprinkler drawdown): " + fmtDurMin(s.spr.min) + ".");
@@ -4213,8 +4214,8 @@ function emailTanksReport() {
   }
   if (s.sys.id === "combined") {
     sysLines.push("");
-    sysLines.push("4.3 Combined simultaneous operation — AS 2419.1 and AS 2118.1");
-    sysLines.push("Where the tank supplies both hydrants and sprinklers, the water supply must additionally cater for the sprinkler flow for the AS 2118 duration as well as the 4-hour hydrant duration. Field method used here:");
+    sysLines.push("4.3 Combined simultaneous operation — AS 2419.1:2021 Cl 4.2.3");
+    sysLines.push("AS 2419.1:2021 Cl 4.2.3 (multiple firefighting systems): where the tank supplies both hydrants and sprinklers, the water supply must additionally cater for the sprinkler flow for the AS 2118 duration as well as the 4-hour hydrant duration. Field method used here:");
     sysLines.push("  • First " + fmtDurMin(s.haz.durMin) + ": hydrants + sprinklers − infill.");
     sysLines.push("  • Remaining " + fmtDurMin(Math.max(0, HYDRANT_MIN - s.haz.durMin)) + ": hydrants − infill (sprinkler duration complete).");
     sysLines.push("Simultaneous demand: " + fmtLs(s.hyd.dem + s.spr.dem) + ", infill " + infillTxt + ".");
@@ -4247,10 +4248,10 @@ function emailTanksReport() {
       ]},
       { title: "3. SYSTEM DURATION vs AUSTRALIAN STANDARDS", lines: sysLines },
       { title: "4. STANDARDS", lines: [
-        "AS 2304 — fire tanks: effective capacity, suction and vortex.",
-        "AS 2419.1 — hydrant supply 4 h; infill credited as demand minus make-up.",
-        "AS 2118.1 — sprinkler duration: Light 30 min, Ordinary 60 min, High 90 min.",
-        "AS/NZS 3500.1 — overflow air gap."
+        "AS 2304:2019 Cl 7.5 — capacities / effective storage; Cl 7.3.5 vortex inhibitor; Cl 7.3.6 overflow and air gap.",
+        "AS 2419.1:2021 Cl 4.2.1 and Cl 4.2.6.3 — hydrant supply 4 h (full-capacity tanks); Cl 4.2.3 multiple firefighting systems; infill credited as demand minus make-up.",
+        "AS 2118.1:2017 Cl 9.3 Light 30 min, Cl 10.3 Ordinary 60 min, Section 11 High Hazard 90 min.",
+        "AS/NZS 3500.1:2021 Cl 8.3.2 — storage measured with the water surface 20 mm below overflow."
       ]}
     ]
   });
@@ -4268,8 +4269,8 @@ function emailTanksReport() {
   if (s.sys.id !== "sprinkler") rows.push({ k: "Hydrant demand", v: fmtLs(s.hyd.dem) });
   if (s.sys.id !== "hydrant") rows.push({ k: "Sprinkler demand", v: fmtLs(s.spr.dem) });
   rows.push({ k: "Infill / make-up", v: infillTxt });
-  if (s.sys.id !== "sprinkler") rows.push({ k: "Hydrant duration", v: fmtDurMin(s.hyd.min) + "  (need 4 h)" });
-  if (s.sys.id !== "hydrant") rows.push({ k: "Sprinkler duration", v: fmtDurMin(s.spr.min) + "  (need " + fmtDurMin(s.haz.durMin) + ")" });
+  if (s.sys.id !== "sprinkler") rows.push({ k: "Hydrant duration", v: fmtDurMin(s.hyd.min) + "  (need 4 h · AS 2419.1:2021 Cl 4.2.1 / Cl 4.2.6.3)" });
+  if (s.sys.id !== "hydrant") rows.push({ k: "Sprinkler duration", v: fmtDurMin(s.spr.min) + "  (need " + fmtDurMin(s.haz.durMin) + " · " + s.haz.cite + ")" });
   if (s.sys.id === "combined") rows.push({ k: "Both running", v: fmtDurMin(s.comb.min) });
   const more = [];
   if (s.need != null) more.push({ k: "Required storage", v: fmtKL(s.need) + " effective, infill credited" });
@@ -4283,10 +4284,10 @@ function emailTanksReport() {
     verdict: s.status,
     more: more,
     standards: [
-      "AS 2304 — fire tanks: effective capacity, suction and vortex inhibitor.",
-      "AS 2419.1 — hydrant supply 4 h; infill credited as demand minus make-up; combined supplies also cover sprinklers.",
-      "AS 2118.1 — sprinkler duration: Light 30 min, Ordinary 60 min, High 90 min.",
-      "AS/NZS 3500.1 — overflow air gap (default 20 mm unless the fitted overflow is known)."
+      "AS 2304:2019 Cl 7.5 capacities; Cl 7.3.5 vortex inhibitor; Cl 7.3.6 overflow and air gap.",
+      "AS 2419.1:2021 Cl 4.2.1 / Cl 4.2.6.3 — 4 h hydrant supply; Cl 4.2.3 combined systems.",
+      "AS 2118.1:2017 Cl 9.3 LH 30 min, Cl 10.3 OH 60 min, Section 11 HH 90 min.",
+      "AS/NZS 3500.1:2021 Cl 8.3.2 — 20 mm below overflow (default unless the fitted overflow is known)."
     ],
     notes: "Geometric field estimate only. Does not certify structure, lining, overflow, suction or infill reliability. Confirm as-built internals, that infill is automatic during a fire, and the current Standards before sign-off."
   });
@@ -4382,10 +4383,10 @@ function pumpReportText(pts, job, year, pump, req) {
       ]},
       { title: "4. FINDING", lines: [finding] },
       { title: "5. STANDARDS", lines: [
-        "AS 2941 — fire pumpset systems: performance and test.",
-        "AS 2419.1 — hydrant pump duty and residual pressure.",
-        "AS 2118.1 — sprinkler pump water supplies.",
-        "AS 1851-2012 — monthly pump run and yearly performance test."
+        "AS 2941-2013 Cl 10.3 — shop performance tests of the pumpset; duty point on the nameplate (Cl 3.13.2).",
+        "AS 2419.1:2021 Cl 4.2.7.1.2 — minimum design residual pressure (hydrant duty).",
+        "AS 2118.1:2017 Cl 14.9 — sprinkler pumpsets / water supplies.",
+        "AS 1851-2012 Table 3.4.1 — monthly pump run; Table 3.4.3 — yearly performance test."
       ]}
     ]
   });
@@ -4449,10 +4450,10 @@ function composePumpReportPng(pts, job, year, pump, req) {
   ctx.fillStyle = "#3a322c";
   ctx.font = "600 18px sans-serif";
   [
-    "AS 2941 — fire pumpset systems: performance and test.",
-    "AS 2419.1 — hydrant pump duty and residual pressure.",
-    "AS 2118.1 — sprinkler pump water supplies.",
-    "AS 1851-2012 — monthly pump run and yearly performance test."
+    "AS 2941-2013 Cl 10.3 — shop performance tests; Cl 3.13.2 duty-point nameplate.",
+    "AS 2419.1:2021 Cl 4.2.7.1.2 — minimum design residual pressure.",
+    "AS 2118.1:2017 Cl 14.9 — sprinkler pumpsets / water supplies.",
+    "AS 1851-2012 Table 3.4.1 monthly run; Table 3.4.3 yearly performance test."
   ].forEach(line => {
     wrapReport(ctx, "•  " + line, inner).forEach(ln => { ctx.fillText(ln, m, y); y += 24; });
   });

@@ -1,6 +1,6 @@
 {
-  "versionCode": 44,
-  "versionName": "2.33",
-  "apkUrl": "https://github.com/macski777/fittercalcs/releases/download/v2.33/FitterCalcs.apk",
-  "notes": "Annubar table is 1–12 inHg in whole numbers."
+  "versionCode": 45,
+  "versionName": "2.34",
+  "apkUrl": "https://github.com/macski777/fittercalcs/releases/download/v2.34/FitterCalcs.apk",
+  "notes": "Reports now name the AS table or clause for each figure."
 }
