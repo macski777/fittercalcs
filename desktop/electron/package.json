@@ -1,6 +1,6 @@
 {
   "name": "fittercalcs",
-  "version": "2.33.0",
+  "version": "2.36.0",
   "description": "Field calculator for fire protection fitters",
   "author": "macski777",
   "license": "UNLICENSED",
@@ -8,7 +8,7 @@
   "private": true,
   "scripts": {
     "start": "electron .",
-    "dist:win": "electron-builder --win zip"
+    "dist:win": "electron-builder --win portable"
   },
   "devDependencies": {
     "electron": "^37.2.0",
@@ -30,7 +30,7 @@
       "icon": "../fittercalcs.ico",
       "target": [
         {
-          "target": "zip",
+          "target": "portable",
           "arch": ["x64"]
         }
       ]

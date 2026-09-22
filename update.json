@@ -1,6 +1,6 @@
 {
-  "versionCode": 45,
-  "versionName": "2.34",
-  "apkUrl": "https://github.com/macski777/fittercalcs/releases/download/v2.34/FitterCalcs.apk",
-  "notes": "Reports now name the AS table or clause for each figure."
+  "versionCode": 47,
+  "versionName": "2.36",
+  "apkUrl": "https://github.com/macski777/fittercalcs/releases/download/v2.36/FitterCalcs.apk",
+  "notes": "Hydro and Tanks save to the device. Email reports are plain letters."
 }

@@ -921,8 +921,16 @@
     </div>
     <div class="hc-out" id="hcOut"></div>
     <div class="actions">
+      <button type="button" class="ghost" id="newHydro">New calc</button>
+      <button type="button" class="ghost" id="saveHydro">Save to device</button>
       <button type="button" id="emailHydro">Email report</button>
     </div>
+    <p class="notes"><span id="hydroSaveStatus"></span> Calcs <strong>autosave by site / job</strong>. Save keeps the A4 report PNG. Email sends that PNG with the customer report.</p>
+    <div class="jobs-head">
+      <h2>History</h2>
+    </div>
+    <p class="notes" style="margin-top:0">Autosaved hydro calcs. Open one to load it back onto this page.</p>
+    <div id="hydroJobs"></div>
     <p class="notes">
       Hazen-Williams friction plus 9.81 kPa per metre of rise. Elbows use 90° equivalent length from fire hydraulic tables (<strong>AS 2118.1:2017 Cl 14.10 / 14.11</strong>).
       Steel default <strong>C=120</strong>, stainless and CPVC <strong>C=150</strong> (<strong>AS 2118.1:2017 Cl 14.10</strong>).
@@ -991,8 +999,16 @@
     </div>
     <div class="hc-out" id="tkOut"></div>
     <div class="actions">
+      <button type="button" class="ghost" id="newTank">New calc</button>
+      <button type="button" class="ghost" id="saveTank">Save to device</button>
       <button type="button" id="emailTanks">Email report</button>
     </div>
+    <p class="notes"><span id="tankSaveStatus"></span> Calcs <strong>autosave by site / job</strong>. Save keeps the A4 report PNG. Email sends that PNG with the customer report.</p>
+    <div class="jobs-head">
+      <h2>History</h2>
+    </div>
+    <p class="notes" style="margin-top:0">Autosaved tank calcs. Open one to load it back onto this page.</p>
+    <div id="tankJobs"></div>
     <p class="notes">
       Pick <strong>1 to 4 tanks</strong>. Effective capacities add. Infill is the combined make-up into the bank.
       <strong>Gross</strong> = full internal volume of the shell.
@@ -1074,8 +1090,8 @@
   </div>
 
 <script>
-const APP_VERSION = "2.34";
-const APP_BUILD = 45;
+const APP_VERSION = "2.36";
+const APP_BUILD = 47;
 
 const NPS_TO_DN = {
   "1/2": "15", "3/4": "20", "1": "25", "1-1/4": "32", "1-1/2": "40",
@@ -2158,13 +2174,33 @@ function setupHydro() {
     document.getElementById("hcC").value = (hcSched === "cpvc" || hcSched === "ss10" || hcSched === "ss40") ? 150 : 120;
     fillHcSizes();
     renderHydro();
+    scheduleHydroSave();
   });
   fillHcSizes();
-  ["hcQ", "hcL", "hcElb", "hcRise", "hcC"].forEach(id => {
-    document.getElementById(id).addEventListener("input", renderHydro);
+  ["hcSite", "hcQ", "hcL", "hcElb", "hcRise", "hcC"].forEach(id => {
+    document.getElementById(id).addEventListener("input", () => {
+      renderHydro();
+      scheduleHydroSave();
+    });
   });
-  document.getElementById("emailHydro").onclick = () => emailHydroReport();
+  document.getElementById("newHydro").onclick = () => newHydroJob();
+  document.getElementById("saveHydro").onclick = () => {
+    autosaveHydro();
+    saveHydroPng();
+  };
+  document.getElementById("emailHydro").onclick = () => {
+    autosaveHydro();
+    emailHydroReport();
+  };
+  try {
+    const draft = JSON.parse(localStorage.getItem(HYDRO_DRAFT_KEY) || "null");
+    if (draft && draft.sched) applyHydroInput(draft, draft.id || "");
+  } catch (e) {}
   renderHydro();
+  renderHydroJobs();
+  document.addEventListener("visibilitychange", () => {
+    if (document.hidden) autosaveHydro();
+  });
 }
 
 function fillHcSizes() {
@@ -2177,6 +2213,7 @@ function fillHcSizes() {
     hcNps = b.getAttribute("data-n");
     host.querySelectorAll("button").forEach(x => x.classList.toggle("on", x === b));
     renderHydro();
+    scheduleHydroSave();
   });
 }
 
@@ -2189,41 +2226,26 @@ function verdictHtml(v) {
   if (!v) return "";
   return '<div class="stat ' + (v.ok ? "hc-pass" : "hc-fail") + '"><label>Result</label><b>' + verdictLabel(v.ok) + '</b> <small>' + v.detail + '</small></div>';
 }
-function emailRule(ch, n) {
-  ch = ch || "=";
-  n = n || 52;
-  let s = "";
-  for (let i = 0; i < n; i++) s += ch;
-  return s;
-}
-function resultPrefix(v) {
-  if (!v) return [];
-  const bar = v.ok ? emailRule("=", 52) : emailRule("#", 52);
-  return [bar, "  RESULT:  " + verdictLabel(v.ok), "  " + v.detail, bar, ""];
-}
 function emailLetter(opts) {
   const lines = [
-    emailRule("=", 52),
-    "  FITTERCALCS  ·  A4 FIELD ESTIMATE",
-    "  " + (opts.kind || "Report"),
-    "  v" + APP_VERSION + "  ·  " + reportDate(),
-    emailRule("=", 52),
-    "",
-    opts.site ? "SITE / JOB:  " + opts.site : "SITE / JOB:  (not stated)",
-    "",
-    ...resultPrefix(opts.verdict)
+    "FitterCalcs",
+    opts.kind || "Field estimate",
+    opts.site || "Site / job not stated",
+    reportDate()
   ];
-  (opts.sections || []).forEach(sec => {
-    lines.push(emailRule("-", 52));
-    lines.push(sec.title);
-    lines.push(emailRule("-", 52));
-    (sec.lines || []).forEach(ln => lines.push(ln));
+  if (opts.verdict) {
     lines.push("");
+    lines.push(verdictLabel(opts.verdict.ok));
+    if (opts.verdict.detail) lines.push(opts.verdict.detail);
+  }
+  (opts.sections || []).forEach(sec => {
+    lines.push("");
+    if (sec.title) lines.push(sec.title);
+    (sec.lines || []).forEach(ln => lines.push(ln));
   });
-  lines.push(emailRule("-", 52));
-  lines.push("An A4 PNG of this report is attached — print fit-to-page.");
+  lines.push("");
+  lines.push("An A4 PNG of this report is attached. Print it fit-to-page.");
   lines.push("Field estimate only. Confirm the current Standards before sign-off.");
-  lines.push("Prepared with FitterCalcs " + APP_VERSION);
   return lines.join("\n");
 }
 function subjectWithResult(base, site, v) {
@@ -2416,10 +2438,14 @@ function setupTanks() {
         tkShapes[i] = b.getAttribute("data-s");
         updateTankUnitShapeUi(i);
         renderTanks();
+        scheduleTankSave();
       };
     });
     ["D", "H", "L", "W", "Hr"].forEach(k => {
-      document.getElementById("tk" + k + i).addEventListener("input", renderTanks);
+      document.getElementById("tk" + k + i).addEventListener("input", () => {
+        renderTanks();
+        scheduleTankSave();
+      });
     });
   }
   const countHost = document.getElementById("tkCount");
@@ -2428,6 +2454,7 @@ function setupTanks() {
     countHost.querySelectorAll("button").forEach(x => x.classList.toggle("on", x === b));
     syncTankCount();
     renderTanks();
+    scheduleTankSave();
   });
   const sysHost = document.getElementById("tkSys");
   sysHost.querySelectorAll("button").forEach(b => b.onclick = () => {
@@ -2435,20 +2462,41 @@ function setupTanks() {
     sysHost.querySelectorAll("button").forEach(x => x.classList.toggle("on", x === b));
     syncTankSysUi();
     renderTanks();
+    scheduleTankSave();
   });
   const hazHost = document.getElementById("tkHazard");
   hazHost.querySelectorAll("button").forEach(b => b.onclick = () => {
     tkHazard = b.getAttribute("data-h");
     hazHost.querySelectorAll("button").forEach(x => x.classList.toggle("on", x === b));
     renderTanks();
+    scheduleTankSave();
   });
-  ["tkTop", "tkBot", "tkQh", "tkQs", "tkQi"].forEach(id => {
-    document.getElementById(id).addEventListener("input", renderTanks);
+  ["tkSite", "tkTop", "tkBot", "tkQh", "tkQs", "tkQi"].forEach(id => {
+    document.getElementById(id).addEventListener("input", () => {
+      renderTanks();
+      scheduleTankSave();
+    });
   });
-  document.getElementById("emailTanks").onclick = () => emailTanksReport();
+  document.getElementById("newTank").onclick = () => newTankJob();
+  document.getElementById("saveTank").onclick = () => {
+    autosaveTank();
+    saveTankPng();
+  };
+  document.getElementById("emailTanks").onclick = () => {
+    autosaveTank();
+    emailTanksReport();
+  };
+  try {
+    const draft = JSON.parse(localStorage.getItem(TANK_DRAFT_KEY) || "null");
+    if (draft && (draft.site || draft.units)) applyTankInput(draft, draft.id || "");
+  } catch (e) {}
   syncTankCount();
   syncTankSysUi();
   renderTanks();
+  renderTankJobs();
+  document.addEventListener("visibilitychange", () => {
+    if (document.hidden) autosaveTank();
+  });
 }
 
 function syncTankSysUi() {
@@ -2615,11 +2663,13 @@ function showPage(page) {
     renderJobList();
     drawPump();
   } else if (page === "hydro") {
-    document.getElementById("appSub").innerHTML = "Hydro-Calcs • friction + static kPa<br>Pipe size, length, elbows, rise";
+    document.getElementById("appSub").innerHTML = "Hydro-Calcs • friction + static kPa<br>Autosave by site / job";
     renderHydro();
+    renderHydroJobs();
   } else if (page === "tanks") {
-    document.getElementById("appSub").innerHTML = "Tank volume • 1–4 tanks • infill hours<br>AS 2304:2019 Cl 7.5 · AS 2419.1:2021 Cl 4.2.6 · AS 2118.1:2017";
+    document.getElementById("appSub").innerHTML = "Tank volume • 1–4 tanks • infill hours<br>Autosave by site / job";
     renderTanks();
+    renderTankJobs();
   } else if (page === "as1851") {
     document.getElementById("appSub").innerHTML = "Routine service of fire protection systems<br>What is in AS 1851 · frequencies · typical field checks";
     renderAS1851();
@@ -4097,12 +4147,331 @@ function sendEmailReport(subject, body, dataUrl, fname) {
   a.href = "mailto:?subject=" + encodeURIComponent(subject) + "&body=" + encodeURIComponent(body);
   a.click();
 }
-function emailHydroReport() {
-  const s = hydroState();
-  if (!s) {
-    nativeToast("Enter flow, length and pipe size first");
+const HYDRO_JOBS_KEY = "onlyfitters-hydro-jobs";
+const HYDRO_DRAFT_KEY = "onlyfitters-hydro-draft";
+const TANK_JOBS_KEY = "onlyfitters-tank-jobs";
+const TANK_DRAFT_KEY = "onlyfitters-tank-draft";
+let hydroSaveTimer = null;
+let tankSaveTimer = null;
+let applyingHydro = false;
+let applyingTank = false;
+let activeHydroId = "";
+let activeTankId = "";
+
+function loadNamedJobs(key) {
+  try { return JSON.parse(localStorage.getItem(key) || "[]"); } catch (e) { return []; }
+}
+function storeNamedJobs(key, jobs) {
+  localStorage.setItem(key, JSON.stringify(jobs.slice(0, 80)));
+}
+function setNamedStatus(id, msg) {
+  const el = document.getElementById(id);
+  if (el) el.textContent = msg ? msg + " · " : "";
+}
+function upsertNamedJob(key, activeId, rec, same) {
+  const jobs = loadNamedJobs(key);
+  let i = activeId ? jobs.findIndex(j => j.id === activeId) : -1;
+  if (i < 0) i = jobs.findIndex(j => same(j, rec));
+  rec.id = i >= 0 ? jobs[i].id : (rec.id || String(Date.now()));
+  if (i >= 0) jobs[i] = rec;
+  else jobs.unshift(rec);
+  jobs.sort((a, b) => (b.updated || 0) - (a.updated || 0));
+  try { storeNamedJobs(key, jobs); } catch (e) {}
+  return rec.id;
+}
+function renderNamedJobs(hostId, jobs, activeId, emptyMsg, onOpen, onDel) {
+  const host = document.getElementById(hostId);
+  if (!host) return;
+  if (!jobs.length) {
+    host.innerHTML = '<p class="notes" style="margin:0 0 8px">' + emptyMsg + '</p>';
     return;
   }
+  host.innerHTML = jobs.map(j => `
+    <div class="jobcard${j.id === activeId ? " on" : ""}">
+      <h3>${escPump(j.title)}</h3>
+      <div class="meta">${escPump(j.summary || "")}${j.summary ? " · " : ""}${timeAgo(j.updated || 0)}</div>
+      <div class="rowbtns">
+        <button type="button" data-open="${escPump(j.id)}">Open</button>
+        <button type="button" class="ghost" data-del="${escPump(j.id)}">Delete</button>
+      </div>
+    </div>`).join("");
+  host.querySelectorAll("[data-open]").forEach(b => b.onclick = () => onOpen(b.getAttribute("data-open")));
+  host.querySelectorAll("[data-del]").forEach(b => b.onclick = () => onDel(b.getAttribute("data-del")));
+}
+function deliverReport(mode, pack) {
+  if (!pack) return;
+  if (window.OnlyFitters) {
+    sendChartToApp(mode, pack.png, pack.fname, pack.subject, pack.body);
+    return;
+  }
+  if (mode === "email") {
+    sendEmailReport(pack.subject, pack.body, pack.png, pack.fname);
+    return;
+  }
+  const a = document.createElement("a");
+  a.href = pack.png;
+  a.download = pack.fname;
+  a.click();
+}
+function currentHydroInput() {
+  return {
+    id: activeHydroId,
+    site: document.getElementById("hcSite").value.trim(),
+    sched: hcSched,
+    nps: hcNps,
+    Q: document.getElementById("hcQ").value,
+    L: document.getElementById("hcL").value,
+    elb: document.getElementById("hcElb").value,
+    rise: document.getElementById("hcRise").value,
+    C: document.getElementById("hcC").value,
+    updated: Date.now()
+  };
+}
+function hydroJobSummary() {
+  const s = hydroState();
+  if (!s) return "incomplete";
+  const size = s.row.dn ? "DN" + s.row.dn : s.row.nps + '"';
+  const tag = s.verdict ? " · " + s.verdict.tag : "";
+  return size + " " + s.set.label + " · " + s.total.toFixed(0) + " kPa" + tag;
+}
+function applyHydroInput(s, id) {
+  applyingHydro = true;
+  document.getElementById("hcSite").value = s.site || "";
+  hcSched = (s.sched && DATA[s.sched]) ? s.sched : "asMed";
+  hcNps = s.nps || "4";
+  document.getElementById("hcQ").value = s.Q != null && s.Q !== "" ? s.Q : "20";
+  document.getElementById("hcL").value = s.L != null && s.L !== "" ? s.L : "30";
+  document.getElementById("hcElb").value = s.elb != null && s.elb !== "" ? s.elb : "4";
+  document.getElementById("hcRise").value = s.rise != null && s.rise !== "" ? s.rise : "0";
+  const sh = document.getElementById("hcSched");
+  if (sh) sh.querySelectorAll("button").forEach(b => b.classList.toggle("on", b.getAttribute("data-s") === hcSched));
+  const rows = DATA[hcSched].rows;
+  if (!rows.some(r => r.nps === hcNps)) hcNps = rows[0].nps;
+  fillHcSizes();
+  document.getElementById("hcC").value = s.C != null && s.C !== "" ? s.C : ((hcSched === "cpvc" || hcSched === "ss10" || hcSched === "ss40") ? "150" : "120");
+  activeHydroId = id || s.id || "";
+  renderHydro();
+  applyingHydro = false;
+  renderHydroJobs();
+}
+function autosaveHydro() {
+  if (applyingHydro) return;
+  const s = currentHydroInput();
+  s.summary = hydroJobSummary();
+  try { localStorage.setItem(HYDRO_DRAFT_KEY, JSON.stringify(s)); } catch (e) {}
+  if (!s.site) {
+    setNamedStatus("hydroSaveStatus", "Name the site to keep it in the list");
+    return;
+  }
+  const rec = {
+    id: activeHydroId || ("h" + Date.now()),
+    title: s.site,
+    site: s.site,
+    sched: s.sched,
+    nps: s.nps,
+    Q: s.Q, L: s.L, elb: s.elb, rise: s.rise, C: s.C,
+    summary: s.summary,
+    updated: s.updated
+  };
+  activeHydroId = upsertNamedJob(HYDRO_JOBS_KEY, activeHydroId, rec, (a, b) =>
+    (a.site || "").trim().toLowerCase() === (b.site || "").trim().toLowerCase());
+  setNamedStatus("hydroSaveStatus", "Autosaved " + timeAgo(s.updated));
+  renderHydroJobs();
+}
+function scheduleHydroSave() {
+  if (applyingHydro) return;
+  clearTimeout(hydroSaveTimer);
+  hydroSaveTimer = setTimeout(autosaveHydro, 400);
+}
+function renderHydroJobs() {
+  renderNamedJobs("hydroJobs", loadNamedJobs(HYDRO_JOBS_KEY), activeHydroId,
+    "No saved jobs yet. Type a site / job — the calc autosaves as you edit.",
+    id => {
+      const rec = loadNamedJobs(HYDRO_JOBS_KEY).find(j => j.id === id);
+      if (!rec) return;
+      applyHydroInput(rec, rec.id);
+      setNamedStatus("hydroSaveStatus", "Opened " + rec.site);
+    },
+    id => {
+      storeNamedJobs(HYDRO_JOBS_KEY, loadNamedJobs(HYDRO_JOBS_KEY).filter(j => j.id !== id));
+      if (activeHydroId === id) activeHydroId = "";
+      renderHydroJobs();
+      setNamedStatus("hydroSaveStatus", "Deleted");
+    });
+}
+function newHydroJob() {
+  applyingHydro = true;
+  activeHydroId = "";
+  document.getElementById("hcSite").value = "";
+  hcSched = "asMed";
+  hcNps = "4";
+  document.getElementById("hcQ").value = "20";
+  document.getElementById("hcL").value = "30";
+  document.getElementById("hcElb").value = "4";
+  document.getElementById("hcRise").value = "0";
+  document.getElementById("hcC").value = "120";
+  const sh = document.getElementById("hcSched");
+  if (sh) sh.querySelectorAll("button").forEach(b => b.classList.toggle("on", b.getAttribute("data-s") === "asMed"));
+  fillHcSizes();
+  applyingHydro = false;
+  renderHydro();
+  renderHydroJobs();
+  try { localStorage.setItem(HYDRO_DRAFT_KEY, JSON.stringify(currentHydroInput())); } catch (e) {}
+  setNamedStatus("hydroSaveStatus", "New calc — name the site to autosave");
+}
+function currentTankInput() {
+  const units = [];
+  for (let i = 0; i < 4; i++) {
+    units.push({
+      shape: tkShapes[i] || "cyl",
+      D: document.getElementById("tkD" + i).value,
+      H: document.getElementById("tkH" + i).value,
+      L: document.getElementById("tkL" + i).value,
+      W: document.getElementById("tkW" + i).value,
+      Hr: document.getElementById("tkHr" + i).value
+    });
+  }
+  return {
+    id: activeTankId,
+    site: document.getElementById("tkSite").value.trim(),
+    count: tkCount,
+    sys: tkSys,
+    hazard: tkHazard,
+    top: document.getElementById("tkTop").value,
+    bot: document.getElementById("tkBot").value,
+    Qh: document.getElementById("tkQh").value,
+    Qs: document.getElementById("tkQs").value,
+    Qi: document.getElementById("tkQi").value,
+    units: units,
+    updated: Date.now()
+  };
+}
+function tankJobSummary() {
+  const s = tankState();
+  if (!s) return "incomplete";
+  const tag = s.status ? " · " + s.status.tag : "";
+  return s.n + (s.n > 1 ? " tanks" : " tank") + " · " + (s.keff / 1000).toFixed(2) + " kL" + tag;
+}
+function syncTankChips() {
+  const countHost = document.getElementById("tkCount");
+  if (countHost) countHost.querySelectorAll("button").forEach(b => b.classList.toggle("on", +b.getAttribute("data-n") === tkCount));
+  const sysHost = document.getElementById("tkSys");
+  if (sysHost) sysHost.querySelectorAll("button").forEach(b => b.classList.toggle("on", b.getAttribute("data-s") === tkSys));
+  const hazHost = document.getElementById("tkHazard");
+  if (hazHost) hazHost.querySelectorAll("button").forEach(b => b.classList.toggle("on", b.getAttribute("data-h") === tkHazard));
+  for (let i = 0; i < 4; i++) updateTankUnitShapeUi(i);
+  syncTankCount();
+  syncTankSysUi();
+}
+function applyTankInput(s, id) {
+  applyingTank = true;
+  document.getElementById("tkSite").value = s.site || "";
+  tkCount = Math.max(1, Math.min(4, +s.count || 1));
+  tkSys = TK_SYS[s.sys] ? s.sys : "hydrant";
+  tkHazard = TK_HAZARD[s.hazard] ? s.hazard : "OH";
+  document.getElementById("tkTop").value = s.top != null && s.top !== "" ? s.top : "20";
+  document.getElementById("tkBot").value = s.bot != null && s.bot !== "" ? s.bot : "150";
+  document.getElementById("tkQh").value = s.Qh != null ? s.Qh : "";
+  document.getElementById("tkQs").value = s.Qs != null ? s.Qs : "";
+  document.getElementById("tkQi").value = s.Qi != null ? s.Qi : "";
+  const units = s.units || [];
+  for (let i = 0; i < 4; i++) {
+    const u = units[i] || {};
+    tkShapes[i] = u.shape === "rect" ? "rect" : "cyl";
+    if (u.D != null && u.D !== "") document.getElementById("tkD" + i).value = u.D;
+    if (u.H != null && u.H !== "") document.getElementById("tkH" + i).value = u.H;
+    if (u.L != null && u.L !== "") document.getElementById("tkL" + i).value = u.L;
+    if (u.W != null && u.W !== "") document.getElementById("tkW" + i).value = u.W;
+    if (u.Hr != null && u.Hr !== "") document.getElementById("tkHr" + i).value = u.Hr;
+  }
+  syncTankChips();
+  activeTankId = id || s.id || "";
+  renderTanks();
+  applyingTank = false;
+  renderTankJobs();
+}
+function autosaveTank() {
+  if (applyingTank) return;
+  const s = currentTankInput();
+  s.summary = tankJobSummary();
+  try { localStorage.setItem(TANK_DRAFT_KEY, JSON.stringify(s)); } catch (e) {}
+  if (!s.site) {
+    setNamedStatus("tankSaveStatus", "Name the site to keep it in the list");
+    return;
+  }
+  const rec = {
+    id: activeTankId || ("t" + Date.now()),
+    title: s.site,
+    site: s.site,
+    count: s.count,
+    sys: s.sys,
+    hazard: s.hazard,
+    top: s.top,
+    bot: s.bot,
+    Qh: s.Qh,
+    Qs: s.Qs,
+    Qi: s.Qi,
+    units: s.units,
+    summary: s.summary,
+    updated: s.updated
+  };
+  activeTankId = upsertNamedJob(TANK_JOBS_KEY, activeTankId, rec, (a, b) =>
+    (a.site || "").trim().toLowerCase() === (b.site || "").trim().toLowerCase());
+  setNamedStatus("tankSaveStatus", "Autosaved " + timeAgo(s.updated));
+  renderTankJobs();
+}
+function scheduleTankSave() {
+  if (applyingTank) return;
+  clearTimeout(tankSaveTimer);
+  tankSaveTimer = setTimeout(autosaveTank, 400);
+}
+function renderTankJobs() {
+  renderNamedJobs("tankJobs", loadNamedJobs(TANK_JOBS_KEY), activeTankId,
+    "No saved jobs yet. Type a site / job — the calc autosaves as you edit.",
+    id => {
+      const rec = loadNamedJobs(TANK_JOBS_KEY).find(j => j.id === id);
+      if (!rec) return;
+      applyTankInput(rec, rec.id);
+      setNamedStatus("tankSaveStatus", "Opened " + rec.site);
+    },
+    id => {
+      storeNamedJobs(TANK_JOBS_KEY, loadNamedJobs(TANK_JOBS_KEY).filter(j => j.id !== id));
+      if (activeTankId === id) activeTankId = "";
+      renderTankJobs();
+      setNamedStatus("tankSaveStatus", "Deleted");
+    });
+}
+function newTankJob() {
+  applyingTank = true;
+  activeTankId = "";
+  document.getElementById("tkSite").value = "";
+  tkCount = 1;
+  tkSys = "hydrant";
+  tkHazard = "OH";
+  tkShapes = ["cyl", "cyl", "cyl", "cyl"];
+  document.getElementById("tkTop").value = "20";
+  document.getElementById("tkBot").value = "150";
+  document.getElementById("tkQh").value = "";
+  document.getElementById("tkQs").value = "";
+  document.getElementById("tkQi").value = "";
+  for (let i = 0; i < 4; i++) {
+    document.getElementById("tkD" + i).value = "6.5";
+    document.getElementById("tkH" + i).value = "3.6";
+    document.getElementById("tkL" + i).value = "6";
+    document.getElementById("tkW" + i).value = "4";
+    document.getElementById("tkHr" + i).value = "3.6";
+  }
+  syncTankChips();
+  applyingTank = false;
+  renderTanks();
+  renderTankJobs();
+  try { localStorage.setItem(TANK_DRAFT_KEY, JSON.stringify(currentTankInput())); } catch (e) {}
+  setNamedStatus("tankSaveStatus", "New calc — name the site to autosave");
+}
+
+function hydroReportPack() {
+  const s = hydroState();
+  if (!s) return null;
   const size = s.row.dn ? "DN" + s.row.dn : s.row.nps + '"';
   const mat = s.set.label + "  ·  " + s.set.material;
   const od = (s.row.od * 25.4).toFixed(1);
@@ -4172,14 +4541,27 @@ function emailHydroReport() {
     ],
     notes: "Field estimate only. Not a certified hydraulic design or a substitute for the current Standards, mill cut sheets, or the project specification. Confirm before cut-in or sign-off."
   });
-  sendEmailReport(subject, body, png, reportFile("hydro", s.site));
+  return { subject: subject, body: body, png: png, fname: reportFile("hydro", s.site) };
 }
-function emailTanksReport() {
-  const s = tankState();
-  if (!s) {
-    nativeToast("Enter tank dimensions first");
+function emailHydroReport() {
+  const pack = hydroReportPack();
+  if (!pack) {
+    nativeToast("Enter flow, length and pipe size first");
     return;
   }
+  deliverReport("email", pack);
+}
+function saveHydroPng() {
+  const pack = hydroReportPack();
+  if (!pack) {
+    nativeToast("Enter flow, length and pipe size first");
+    return;
+  }
+  deliverReport("save", pack);
+}
+function tankReportPack() {
+  const s = tankState();
+  if (!s) return null;
   const subject = subjectWithResult("Fire tank capacity estimate", s.site, s.status);
   const infillTxt = s.inf > 0 ? s.inf.toFixed(1) + " L/s" : "nil (no make-up credited)";
   const netLine = function(draw) {
@@ -4291,7 +4673,23 @@ function emailTanksReport() {
     ],
     notes: "Geometric field estimate only. Does not certify structure, lining, overflow, suction or infill reliability. Confirm as-built internals, that infill is automatic during a fire, and the current Standards before sign-off."
   });
-  sendEmailReport(subject, body, png, reportFile("tank", s.site));
+  return { subject: subject, body: body, png: png, fname: reportFile("tank", s.site) };
+}
+function emailTanksReport() {
+  const pack = tankReportPack();
+  if (!pack) {
+    nativeToast("Enter tank dimensions first");
+    return;
+  }
+  deliverReport("email", pack);
+}
+function saveTankPng() {
+  const pack = tankReportPack();
+  if (!pack) {
+    nativeToast("Enter tank dimensions first");
+    return;
+  }
+  deliverReport("save", pack);
 }
 
 function sendChartToApp(mode, dataUrl, fname, subject, body) {
