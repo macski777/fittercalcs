@@ -142,6 +142,87 @@
       border-radius: 999px;
       white-space: nowrap;
     }
+    .pickrow {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+    @media (min-width: 720px) {
+      .pickrow.two { grid-template-columns: 1fr 1fr; }
+      .pickrow.three { grid-template-columns: 1fr 1fr 1fr; }
+    }
+    .menu { position: relative; }
+    .menu:has(.menu-btn[aria-expanded="true"]) { z-index: 40; }
+    .menu-btn {
+      appearance: none;
+      -webkit-appearance: none;
+      position: relative;
+      width: 100%;
+      min-height: 46px;
+      text-align: left;
+      background: var(--red);
+      color: #fff;
+      -webkit-text-fill-color: #fff;
+      border: 1px solid #a81c2e;
+      border-radius: 12px;
+      font: inherit;
+      font-weight: 700;
+      font-size: 0.92rem;
+      line-height: 1.25;
+      padding: 10px 28px 10px 10px;
+      cursor: pointer;
+    }
+    .menu-btn::after {
+      content: "";
+      position: absolute;
+      right: 12px;
+      top: 50%;
+      margin-top: -2px;
+      border: 5px solid transparent;
+      border-top-color: #fff;
+    }
+    .menu-btn[aria-expanded="true"]::after {
+      margin-top: -8px;
+      border-top-color: transparent;
+      border-bottom-color: #fff;
+    }
+    .menu-list {
+      position: absolute;
+      z-index: 30;
+      top: calc(100% + 4px);
+      left: 0;
+      right: 0;
+      background: #1a1613;
+      border: 1px solid #6b5e52;
+      border-radius: 12px;
+      padding: 4px;
+      box-shadow: 0 14px 32px rgba(0, 0, 0, 0.5);
+      max-height: 280px;
+      overflow: auto;
+    }
+    .menu-list[hidden] { display: none !important; }
+    .menu-list button {
+      appearance: none;
+      -webkit-appearance: none;
+      display: block;
+      width: 100%;
+      text-align: left;
+      background: transparent;
+      color: #fff;
+      -webkit-text-fill-color: #fff;
+      border: 0;
+      border-radius: 8px;
+      font: inherit;
+      font-weight: 700;
+      font-size: 0.92rem;
+      line-height: 1.3;
+      padding: 10px;
+      white-space: normal;
+      cursor: pointer;
+    }
+    .menu-list button.on,
+    .menu-list button:hover { background: var(--red); color: #fff; -webkit-text-fill-color: #fff; }
     .visual {
       background: linear-gradient(180deg, #2a2420, var(--card));
       border: 1px solid var(--line);
@@ -352,6 +433,12 @@
       text-transform: uppercase;
       letter-spacing: 0.08em;
       margin-bottom: 4px;
+    }
+    .field.menu-field > label {
+      color: var(--gold);
+      font-weight: 800;
+      font-size: 0.78rem;
+      letter-spacing: 0.12em;
     }
     .delpt {
       appearance: none;
@@ -681,7 +768,22 @@
   </div>
 
   <div id="page-pipe" class="page on">
-  <div class="chips" id="schedules"></div>
+  <div class="pickrow two">
+    <div class="field menu-field">
+      <label for="pipeTypePick">Pipe type</label>
+      <div class="menu" id="pipeTypeMenu">
+        <button type="button" class="menu-btn" id="pipeTypePick" aria-haspopup="listbox" aria-expanded="false"></button>
+        <div class="menu-list" role="listbox" hidden></div>
+      </div>
+    </div>
+    <div class="field menu-field">
+      <label for="pipeSizePick">Pipe size</label>
+      <div class="menu" id="pipeSizeMenu">
+        <button type="button" class="menu-btn" id="pipeSizePick" aria-haspopup="listbox" aria-expanded="false"></button>
+        <div class="menu-list" role="listbox" hidden></div>
+      </div>
+    </div>
+  </div>
 
   <section class="visual">
     <div class="visual-top">
@@ -729,9 +831,29 @@
   </div>
 
   <div id="page-annubar" class="page">
-    <div class="chips" id="annuProbe"></div>
-    <div class="chips" id="annuPipe"></div>
-    <div class="chips" id="annuSize"></div>
+    <div class="pickrow three">
+      <div class="field menu-field">
+        <label for="annuProbePick">Probe</label>
+        <div class="menu" id="annuProbeMenu">
+          <button type="button" class="menu-btn" id="annuProbePick" aria-haspopup="listbox" aria-expanded="false"></button>
+          <div class="menu-list" role="listbox" hidden></div>
+        </div>
+      </div>
+      <div class="field menu-field">
+        <label for="annuPipePick">Pipe type</label>
+        <div class="menu" id="annuPipeMenu">
+          <button type="button" class="menu-btn" id="annuPipePick" aria-haspopup="listbox" aria-expanded="false"></button>
+          <div class="menu-list" role="listbox" hidden></div>
+        </div>
+      </div>
+      <div class="field menu-field">
+        <label for="annuSizePick">Pipe size</label>
+        <div class="menu" id="annuSizeMenu">
+          <button type="button" class="menu-btn" id="annuSizePick" aria-haspopup="listbox" aria-expanded="false"></button>
+          <div class="menu-list" role="listbox" hidden></div>
+        </div>
+      </div>
+    </div>
     <section class="visual">
       <div class="visual-top">
         <strong id="annuTitle">DN50 Medium</strong>
@@ -789,8 +911,22 @@
   </div>
 
   <div id="page-flange" class="page">
-    <div class="chips" id="flStd"></div>
-    <div class="chips" id="flSize"></div>
+    <div class="pickrow two">
+      <div class="field menu-field">
+        <label for="flTypePick">Flange type</label>
+        <div class="menu" id="flTypeMenu">
+          <button type="button" class="menu-btn" id="flTypePick" aria-haspopup="listbox" aria-expanded="false"></button>
+          <div class="menu-list" role="listbox" hidden></div>
+        </div>
+      </div>
+      <div class="field menu-field">
+        <label for="flSizePick">Pipe size</label>
+        <div class="menu" id="flSizeMenu">
+          <button type="button" class="menu-btn" id="flSizePick" aria-haspopup="listbox" aria-expanded="false"></button>
+          <div class="menu-list" role="listbox" hidden></div>
+        </div>
+      </div>
+    </div>
     <section class="visual">
       <div class="visual-top">
         <strong id="flTitle">DN50 Table D</strong>
@@ -891,8 +1027,22 @@
       <label for="hcSite">Site / job</label>
       <input id="hcSite" type="text" placeholder="e.g. 12 Smith St hydrant main" autocomplete="off" />
     </div>
-    <div class="chips" id="hcSched"></div>
-    <div class="chips" id="hcSize"></div>
+    <div class="pickrow two">
+      <div class="field menu-field">
+        <label for="hcTypePick">Pipe type</label>
+        <div class="menu" id="hcTypeMenu">
+          <button type="button" class="menu-btn" id="hcTypePick" aria-haspopup="listbox" aria-expanded="false"></button>
+          <div class="menu-list" role="listbox" hidden></div>
+        </div>
+      </div>
+      <div class="field menu-field">
+        <label for="hcSizePick">Pipe size</label>
+        <div class="menu" id="hcSizeMenu">
+          <button type="button" class="menu-btn" id="hcSizePick" aria-haspopup="listbox" aria-expanded="false"></button>
+          <div class="menu-list" role="listbox" hidden></div>
+        </div>
+      </div>
+    </div>
     <div class="hc-grid">
       <div class="field" style="margin:0">
         <label for="hcQ">Flow (L/s)</label>
@@ -945,28 +1095,30 @@
       <input id="tkSite" type="text" placeholder="e.g. 12 Smith St fire tank" autocomplete="off" />
     </div>
     <div class="sysbox">
-      <b>How many tanks</b>
-      <div class="chips" id="tkCount">
-        <button type="button" class="on" data-n="1">1</button>
-        <button type="button" data-n="2">2</button>
-        <button type="button" data-n="3">3</button>
-        <button type="button" data-n="4">4</button>
+      <div class="field menu-field" style="margin:0">
+        <label for="tkCountPick">How many tanks</label>
+        <div class="menu" id="tkCountMenu">
+          <button type="button" class="menu-btn" id="tkCountPick" aria-haspopup="listbox" aria-expanded="false"></button>
+          <div class="menu-list" role="listbox" hidden></div>
+        </div>
       </div>
     </div>
     <div id="tkUnits"></div>
     <div class="sysbox">
-      <b id="tkSysLabel">System this tank supplies</b>
-      <div class="chips" id="tkSys">
-        <button type="button" class="on" data-s="hydrant">Hydrants</button>
-        <button type="button" data-s="sprinkler">Sprinklers</button>
-        <button type="button" data-s="combined">Hydrants + sprinklers</button>
+      <div class="field menu-field" style="margin:0">
+        <label for="tkSysPick" id="tkSysLabel">System this tank supplies</label>
+        <div class="menu" id="tkSysMenu">
+          <button type="button" class="menu-btn" id="tkSysPick" aria-haspopup="listbox" aria-expanded="false"></button>
+          <div class="menu-list" role="listbox" hidden></div>
+        </div>
       </div>
       <div id="tkHazardWrap" class="hidden">
-        <b class="subhead">Sprinkler hazard — AS 2118.1:2017 duration</b>
-        <div class="chips" id="tkHazard">
-          <button type="button" data-h="LH">Light · 30 min · Cl 9.3</button>
-          <button type="button" class="on" data-h="OH">Ordinary · 60 min · Cl 10.3</button>
-          <button type="button" data-h="HH">High · 90 min · Sec 11</button>
+        <div class="field menu-field" style="margin:10px 0 0">
+          <label for="tkHazPick">Sprinkler hazard — AS 2118.1:2017 duration</label>
+          <div class="menu" id="tkHazardMenu">
+            <button type="button" class="menu-btn" id="tkHazPick" aria-haspopup="listbox" aria-expanded="false"></button>
+            <div class="menu-list" role="listbox" hidden></div>
+          </div>
         </div>
       </div>
     </div>
@@ -1090,8 +1242,8 @@
   </div>
 
 <script>
-const APP_VERSION = "2.36";
-const APP_BUILD = 47;
+const APP_VERSION = "2.38";
+const APP_BUILD = 49;
 
 const NPS_TO_DN = {
   "1/2": "15", "3/4": "20", "1": "25", "1-1/4": "32", "1-1/2": "40",
@@ -1347,6 +1499,8 @@ function render() {
   drawPipe(row);
   renderTable();
   renderCompare(row);
+  paintMenu("pipeTypeMenu");
+  paintMenu("pipeSizeMenu");
 }
 
 const AS1851 = [
@@ -2162,21 +2316,21 @@ function elbowElM(nps) {
 }
 
 function setupHydro() {
-  const sh = document.getElementById("hcSched");
-  sh.innerHTML = ORDER.map(k =>
-    `<button type="button" data-s="${k}" class="${k === hcSched ? "on" : ""}">${DATA[k].label}</button>`
-  ).join("");
-  sh.querySelectorAll("button").forEach(b => b.onclick = () => {
-    hcSched = b.getAttribute("data-s");
-    sh.querySelectorAll("button").forEach(x => x.classList.toggle("on", x === b));
-    const rows = DATA[hcSched].rows;
-    if (!rows.some(r => r.nps === hcNps)) hcNps = rows[0].nps;
-    document.getElementById("hcC").value = (hcSched === "cpvc" || hcSched === "ss10" || hcSched === "ss40") ? 150 : 120;
-    fillHcSizes();
-    renderHydro();
-    scheduleHydroSave();
-  });
-  fillHcSizes();
+  bindMenu("hcTypeMenu", () => ORDER.map(k => ({ value: k, label: DATA[k].label })),
+    () => hcSched, (v) => {
+      hcSched = v;
+      const rows = DATA[hcSched].rows;
+      if (!rows.some(r => r.nps === hcNps)) hcNps = rows[0].nps;
+      document.getElementById("hcC").value = (hcSched === "cpvc" || hcSched === "ss10" || hcSched === "ss40") ? 150 : 120;
+      renderHydro();
+      scheduleHydroSave();
+    });
+  bindMenu("hcSizeMenu", () => DATA[hcSched].rows.map(r => ({ value: r.nps, label: sizeLabel(r) })),
+    () => hcNps, (v) => {
+      hcNps = v;
+      renderHydro();
+      scheduleHydroSave();
+    });
   ["hcSite", "hcQ", "hcL", "hcElb", "hcRise", "hcC"].forEach(id => {
     document.getElementById(id).addEventListener("input", () => {
       renderHydro();
@@ -2204,17 +2358,8 @@ function setupHydro() {
 }
 
 function fillHcSizes() {
-  const host = document.getElementById("hcSize");
-  const rows = DATA[hcSched].rows;
-  host.innerHTML = rows.map(r =>
-    `<button type="button" data-n="${r.nps}" class="${r.nps === hcNps ? "on" : ""}">${sizeLabel(r)}</button>`
-  ).join("");
-  host.querySelectorAll("button").forEach(b => b.onclick = () => {
-    hcNps = b.getAttribute("data-n");
-    host.querySelectorAll("button").forEach(x => x.classList.toggle("on", x === b));
-    renderHydro();
-    scheduleHydroSave();
-  });
+  paintMenu("hcTypeMenu");
+  paintMenu("hcSizeMenu");
 }
 
 const HYDRO_VEL_MAX = 5;
@@ -2287,6 +2432,7 @@ function hydroState() {
 }
 
 function renderHydro() {
+  fillHcSizes();
   const s = hydroState();
   const out = document.getElementById("hcOut");
   if (!s) {
@@ -2381,9 +2527,12 @@ function tankUnitHtml(i) {
   return `
     <div class="sysbox" id="tkUnit${i}">
       <b>Tank ${n}</b>
-      <div class="chips" data-shape-for="${i}">
-        <button type="button" class="on" data-s="cyl">Cylindrical</button>
-        <button type="button" data-s="rect">Rectangular</button>
+      <div class="field menu-field">
+        <label for="tkShapePick${i}">Shape</label>
+        <div class="menu" id="tkShapeMenu${i}">
+          <button type="button" class="menu-btn" id="tkShapePick${i}" aria-haspopup="listbox" aria-expanded="false"></button>
+          <div class="menu-list" role="listbox" hidden></div>
+        </div>
       </div>
       <div class="hc-grid" id="tkCyl${i}">
         <div class="field" style="margin:0">
@@ -2416,9 +2565,7 @@ function updateTankUnitShapeUi(i) {
   const cyl = tkShapes[i] !== "rect";
   document.getElementById("tkCyl" + i).classList.toggle("hidden", !cyl);
   document.getElementById("tkRect" + i).classList.toggle("hidden", cyl);
-  document.querySelectorAll('[data-shape-for="' + i + '"] button').forEach(b => {
-    b.classList.toggle("on", b.getAttribute("data-s") === tkShapes[i]);
-  });
+  paintMenu("tkShapeMenu" + i);
 }
 
 function syncTankCount() {
@@ -2433,13 +2580,14 @@ function setupTanks() {
   const host = document.getElementById("tkUnits");
   host.innerHTML = [0, 1, 2, 3].map(tankUnitHtml).join("");
   for (let i = 0; i < 4; i++) {
-    host.querySelectorAll('[data-shape-for="' + i + '"] button').forEach(b => {
-      b.onclick = () => {
-        tkShapes[i] = b.getAttribute("data-s");
-        updateTankUnitShapeUi(i);
-        renderTanks();
-        scheduleTankSave();
-      };
+    bindMenu("tkShapeMenu" + i, () => [
+      { value: "cyl", label: "Cylindrical" },
+      { value: "rect", label: "Rectangular" }
+    ], () => tkShapes[i], (v) => {
+      tkShapes[i] = v;
+      updateTankUnitShapeUi(i);
+      renderTanks();
+      scheduleTankSave();
     });
     ["D", "H", "L", "W", "Hr"].forEach(k => {
       document.getElementById("tk" + k + i).addEventListener("input", () => {
@@ -2448,26 +2596,29 @@ function setupTanks() {
       });
     });
   }
-  const countHost = document.getElementById("tkCount");
-  countHost.querySelectorAll("button").forEach(b => b.onclick = () => {
-    tkCount = +b.getAttribute("data-n");
-    countHost.querySelectorAll("button").forEach(x => x.classList.toggle("on", x === b));
-    syncTankCount();
-    renderTanks();
-    scheduleTankSave();
-  });
-  const sysHost = document.getElementById("tkSys");
-  sysHost.querySelectorAll("button").forEach(b => b.onclick = () => {
-    tkSys = b.getAttribute("data-s");
-    sysHost.querySelectorAll("button").forEach(x => x.classList.toggle("on", x === b));
+  bindMenu("tkCountMenu", () => [1, 2, 3, 4].map(n => ({ value: String(n), label: String(n) })),
+    () => String(tkCount), (v) => {
+      tkCount = +v;
+      syncTankCount();
+      renderTanks();
+      scheduleTankSave();
+    });
+  bindMenu("tkSysMenu", () => [
+    { value: "hydrant", label: "Hydrants" },
+    { value: "sprinkler", label: "Sprinklers" },
+    { value: "combined", label: "Hydrants + sprinklers" }
+  ], () => tkSys, (v) => {
+    tkSys = v;
     syncTankSysUi();
     renderTanks();
     scheduleTankSave();
   });
-  const hazHost = document.getElementById("tkHazard");
-  hazHost.querySelectorAll("button").forEach(b => b.onclick = () => {
-    tkHazard = b.getAttribute("data-h");
-    hazHost.querySelectorAll("button").forEach(x => x.classList.toggle("on", x === b));
+  bindMenu("tkHazardMenu", () => [
+    { value: "LH", label: "Light · 30 min · Cl 9.3" },
+    { value: "OH", label: "Ordinary · 60 min · Cl 10.3" },
+    { value: "HH", label: "High · 90 min · Sec 11" }
+  ], () => tkHazard, (v) => {
+    tkHazard = v;
     renderTanks();
     scheduleTankSave();
   });
@@ -2885,18 +3036,62 @@ function setupPcKeys() {
   } catch (e) {}
 }
 
-function setup() {
-  const host = document.getElementById("schedules");
-  host.innerHTML = ORDER.map(key =>
-    `<button type="button" data-s="${key}" class="${key === schedule ? "on" : ""}">${DATA[key].label}</button>`
-  ).join("");
-  host.querySelectorAll("button").forEach(btn => {
-    btn.addEventListener("click", () => {
-      schedule = btn.getAttribute("data-s");
-      host.querySelectorAll("button").forEach(b => b.classList.toggle("on", b === btn));
-      render();
-    });
+function closeMenus() {
+  document.querySelectorAll(".menu-list").forEach((list) => {
+    list.hidden = true;
+    const btn = list.parentElement && list.parentElement.querySelector(".menu-btn");
+    if (btn) btn.setAttribute("aria-expanded", "false");
   });
+}
+function bindMenu(id, optionsFn, get, set) {
+  const host = document.getElementById(id);
+  if (!host) return;
+  const btn = host.querySelector(".menu-btn");
+  const list = host.querySelector(".menu-list");
+  function paint() {
+    const options = optionsFn();
+    const cur = String(get());
+    const picked = options.find((o) => String(o.value) === cur) || options[0];
+    btn.textContent = picked ? picked.label : "";
+    list.replaceChildren();
+    options.forEach((o) => {
+      const item = document.createElement("button");
+      item.type = "button";
+      item.setAttribute("role", "option");
+      item.textContent = o.label;
+      item.classList.toggle("on", String(o.value) === cur);
+      item.onclick = (ev) => {
+        ev.stopPropagation();
+        set(o.value);
+        closeMenus();
+        paint();
+      };
+      list.appendChild(item);
+    });
+  }
+  btn.onclick = (ev) => {
+    ev.stopPropagation();
+    const willOpen = list.hidden;
+    closeMenus();
+    if (willOpen) {
+      list.hidden = false;
+      btn.setAttribute("aria-expanded", "true");
+    }
+  };
+  host._paint = paint;
+  paint();
+}
+function paintMenu(id) {
+  const host = document.getElementById(id);
+  if (host && host._paint) host._paint();
+}
+function setup() {
+  bindMenu("pipeTypeMenu", () => ORDER.map(key => ({ value: key, label: DATA[key].label })),
+    () => schedule, (v) => { schedule = v; render(); });
+  bindMenu("pipeSizeMenu", () => DATA[schedule].rows.map(r => ({ value: r.nps, label: sizeLabel(r) })),
+    () => nps, (v) => { nps = v; render(); });
+  document.addEventListener("click", closeMenus);
+  document.addEventListener("keydown", (ev) => { if (ev.key === "Escape") closeMenus(); });
   document.getElementById("btnIn").onclick = () => { metric = false; document.getElementById("btnIn").classList.add("on"); document.getElementById("btnMm").classList.remove("on"); render(); fillHcSizes(); };
   document.getElementById("btnMm").onclick = () => { metric = true; document.getElementById("btnMm").classList.add("on"); document.getElementById("btnIn").classList.remove("on"); render(); fillHcSizes(); };
   document.querySelectorAll(".nav button").forEach(btn => {
@@ -3156,35 +3351,30 @@ function renderAnnu() {
       <td class="${cls}">${r.ms.toFixed(2)}</td>
     </tr>`;
   }).join("");
+  paintMenu("annuProbeMenu");
+  paintMenu("annuPipeMenu");
+  paintMenu("annuSizeMenu");
 }
 function setupAnnu() {
-  const pr = document.getElementById("annuProbe");
-  pr.innerHTML = Object.keys(ANNU_PROBES).map(k =>
-    `<button type="button" data-pr="${k}" class="${k === annuProbe ? "on" : ""}">${ANNU_PROBES[k].label}</button>`
-  ).join("");
-  pr.querySelectorAll("button").forEach(btn => {
-    btn.onclick = () => {
-      annuProbe = btn.getAttribute("data-pr");
-      pr.querySelectorAll("button").forEach(b => b.classList.toggle("on", b === btn));
+  bindMenu("annuProbeMenu", () => Object.keys(ANNU_PROBES).map(k => ({ value: k, label: ANNU_PROBES[k].label })),
+    () => annuProbe, (v) => {
+      annuProbe = v;
       annuKManual = false;
       renderAnnu();
-    };
-  });
-  const p = document.getElementById("annuPipe");
-  p.innerHTML = ["asLight", "ss10", "asMed", "ss40", "asHeavy", "copper"].map(k =>
-    `<button type="button" data-k="${k}" class="${k === annuKind ? "on" : ""}">${ANNU_PIPES[k].label}</button>`
-  ).join("");
-  p.querySelectorAll("button").forEach(btn => {
-    btn.onclick = () => {
-      annuKind = btn.getAttribute("data-k");
-      p.querySelectorAll("button").forEach(b => b.classList.toggle("on", b === btn));
+    });
+  bindMenu("annuPipeMenu", () => ["asLight", "ss10", "asMed", "ss40", "asHeavy", "copper"].map(k => ({ value: k, label: ANNU_PIPES[k].label })),
+    () => annuKind, (v) => {
+      annuKind = v;
       if (!ANNU_PIPES[annuKind].sizes[annuDn]) annuDn = Object.keys(ANNU_PIPES[annuKind].sizes)[0];
       annuKManual = false;
-      paintAnnuSizes();
       renderAnnu();
-    };
-  });
-  paintAnnuSizes();
+    });
+  bindMenu("annuSizeMenu", () => ANNU_DNS.filter(dn => ANNU_PIPES[annuKind].sizes[dn]).map(dn => ({ value: dn, label: "DN" + dn })),
+    () => annuDn, (v) => {
+      annuDn = v;
+      annuKManual = false;
+      renderAnnu();
+    });
   document.getElementById("inHg").addEventListener("input", () => {
     annuFromFlow = false;
     renderAnnu();
@@ -3202,22 +3392,6 @@ function setupAnnu() {
     renderAnnu();
   };
 }
-function paintAnnuSizes() {
-  const s = document.getElementById("annuSize");
-  const sizes = ANNU_PIPES[annuKind].sizes;
-  s.innerHTML = ANNU_DNS.filter(dn => sizes[dn]).map(dn =>
-    `<button type="button" data-dn="${dn}" class="${dn === annuDn ? "on" : ""}">DN${dn}</button>`
-  ).join("");
-  s.querySelectorAll("button").forEach(btn => {
-    btn.onclick = () => {
-      annuDn = btn.getAttribute("data-dn");
-      s.querySelectorAll("button").forEach(b => b.classList.toggle("on", b === btn));
-      annuKManual = false;
-      renderAnnu();
-    };
-  });
-}
-
 const FLANGE = {
   d: { label: "Table D", note: "AS 2129 • ~700 kPa",
     rows: {
@@ -3403,29 +3577,24 @@ function renderFlange() {
       <span>${same && k !== flStd ? "mates*" : ""}</span></div>`;
   }).join("");
   paintFlSizes();
+  paintMenu("flTypeMenu");
 }
 function paintFlSizes() {
-  const s = document.getElementById("flSize");
-  const rows = FLANGE[flStd].rows;
-  s.innerHTML = FL_DNS.filter(dn => rows[dn]).map(dn =>
-    `<button type="button" data-dn="${dn}" class="${dn === flDn ? "on" : ""}">DN${dn}</button>`
-  ).join("");
-  s.querySelectorAll("button").forEach(btn => {
-    btn.onclick = () => { flDn = btn.getAttribute("data-dn"); renderFlange(); };
-  });
+  paintMenu("flSizeMenu");
 }
 function setupFlange() {
-  const p = document.getElementById("flStd");
-  p.innerHTML = FL_ORDER.map(k =>
-    `<button type="button" data-k="${k}" class="${k === flStd ? "on" : ""}">${FLANGE[k].label}</button>`
-  ).join("");
-  p.querySelectorAll("button").forEach(btn => {
-    btn.onclick = () => {
-      flStd = btn.getAttribute("data-k");
-      p.querySelectorAll("button").forEach(b => b.classList.toggle("on", b === btn));
+  bindMenu("flTypeMenu", () => FL_ORDER.map(k => ({ value: k, label: FLANGE[k].label })),
+    () => flStd, (v) => {
+      flStd = v;
       if (!FLANGE[flStd].rows[flDn]) flDn = Object.keys(FLANGE[flStd].rows)[0];
       renderFlange();
-    };
+    });
+  bindMenu("flSizeMenu", () => {
+    const rows = FLANGE[flStd].rows;
+    return FL_DNS.filter(dn => rows[dn]).map(dn => ({ value: dn, label: "DN" + dn }));
+  }, () => flDn, (v) => {
+    flDn = v;
+    renderFlange();
   });
 }
 
@@ -4243,8 +4412,6 @@ function applyHydroInput(s, id) {
   document.getElementById("hcL").value = s.L != null && s.L !== "" ? s.L : "30";
   document.getElementById("hcElb").value = s.elb != null && s.elb !== "" ? s.elb : "4";
   document.getElementById("hcRise").value = s.rise != null && s.rise !== "" ? s.rise : "0";
-  const sh = document.getElementById("hcSched");
-  if (sh) sh.querySelectorAll("button").forEach(b => b.classList.toggle("on", b.getAttribute("data-s") === hcSched));
   const rows = DATA[hcSched].rows;
   if (!rows.some(r => r.nps === hcNps)) hcNps = rows[0].nps;
   fillHcSizes();
@@ -4310,8 +4477,6 @@ function newHydroJob() {
   document.getElementById("hcElb").value = "4";
   document.getElementById("hcRise").value = "0";
   document.getElementById("hcC").value = "120";
-  const sh = document.getElementById("hcSched");
-  if (sh) sh.querySelectorAll("button").forEach(b => b.classList.toggle("on", b.getAttribute("data-s") === "asMed"));
   fillHcSizes();
   applyingHydro = false;
   renderHydro();
@@ -4353,12 +4518,9 @@ function tankJobSummary() {
   return s.n + (s.n > 1 ? " tanks" : " tank") + " · " + (s.keff / 1000).toFixed(2) + " kL" + tag;
 }
 function syncTankChips() {
-  const countHost = document.getElementById("tkCount");
-  if (countHost) countHost.querySelectorAll("button").forEach(b => b.classList.toggle("on", +b.getAttribute("data-n") === tkCount));
-  const sysHost = document.getElementById("tkSys");
-  if (sysHost) sysHost.querySelectorAll("button").forEach(b => b.classList.toggle("on", b.getAttribute("data-s") === tkSys));
-  const hazHost = document.getElementById("tkHazard");
-  if (hazHost) hazHost.querySelectorAll("button").forEach(b => b.classList.toggle("on", b.getAttribute("data-h") === tkHazard));
+  paintMenu("tkCountMenu");
+  paintMenu("tkSysMenu");
+  paintMenu("tkHazardMenu");
   for (let i = 0; i < 4; i++) updateTankUnitShapeUi(i);
   syncTankCount();
   syncTankSysUi();
