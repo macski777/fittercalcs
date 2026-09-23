@@ -128,15 +128,17 @@ function setupFanTest() {
     return { step: step, max: Math.ceil(m / step) * step };
   }
 
-  function drawFanOn(ctx, w, h, press, dep) {
-    const padL = 78, padR = 28, padT = 52, padB = 64;
+  function drawFanOn(ctx, w, h, press, dep, scale) {
+    const s = scale > 0 ? scale : 1;
+    const padL = Math.round(78 * s), padR = Math.round(28 * s), padT = Math.round(52 * s), padB = Math.round(64 * s);
     ctx.fillStyle = "#f4ede4";
     ctx.fillRect(0, 0, w, h);
     const all = press.concat(dep);
     if (all.length < 1) {
       ctx.fillStyle = "#14110f";
-      ctx.font = "700 20px sans-serif";
+      ctx.font = "700 " + Math.round(20 * s) + "px sans-serif";
       ctx.textAlign = "left";
+      ctx.textBaseline = "alphabetic";
       ctx.fillText("Add fan points", padL, h / 2);
       return;
     }
@@ -147,30 +149,31 @@ function setupFanTest() {
     const xOf = (pa) => padL + (pa / xNice.max) * (w - padL - padR);
     const yOf = (flow) => padT + (1 - flow / yNice.max) * (h - padT - padB);
     ctx.strokeStyle = "#d7cbbd";
-    ctx.lineWidth = 1;
+    ctx.lineWidth = Math.max(1, Math.round(s));
     ctx.fillStyle = "#14110f";
-    ctx.font = "700 15px sans-serif";
+    ctx.font = "700 " + Math.round(15 * s) + "px sans-serif";
     ctx.textAlign = "center";
+    ctx.textBaseline = "alphabetic";
     for (let pa = 0; pa <= xNice.max + 1e-6; pa += xNice.step) {
       const x = xOf(pa);
       ctx.beginPath(); ctx.moveTo(x, padT); ctx.lineTo(x, h - padB); ctx.stroke();
-      ctx.fillText(String(Math.round(pa)), x, h - padB + 22);
+      ctx.fillText(String(Math.round(pa)), x, h - padB + Math.round(22 * s));
     }
     ctx.textAlign = "right";
     for (let flow = 0; flow <= yNice.max + 1e-6; flow += yNice.step) {
       const y = yOf(flow);
       ctx.beginPath(); ctx.moveTo(padL, y); ctx.lineTo(w - padR, y); ctx.stroke();
-      ctx.fillText(String(Math.round(flow)), padL - 8, y + 5);
+      ctx.fillText(String(Math.round(flow)), padL - Math.round(8 * s), y + Math.round(5 * s));
     }
     ctx.strokeStyle = "#14110f";
-    ctx.lineWidth = 2;
+    ctx.lineWidth = Math.max(2, Math.round(2 * s));
     ctx.beginPath(); ctx.moveTo(padL, padT); ctx.lineTo(padL, h - padB); ctx.lineTo(w - padR, h - padB); ctx.stroke();
     ctx.fillStyle = "#14110f";
-    ctx.font = "800 16px sans-serif";
+    ctx.font = "800 " + Math.round(16 * s) + "px sans-serif";
     ctx.textAlign = "center";
-    ctx.fillText("Pressure (Pa)", (padL + w - padR) / 2, h - 16);
+    ctx.fillText("Pressure (Pa)", (padL + w - padR) / 2, h - Math.round(16 * s));
     ctx.save();
-    ctx.translate(18, (padT + h - padB) / 2);
+    ctx.translate(Math.round(18 * s), (padT + h - padB) / 2);
     ctx.rotate(-Math.PI / 2);
     ctx.fillText("Flow (L/s)", 0, 0);
     ctx.restore();
@@ -178,7 +181,7 @@ function setupFanTest() {
       if (series.length >= 2 && typeof monotoneSpline === "function") {
         const f = monotoneSpline(series);
         ctx.strokeStyle = color;
-        ctx.lineWidth = 3;
+        ctx.lineWidth = Math.max(2, Math.round(3 * s));
         ctx.beginPath();
         const steps = 80;
         for (let i = 0; i <= steps; i++) {
@@ -192,27 +195,27 @@ function setupFanTest() {
       series.forEach((pt) => {
         ctx.fillStyle = "#14110f";
         ctx.beginPath();
-        ctx.arc(xOf(pt.q), yOf(pt.p), 5, 0, Math.PI * 2);
+        ctx.arc(xOf(pt.q), yOf(pt.p), Math.max(4, Math.round(5 * s)), 0, Math.PI * 2);
         ctx.fill();
         ctx.fillStyle = color;
         ctx.beginPath();
-        ctx.arc(xOf(pt.q), yOf(pt.p), 3, 0, Math.PI * 2);
+        ctx.arc(xOf(pt.q), yOf(pt.p), Math.max(2, Math.round(3 * s)), 0, Math.PI * 2);
         ctx.fill();
       });
     }
     stroke(press, "#d1243a");
     stroke(dep, "#1d4e89");
-    ctx.font = "800 15px sans-serif";
+    ctx.font = "800 " + Math.round(15 * s) + "px sans-serif";
     ctx.textAlign = "left";
     ctx.textBaseline = "middle";
     let lx = padL;
-    const ly = 22;
+    const ly = Math.round(22 * s);
     function key(color, label) {
       ctx.fillStyle = color;
-      ctx.fillRect(lx, ly - 6, 18, 12);
+      ctx.fillRect(lx, ly - Math.round(6 * s), Math.round(18 * s), Math.round(12 * s));
       ctx.fillStyle = "#14110f";
-      ctx.fillText(label, lx + 24, ly);
-      lx += ctx.measureText(label).width + 48;
+      ctx.fillText(label, lx + Math.round(24 * s), ly);
+      lx += ctx.measureText(label).width + Math.round(48 * s);
     }
     key("#d1243a", "Pressurisation");
     if (depressOmitted === "yes") {
@@ -492,6 +495,31 @@ function setupFanTest() {
       });
       y += 6;
     });
+    const footerTop = h - 72;
+    let room = footerTop - y;
+    if (room >= 280) {
+      y += 22;
+      ctx.fillStyle = "#1a1613";
+      ctx.font = "800 22px sans-serif";
+      ctx.textAlign = "left";
+      ctx.textBaseline = "alphabetic";
+      ctx.fillText("Leakage chart", m, y);
+      y += 16;
+      room = footerTop - y;
+      const chartH = Math.min(room, 780);
+      const chartW = inner;
+      const chart = document.createElement("canvas");
+      chart.width = chartW;
+      chart.height = chartH;
+      const press = fanSeries("pressPts");
+      const dep = depressOmitted === "yes" ? [] : fanSeries("depPts");
+      const scale = Math.max(0.9, Math.min(chartW / 900, chartH / 520, 1.7));
+      drawFanOn(chart.getContext("2d"), chartW, chartH, press, dep, scale);
+      ctx.drawImage(chart, m, y, chartW, chartH);
+      ctx.strokeStyle = "#d7cbbd";
+      ctx.lineWidth = 2;
+      ctx.strokeRect(m + 1, y + 1, chartW - 2, chartH - 2);
+    }
     ctx.fillStyle = "#14110f";
     ctx.fillRect(0, h - 56, w, 56);
     ctx.fillStyle = "#d1243a";
@@ -499,6 +527,7 @@ function setupFanTest() {
     ctx.fillStyle = "#fff";
     ctx.font = "600 18px sans-serif";
     ctx.textAlign = "left";
+    ctx.textBaseline = "alphabetic";
     ctx.fillText("A4  ·  print fit-to-page" + (ver ? "  ·  FitterCalcs " + ver : "") + "  ·  " + reportDate(), m, h - 22);
     ctx.textAlign = "right";
     ctx.fillText("Page 1 of 1", w - m, h - 22);
