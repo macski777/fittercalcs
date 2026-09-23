@@ -364,6 +364,22 @@
     .nav button.on { background: var(--red); color: #fff; border-color: var(--red); }
     .page { display: none; }
     .page.on { display: block; }
+    #page-fantest .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+    #page-fantest .wide { grid-column: 1 / -1; }
+    #page-fantest .stat.wide { grid-column: 1 / -1; }
+    #page-fantest .pts { width: 100%; border-collapse: collapse; }
+    #page-fantest .pts th { color: var(--muted); font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.06em; text-align: left; padding: 0 6px 6px; }
+    #page-fantest .pts td { padding: 4px; }
+    #page-fantest .pts input {
+      width: 100%;
+      background: #1a1613;
+      border: 1px solid var(--line);
+      color: var(--text);
+      font: inherit;
+      font-variant-numeric: tabular-nums;
+      padding: 10px;
+      border-radius: 12px;
+    }
     .lookup {
       display: grid;
       grid-template-columns: 1fr 1fr;
@@ -765,6 +781,7 @@
     <button type="button" data-page="hydro">Hydro-Calcs</button>
     <button type="button" data-page="tanks">Tanks</button>
     <button type="button" data-page="as1851">AS-1851</button>
+    <button type="button" data-page="fantest" id="fanTab" class="hidden">Fan Test</button>
   </div>
 
   <div id="page-pipe" class="page on">
@@ -1233,6 +1250,100 @@
     </p>
   </div>
 
+  <div id="page-fantest" class="page">
+    <div class="sysbox">
+      <b>Job</b>
+      <div class="grid">
+        <div class="field"><label for="ftclient">Client</label><input id="ftclient" autocomplete="off" /></div>
+        <div class="field"><label for="ftjobNo">Job number</label><input id="ftjobNo" autocomplete="off" /></div>
+        <div class="field"><label for="ftenclosure">Enclosure / risk</label><input id="ftenclosure" autocomplete="off" /></div>
+        <div class="field"><label for="fttestDate">Test date</label><input id="fttestDate" type="date" /></div>
+        <div class="field wide"><label for="fttester">Tested by</label><input id="fttester" autocomplete="off" /></div>
+      </div>
+    </div>
+    <div class="sysbox">
+      <div class="pickrow three">
+        <div class="field menu-field">
+          <label for="ftstdPick">Standard</label>
+          <div class="menu" id="ftstdMenu">
+            <button type="button" class="menu-btn" id="ftstdPick" aria-haspopup="listbox" aria-expanded="false"></button>
+            <div class="menu-list" role="listbox" hidden></div>
+          </div>
+        </div>
+        <div class="field menu-field">
+          <label for="ftmixPick">Mixing</label>
+          <div class="menu" id="ftmixMenu">
+            <button type="button" class="menu-btn" id="ftmixPick" aria-haspopup="listbox" aria-expanded="false"></button>
+            <div class="menu-list" role="listbox" hidden></div>
+          </div>
+        </div>
+        <div class="field menu-field">
+          <label for="ftagentPick">Agent</label>
+          <div class="menu" id="ftagentMenu">
+            <button type="button" class="menu-btn" id="ftagentPick" aria-haspopup="listbox" aria-expanded="false"></button>
+            <div class="menu-list" role="listbox" hidden></div>
+          </div>
+        </div>
+      </div>
+      <div class="chips" id="ftregChips" style="margin-top:10px">
+        <button type="button" class="on" data-v="yes">Pressure regulating</button>
+        <button type="button" data-v="no">Not pressure regulating</button>
+      </div>
+      <div class="chips" id="ftbasisChips">
+        <button type="button" class="on" data-v="over13">Minimum 1/1.3 × design</button>
+        <button type="button" data-v="eightyfive">Minimum 85% of design</button>
+        <button type="button" data-v="extinguishing">Extinguishing concentration</button>
+      </div>
+    </div>
+    <div class="sysbox">
+      <b>Room</b>
+      <div class="grid">
+        <div class="field"><label for="ftinsideC">Inside temp (°C)</label><input id="ftinsideC" type="number" inputmode="decimal" step="0.1" value="20" /></div>
+        <div class="field"><label for="ftoutsideC">Outside temp (°C)</label><input id="ftoutsideC" type="number" inputmode="decimal" step="0.1" value="20" /></div>
+        <div class="field"><label for="ftdesignC">Design temperature (°C)</label><input id="ftdesignC" type="number" inputmode="decimal" step="0.1" value="20" /></div>
+        <div class="field"><label for="ftatmBar">Atmospheric pressure (bar)</label><input id="ftatmBar" type="number" inputmode="decimal" step="0.001" value="1.013" /></div>
+        <div class="field"><label for="ftbiasTest">Bias during test (Pa)</label><input id="ftbiasTest" type="number" inputmode="decimal" step="0.1" value="2" /></div>
+        <div class="field"><label for="ftbiasHold">Bias during hold (Pa)</label><input id="ftbiasHold" type="number" inputmode="decimal" step="0.1" value="2" /></div>
+        <div class="field"><label for="ftfloodedH">Flooded height (m)</label><input id="ftfloodedH" type="number" inputmode="decimal" step="0.01" value="3.96" /></div>
+        <div class="field"><label for="ftminHeight">Minimum protected height (m)</label><input id="ftminHeight" type="number" inputmode="decimal" step="0.01" value="2" /></div>
+        <div class="field"><label for="ftvolume">Room volume (m³)</label><input id="ftvolume" type="number" inputmode="decimal" step="0.01" value="126.56" /></div>
+        <div class="field"><label for="ftmass">Actual agent mass (kg)</label><input id="ftmass" type="number" inputmode="decimal" step="0.1" value="66.5" /></div>
+        <div class="field"><label for="ftroomStrength">Maximum room strength (Pa)</label><input id="ftroomStrength" type="number" inputmode="decimal" step="1" value="500" /></div>
+        <div class="field"><label for="ftdischargeS">Discharge duration (s)</label><input id="ftdischargeS" type="number" inputmode="decimal" step="1" value="9" /></div>
+      </div>
+      <div class="chips" id="ftllfChips" style="margin-top:10px">
+        <button type="button" class="on" data-v="no">Lower leakage 50%</button>
+        <button type="button" data-v="yes">Override lower leakage</button>
+      </div>
+      <div class="field hidden" id="ftllfWrap" style="margin-top:8px">
+        <label for="ftllfPct">Lower leakage fraction (15 to 50%)</label>
+        <input id="ftllfPct" type="number" inputmode="decimal" step="1" value="15" />
+      </div>
+    </div>
+    <div class="sysbox">
+      <b>Pressurisation</b>
+      <table class="pts" id="ftpressPts"></table>
+    </div>
+    <div class="sysbox">
+      <b>Depressurisation</b>
+      <div class="chips" id="ftomitChips">
+        <button type="button" class="on" data-v="no">Included</button>
+        <button type="button" data-v="yes">Omitted</button>
+      </div>
+      <table class="pts" id="ftdepPts"></table>
+    </div>
+    <div class="hc-out" id="ftout"></div>
+    <p class="notes" id="ftwarn"></p>
+    <div class="actions">
+      <button type="button" class="ghost" id="ftsaveReport">Save to device</button>
+      <button type="button" id="ftemailReport">Email report</button>
+    </div>
+    <p class="notes">
+      Door-fan enclosure integrity for gaseous fire suppression. Leakage is fitted from the fan points the same way as the Sky Aus UPS Room sheet: correct each room pressure by the test bias, then fit ln(flow) against ln(pressure). Hold time uses <strong>ISO 14520-1 Annex E</strong>. The 2015 setting uses that edition’s equivalent sharp-interface height; the 2006 setting uses the earlier interface height. <strong>AS ISO 14520</strong> is the Australian adoption of ISO 14520. <strong>AS 1851-2012</strong> requires room integrity testing of installed gaseous systems. This sheet’s acceptance, and the usual gaseous-agent retention, is <strong>10 minutes</strong>. Carbon dioxide is not in this agent list.
+      Agent densities, design and extinguishing concentrations, and the k1/k2 specific-volume constants are the parameters on that sheet. Halocarbon vent areas use its FM-200 and Novec discharge equations (safety factor 1.2, vent efficiency 100%, relative humidity 38%). Inert vent area is its mass-flow estimate. Field estimate. Confirm the current standard and the system design before sign-off.
+    </p>
+  </div>
+
   <div id="pumpOverlay" class="chart-overlay hidden" role="dialog" aria-modal="true" aria-label="Large pump chart">
     <div class="chart-overlay-bar">
       <span>Pump curve</span>
@@ -1241,9 +1352,26 @@
     <canvas id="pumpChartBig"></canvas>
   </div>
 
+<script src="fan-calc.js"></script>
+<script src="fan-ui.js"></script>
 <script>
-const APP_VERSION = "2.38";
-const APP_BUILD = 49;
+const APP_VERSION = "2.39";
+const APP_BUILD = 50;
+const FAN_KEY = "fittercalcs-ft";
+function fanOn() {
+  try { return localStorage.getItem(FAN_KEY) === "1"; } catch (e) { return false; }
+}
+function revealFanTab() {
+  const b = document.getElementById("fanTab");
+  if (!b) return;
+  b.classList.remove("hidden");
+}
+function unlockFan() {
+  try { localStorage.setItem(FAN_KEY, "1"); } catch (e) {}
+  revealFanTab();
+  const b = document.getElementById("fanTab");
+  if (b && b.scrollIntoView) b.scrollIntoView({ inline: "nearest", block: "nearest" });
+}
 
 const NPS_TO_DN = {
   "1/2": "15", "3/4": "20", "1": "25", "1-1/4": "32", "1-1/2": "40",
@@ -2796,8 +2924,9 @@ function renderTanks() {
 }
 
 function showPage(page) {
+  if (page === "fantest" && !fanOn()) page = "pipe";
   document.querySelectorAll(".nav button").forEach(b => b.classList.toggle("on", b.getAttribute("data-page") === page));
-  ["pipe", "annubar", "flange", "pump", "hydro", "tanks", "as1851"].forEach(p => {
+  ["pipe", "annubar", "flange", "pump", "hydro", "tanks", "as1851", "fantest"].forEach(p => {
     const el = document.getElementById("page-" + p);
     if (el) el.classList.toggle("on", p === page);
   });
@@ -2824,6 +2953,8 @@ function showPage(page) {
   } else if (page === "as1851") {
     document.getElementById("appSub").innerHTML = "Routine service of fire protection systems<br>What is in AS 1851 · frequencies · typical field checks";
     renderAS1851();
+  } else if (page === "fantest") {
+    document.getElementById("appSub").innerHTML = "Room integrity • door fan • gaseous suppression<br>ISO 14520-1 Annex E • AS ISO 14520 • AS 1851-2012";
   } else {
     document.getElementById("appSub").innerHTML = "Fire protection pipe OD, wall, and ID<br>AS 1074 Light • Medium • Heavy • SS 10S/40S • CPVC";
   }
@@ -3093,7 +3224,19 @@ function setup() {
   document.addEventListener("click", closeMenus);
   document.addEventListener("keydown", (ev) => { if (ev.key === "Escape") closeMenus(); });
   document.getElementById("btnIn").onclick = () => { metric = false; document.getElementById("btnIn").classList.add("on"); document.getElementById("btnMm").classList.remove("on"); render(); fillHcSizes(); };
-  document.getElementById("btnMm").onclick = () => { metric = true; document.getElementById("btnMm").classList.add("on"); document.getElementById("btnIn").classList.remove("on"); render(); fillHcSizes(); };
+  let mmTaps = [];
+  document.getElementById("btnMm").onclick = () => {
+    metric = true;
+    document.getElementById("btnMm").classList.add("on");
+    document.getElementById("btnIn").classList.remove("on");
+    render();
+    fillHcSizes();
+    if (fanOn()) return;
+    const now = Date.now();
+    mmTaps.push(now);
+    mmTaps = mmTaps.filter((t) => now - t <= 10000);
+    if (mmTaps.length >= 7) unlockFan();
+  };
   document.querySelectorAll(".nav button").forEach(btn => {
     btn.addEventListener("click", () => {
       const page = btn.getAttribute("data-page");
@@ -3107,6 +3250,8 @@ function setup() {
   setupHydro();
   setupTanks();
   setupAS1851();
+  if (typeof setupFanTest === "function") setupFanTest();
+  if (fanOn()) revealFanTab();
   const buildEl = document.getElementById("appBuild");
   if (buildEl) {
     buildEl.textContent = "v" + APP_VERSION;

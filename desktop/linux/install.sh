@@ -7,8 +7,8 @@ BIN="${XDG_BIN_HOME:-$HOME/.local/bin}"
 APPS="${XDG_DATA_HOME:-$HOME/.local/share}/applications"
 
 mkdir -p "$DEST" "$BIN" "$APPS"
-cp -f "$HERE/onlyfitters.py" "$HERE/index.html" "$HERE/logo.png" \
-  "$HERE/wordmark.svg" "$HERE/wordmark.png" "$HERE/onlyfitters.png" "$DEST/"
+cp -f "$HERE/onlyfitters.py" "$HERE/index.html" "$HERE/fan-calc.js" "$HERE/fan-ui.js" \
+  "$HERE/logo.png" "$HERE/wordmark.svg" "$HERE/wordmark.png" "$HERE/onlyfitters.png" "$DEST/"
 chmod +x "$DEST/onlyfitters.py"
 
 cat > "$BIN/fittercalcs" <<EOF
