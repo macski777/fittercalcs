@@ -105,6 +105,150 @@ function setupFanTest() {
     if (!res.biasOk) notes.push("Bias pressure during the hold can reverse the column flow. The hold-time equation is not valid on these figures.");
     if (Number($("mass").value) + 0.05 < res.reqMass) notes.push("Installed mass is below the mass required for the design concentration.");
     $("warn").textContent = notes.join(" ");
+    drawFanLeak();
+  }
+
+  function fanSeries(id) {
+    const pts = readPoints(id).map((p) => ({ q: parseFloat(p.p), p: parseFloat(p.q) })).filter((p) => Number.isFinite(p.q) && Number.isFinite(p.p));
+    pts.sort((a, b) => a.q - b.q);
+    const out = [];
+    pts.forEach((p) => {
+      if (out.length && Math.abs(out[out.length - 1].q - p.q) < 1e-6) out[out.length - 1] = p;
+      else out.push(p);
+    });
+    return out;
+  }
+
+  function niceAxis(max, target) {
+    const m = Math.max(max, 1);
+    const raw = m / target;
+    const pow = Math.pow(10, Math.floor(Math.log10(raw)));
+    const n = raw / pow;
+    const step = n <= 1 ? pow : n <= 2 ? 2 * pow : n <= 5 ? 5 * pow : 10 * pow;
+    return { step: step, max: Math.ceil(m / step) * step };
+  }
+
+  function drawFanOn(ctx, w, h, press, dep) {
+    const padL = 78, padR = 28, padT = 52, padB = 64;
+    ctx.fillStyle = "#f4ede4";
+    ctx.fillRect(0, 0, w, h);
+    const all = press.concat(dep);
+    if (all.length < 1) {
+      ctx.fillStyle = "#14110f";
+      ctx.font = "700 20px sans-serif";
+      ctx.textAlign = "left";
+      ctx.fillText("Add fan points", padL, h / 2);
+      return;
+    }
+    const maxP = Math.max(...all.map((p) => p.q));
+    const maxQ = Math.max(...all.map((p) => p.p));
+    const xNice = niceAxis(maxP, 5);
+    const yNice = niceAxis(maxQ, 5);
+    const xOf = (pa) => padL + (pa / xNice.max) * (w - padL - padR);
+    const yOf = (flow) => padT + (1 - flow / yNice.max) * (h - padT - padB);
+    ctx.strokeStyle = "#d7cbbd";
+    ctx.lineWidth = 1;
+    ctx.fillStyle = "#14110f";
+    ctx.font = "700 15px sans-serif";
+    ctx.textAlign = "center";
+    for (let pa = 0; pa <= xNice.max + 1e-6; pa += xNice.step) {
+      const x = xOf(pa);
+      ctx.beginPath(); ctx.moveTo(x, padT); ctx.lineTo(x, h - padB); ctx.stroke();
+      ctx.fillText(String(Math.round(pa)), x, h - padB + 22);
+    }
+    ctx.textAlign = "right";
+    for (let flow = 0; flow <= yNice.max + 1e-6; flow += yNice.step) {
+      const y = yOf(flow);
+      ctx.beginPath(); ctx.moveTo(padL, y); ctx.lineTo(w - padR, y); ctx.stroke();
+      ctx.fillText(String(Math.round(flow)), padL - 8, y + 5);
+    }
+    ctx.strokeStyle = "#14110f";
+    ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.moveTo(padL, padT); ctx.lineTo(padL, h - padB); ctx.lineTo(w - padR, h - padB); ctx.stroke();
+    ctx.fillStyle = "#14110f";
+    ctx.font = "800 16px sans-serif";
+    ctx.textAlign = "center";
+    ctx.fillText("Pressure (Pa)", (padL + w - padR) / 2, h - 16);
+    ctx.save();
+    ctx.translate(18, (padT + h - padB) / 2);
+    ctx.rotate(-Math.PI / 2);
+    ctx.fillText("Flow (L/s)", 0, 0);
+    ctx.restore();
+    function stroke(series, color) {
+      if (series.length >= 2 && typeof monotoneSpline === "function") {
+        const f = monotoneSpline(series);
+        ctx.strokeStyle = color;
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+        const steps = 80;
+        for (let i = 0; i <= steps; i++) {
+          const pa = series[0].q + (series[series.length - 1].q - series[0].q) * i / steps;
+          const flow = f(pa);
+          const X = xOf(pa), Y = yOf(flow);
+          if (i === 0) ctx.moveTo(X, Y); else ctx.lineTo(X, Y);
+        }
+        ctx.stroke();
+      }
+      series.forEach((pt) => {
+        ctx.fillStyle = "#14110f";
+        ctx.beginPath();
+        ctx.arc(xOf(pt.q), yOf(pt.p), 5, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = color;
+        ctx.beginPath();
+        ctx.arc(xOf(pt.q), yOf(pt.p), 3, 0, Math.PI * 2);
+        ctx.fill();
+      });
+    }
+    stroke(press, "#d1243a");
+    stroke(dep, "#1d4e89");
+    ctx.font = "800 15px sans-serif";
+    ctx.textAlign = "left";
+    ctx.textBaseline = "middle";
+    let lx = padL;
+    const ly = 22;
+    function key(color, label) {
+      ctx.fillStyle = color;
+      ctx.fillRect(lx, ly - 6, 18, 12);
+      ctx.fillStyle = "#14110f";
+      ctx.fillText(label, lx + 24, ly);
+      lx += ctx.measureText(label).width + 48;
+    }
+    key("#d1243a", "Pressurisation");
+    if (depressOmitted === "yes") {
+      ctx.fillStyle = "#6a5d50";
+      ctx.fillText("Depressurisation omitted", lx, ly);
+    } else key("#1d4e89", "Depressurisation");
+    ctx.textBaseline = "alphabetic";
+  }
+
+  function drawFanLeak() {
+    const press = fanSeries("pressPts");
+    const dep = depressOmitted === "yes" ? [] : fanSeries("depPts");
+    const small = document.getElementById("ftchart");
+    if (small) drawFanOn(small.getContext("2d"), small.width, small.height, press, dep);
+    const overlay = document.getElementById("ftOverlay");
+    const big = document.getElementById("ftChartBig");
+    if (overlay && big && !overlay.classList.contains("hidden")) {
+      const dpr = Math.min(window.devicePixelRatio || 1, 2.5);
+      const tw = Math.round(Math.max(280, big.clientWidth || window.innerWidth) * dpr);
+      const th = Math.round(Math.max(220, big.clientHeight || window.innerHeight * 0.8) * dpr);
+      if (big.width !== tw || big.height !== th) { big.width = tw; big.height = th; }
+      drawFanOn(big.getContext("2d"), big.width, big.height, press, dep);
+    }
+  }
+
+  function openFtChart() {
+    const overlay = document.getElementById("ftOverlay");
+    if (!overlay) return;
+    overlay.classList.remove("hidden");
+    document.documentElement.classList.add("overlay-open");
+    drawFanLeak();
+  }
+  function closeFtChart() {
+    const overlay = document.getElementById("ftOverlay");
+    if (overlay) overlay.classList.add("hidden");
+    document.documentElement.classList.remove("overlay-open");
   }
 
   function jobLabel() {
@@ -412,5 +556,8 @@ function setupFanTest() {
   pointTable("depPts", FanCalc.SKY_AUS.depressPoints);
   $("saveReport").onclick = () => exportReport("save");
   $("emailReport").onclick = () => exportReport("email");
+  document.getElementById("ftchart").onclick = openFtChart;
+  document.getElementById("ftchartOpen").onclick = openFtChart;
+  document.getElementById("closeFtOverlay").onclick = closeFtChart;
   renderFan();
 }

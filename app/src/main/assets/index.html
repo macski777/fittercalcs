@@ -464,7 +464,7 @@
       font-size: 1.2rem;
       height: 42px;
     }
-    #pumpChart {
+    #pumpChart, #ftchart {
       width: 100%;
       height: auto;
       display: block;
@@ -519,7 +519,7 @@
       background: var(--red);
       color: #fff;
     }
-    #pumpChartBig {
+    #pumpChartBig, #ftChartBig {
       flex: 1;
       width: calc(100% - 16px);
       min-height: 0;
@@ -1332,6 +1332,11 @@
       </div>
       <table class="pts" id="ftdepPts"></table>
     </div>
+    <div class="sysbox">
+      <b>Leakage chart</b>
+      <canvas id="ftchart" width="900" height="560" title="Open large chart"></canvas>
+      <button type="button" class="chart-expand" id="ftchartOpen">Large chart</button>
+    </div>
     <div class="hc-out" id="ftout"></div>
     <p class="notes" id="ftwarn"></p>
     <div class="actions">
@@ -1342,6 +1347,14 @@
       Door-fan enclosure integrity for gaseous fire suppression. Leakage is fitted from the fan points the same way as the Sky Aus UPS Room sheet: correct each room pressure by the test bias, then fit ln(flow) against ln(pressure). Hold time uses <strong>ISO 14520-1 Annex E</strong>. The 2015 setting uses that edition’s equivalent sharp-interface height; the 2006 setting uses the earlier interface height. <strong>AS ISO 14520</strong> is the Australian adoption of ISO 14520. <strong>AS 1851-2012</strong> requires room integrity testing of installed gaseous systems. This sheet’s acceptance, and the usual gaseous-agent retention, is <strong>10 minutes</strong>. Carbon dioxide is not in this agent list.
       Agent densities, design and extinguishing concentrations, and the k1/k2 specific-volume constants are the parameters on that sheet. Halocarbon vent areas use its FM-200 and Novec discharge equations (safety factor 1.2, vent efficiency 100%, relative humidity 38%). Inert vent area is its mass-flow estimate. Field estimate. Confirm the current standard and the system design before sign-off.
     </p>
+  </div>
+
+  <div id="ftOverlay" class="chart-overlay hidden" role="dialog" aria-modal="true" aria-label="Large leakage chart">
+    <div class="chart-overlay-bar">
+      <span>Leakage chart</span>
+      <button type="button" id="closeFtOverlay">Close</button>
+    </div>
+    <canvas id="ftChartBig"></canvas>
   </div>
 
   <div id="pumpOverlay" class="chart-overlay hidden" role="dialog" aria-modal="true" aria-label="Large pump chart">
@@ -1355,8 +1368,8 @@
 <script src="fan-calc.js"></script>
 <script src="fan-ui.js"></script>
 <script>
-const APP_VERSION = "2.39";
-const APP_BUILD = 50;
+const APP_VERSION = "2.40";
+const APP_BUILD = 51;
 const FAN_KEY = "fittercalcs-ft";
 function fanOn() {
   try { return localStorage.getItem(FAN_KEY) === "1"; } catch (e) { return false; }
