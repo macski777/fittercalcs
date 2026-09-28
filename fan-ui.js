@@ -130,16 +130,20 @@ function setupFanTest() {
 
   function drawFanOn(ctx, w, h, press, dep, scale) {
     const s = scale > 0 ? scale : 1;
-    const padL = Math.round(78 * s), padR = Math.round(28 * s), padT = Math.round(52 * s), padB = Math.round(64 * s);
+    const hBar = Math.round(110 * s);
+    const padL = Math.round(78 * s), padR = Math.round(28 * s), padB = Math.round(64 * s);
+    const legendH = Math.round(34 * s);
+    const padT = hBar + legendH;
     ctx.fillStyle = "#f4ede4";
     ctx.fillRect(0, 0, w, h);
+    if (typeof drawBrandHeader === "function") drawBrandHeader(ctx, w, hBar, "FAN TEST");
     const all = press.concat(dep);
     if (all.length < 1) {
       ctx.fillStyle = "#14110f";
       ctx.font = "700 " + Math.round(20 * s) + "px sans-serif";
       ctx.textAlign = "left";
       ctx.textBaseline = "alphabetic";
-      ctx.fillText("Add fan points", padL, h / 2);
+      ctx.fillText("Add fan points", padL, hBar + (h - hBar) / 2);
       return;
     }
     const maxP = Math.max(...all.map((p) => p.q));
@@ -209,7 +213,7 @@ function setupFanTest() {
     ctx.textAlign = "left";
     ctx.textBaseline = "middle";
     let lx = padL;
-    const ly = Math.round(22 * s);
+    const ly = hBar + Math.round(legendH / 2);
     function key(color, label) {
       ctx.fillStyle = color;
       ctx.fillRect(lx, ly - Math.round(6 * s), Math.round(18 * s), Math.round(12 * s));
@@ -237,7 +241,7 @@ function setupFanTest() {
       const tw = Math.round(Math.max(280, big.clientWidth || window.innerWidth) * dpr);
       const th = Math.round(Math.max(220, big.clientHeight || window.innerHeight * 0.8) * dpr);
       if (big.width !== tw || big.height !== th) { big.width = tw; big.height = th; }
-      drawFanOn(big.getContext("2d"), big.width, big.height, press, dep);
+      drawFanOn(big.getContext("2d"), big.width, big.height, press, dep, big.width / 900);
     }
   }
 
@@ -515,6 +519,12 @@ function setupFanTest() {
       const dep = depressOmitted === "yes" ? [] : fanSeries("depPts");
       const scale = Math.max(0.9, Math.min(chartW / 900, chartH / 520, 1.7));
       drawFanOn(chart.getContext("2d"), chartW, chartH, press, dep, scale);
+      try { chart.toDataURL("image/png"); }
+      catch (e) {
+        window.skipBrandLogo = true;
+        drawFanOn(chart.getContext("2d"), chartW, chartH, press, dep, scale);
+        window.skipBrandLogo = false;
+      }
       ctx.drawImage(chart, m, y, chartW, chartH);
       ctx.strokeStyle = "#d7cbbd";
       ctx.lineWidth = 2;
@@ -589,4 +599,5 @@ function setupFanTest() {
   document.getElementById("ftchartOpen").onclick = openFtChart;
   document.getElementById("closeFtOverlay").onclick = closeFtChart;
   renderFan();
+  window.redrawFanChart = drawFanLeak;
 }

@@ -12,7 +12,7 @@
 </p>
 
 <p align="center">
-  <strong>Current version: 2.41</strong><br>
+  <strong>Current version: 2.42</strong><br>
   <a href="https://github.com/macski777/fittercalcs/releases/latest">Download FitterCalcs.apk</a>
   ·
   <a href="https://github.com/macski777/fittercalcs/releases/latest">Windows</a>
@@ -32,7 +32,7 @@ The launcher icon and the **FITTER / CALCS** wordmark use **Delta Corps Priest 1
 
 ## Install on Android
 
-1. Download [FitterCalcs.apk](https://github.com/macski777/fittercalcs/releases/download/v2.41/FitterCalcs.apk).
+1. Download [FitterCalcs.apk](https://github.com/macski777/fittercalcs/releases/download/v2.42/FitterCalcs.apk).
 2. Open the file on the phone.
 3. Allow install from this source if Android asks.
 4. Open **FitterCalcs**.
@@ -41,7 +41,7 @@ Needs Android 7 or newer.
 
 ## Install on Windows
 
-1. Download [FitterCalcs-Setup.exe](https://github.com/macski777/fittercalcs/releases/download/v2.41/FitterCalcs-Setup.exe).
+1. Download [FitterCalcs-Setup.exe](https://github.com/macski777/fittercalcs/releases/download/v2.42/FitterCalcs-Setup.exe).
 2. Double-click it. No admin, no wizard — it is a portable Windows app.
 3. Pin it to the taskbar or copy it to the Desktop if you want it handy.
 
@@ -49,7 +49,7 @@ Needs 64-bit Windows 10 or 11.
 
 ## Install on Linux
 
-1. Download [FitterCalcs-linux.tar.gz](https://github.com/macski777/fittercalcs/releases/download/v2.41/FitterCalcs-linux.tar.gz).
+1. Download [FitterCalcs-linux.tar.gz](https://github.com/macski777/fittercalcs/releases/download/v2.42/FitterCalcs-linux.tar.gz).
 2. Unpack it and run `./install.sh` (installs for your user only).
 3. Open **FitterCalcs** from the app menu, or run `fittercalcs`.
 
@@ -84,7 +84,7 @@ Phones on **2.17 or older** need a one-time install of 2.18 or later (USB or thi
 | **Pump** | kPa vs L/s curve, autosave by job. Green **PASS** / red **FAIL** vs nominated duty. Email cites AS 2941-2013 Cl 10.3, AS 2419.1:2021 Cl 4.2.7.1.2, AS 2118.1:2017 Cl 14.9, AS 1851-2012 Table 3.4.3. |
 | **Hydro-Calcs** | Hazen-Williams friction + static rise. Green **PASS** / red **FAIL** on typical 5 m/s (AS 2118.1-1999 Cl 12.14 is 10 m/s pipe / 6 m/s valves). Autosave by site / job. **Save to device** writes the A4 PNG. Email cites AS 1074 Cl 2.3, AS 2118.1:2017 Cl 14.10, AS 2419.1:2021 Cl 4.2.7.1.2. |
 | **Tanks** | 1–4 tanks, combined effective kL. Hydrants 4 h (AS 2419.1:2021 Cl 4.2.1 / Cl 4.2.6.3). Sprinklers 30/60/90 min (AS 2118.1:2017 Cl 9.3 / Cl 10.3 / Sec 11). 20 mm overflow (AS/NZS 3500.1:2021 Cl 8.3.2). Autosave by site / job. **Save to device** writes the A4 PNG. |
-| **AS-1851** | Field lookup for AS 1851-2012 routine service. Not a substitute for the Standard. |
+| **AS-1851** | Field lookup for AS 1851-2012 routine service. System and frequency are dropdowns. Not a substitute for the Standard. |
 
 ### Pipe
 

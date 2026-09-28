@@ -1240,8 +1240,22 @@
       </p>
     </details>
     <input id="asSearch" type="search" placeholder="Search — e.g. hydrant yearly, pump monthly, damper, tank" autocomplete="off" />
-    <div class="chips" id="asSysChips"></div>
-    <div class="chips" id="asFreqChips"></div>
+    <div class="pickrow two">
+      <div class="field menu-field">
+        <label for="asSysPick">System</label>
+        <div class="menu" id="asSysMenu">
+          <button type="button" class="menu-btn" id="asSysPick" aria-haspopup="listbox" aria-expanded="false"></button>
+          <div class="menu-list" role="listbox" hidden></div>
+        </div>
+      </div>
+      <div class="field menu-field">
+        <label for="asFreqPick">Frequency</label>
+        <div class="menu" id="asFreqMenu">
+          <button type="button" class="menu-btn" id="asFreqPick" aria-haspopup="listbox" aria-expanded="false"></button>
+          <div class="menu-list" role="listbox" hidden></div>
+        </div>
+      </div>
+    </div>
     <div class="as-count" id="asCount"></div>
     <div id="asList"></div>
     <p class="notes">
@@ -1334,7 +1348,7 @@
     </div>
     <div class="sysbox">
       <b>Leakage chart</b>
-      <canvas id="ftchart" width="900" height="560" title="Open large chart"></canvas>
+      <canvas id="ftchart" width="900" height="680" title="Open large chart"></canvas>
       <button type="button" class="chart-expand" id="ftchartOpen">Large chart</button>
     </div>
     <div class="hc-out" id="ftout"></div>
@@ -1368,8 +1382,8 @@
 <script src="fan-calc.js"></script>
 <script src="fan-ui.js"></script>
 <script>
-const APP_VERSION = "2.41";
-const APP_BUILD = 52;
+const APP_VERSION = "2.42";
+const APP_BUILD = 53;
 const FAN_KEY = "fittercalcs-ft";
 function fanOn() {
   try { return localStorage.getItem(FAN_KEY) === "1"; } catch (e) { return false; }
@@ -2373,20 +2387,10 @@ let asFreq = "";
 function setupAS1851() {
   const sys = ["", "General", "Sprinklers", "Fire pumps", "Hydrants", "Water tanks", "Detection & EWIS", "Special hazards", "Lay-flat hose", "Hose reels", "Extinguishers", "Fire blankets", "Passive & smoke", "Mechanical smoke", "Emergency planning"];
   const freq = ["", "About", "Monthly", "3-monthly", "6-monthly", "Yearly", "2-yearly", "5-yearly", "10-yearly+"];
-  const sysHost = document.getElementById("asSysChips");
-  const freqHost = document.getElementById("asFreqChips");
-  sysHost.innerHTML = sys.map(s => `<button type="button" data-s="${s}" class="${s === asSys ? "on" : ""}">${s || "All systems"}</button>`).join("");
-  freqHost.innerHTML = freq.map(s => `<button type="button" data-f="${s}" class="${s === asFreq ? "on" : ""}">${s || "All frequencies"}</button>`).join("");
-  sysHost.querySelectorAll("button").forEach(b => b.onclick = () => {
-    asSys = b.getAttribute("data-s");
-    sysHost.querySelectorAll("button").forEach(x => x.classList.toggle("on", x === b));
-    renderAS1851();
-  });
-  freqHost.querySelectorAll("button").forEach(b => b.onclick = () => {
-    asFreq = b.getAttribute("data-f");
-    freqHost.querySelectorAll("button").forEach(x => x.classList.toggle("on", x === b));
-    renderAS1851();
-  });
+  bindMenu("asSysMenu", () => sys.map(s => ({ value: s, label: s || "All systems" })),
+    () => asSys, (v) => { asSys = v; renderAS1851(); });
+  bindMenu("asFreqMenu", () => freq.map(s => ({ value: s, label: s || "All frequencies" })),
+    () => asFreq, (v) => { asFreq = v; renderAS1851(); });
   document.getElementById("asSearch").addEventListener("input", renderAS1851);
   renderAS1851();
 }
@@ -3934,14 +3938,19 @@ function monotoneSpline(pts) {
   };
 }
 
+function redrawBrandedCharts() {
+  try { drawPump(); } catch (e) {}
+  try { if (typeof redrawFanChart === "function") redrawFanChart(); } catch (e) {}
+}
 const brandLogo = new Image();
+brandLogo.onload = redrawBrandedCharts;
 brandLogo.src = "logo.png";
-brandLogo.onload = () => { try { drawPump(); } catch (e) {} };
 const brandWord = new Image();
+brandWord.onload = redrawBrandedCharts;
 brandWord.src = "wordmark.png";
-brandWord.onload = () => { try { drawPump(); } catch (e) {} };
+if (brandLogo.complete) redrawBrandedCharts();
 if (document.fonts && document.fonts.ready) {
-  document.fonts.ready.then(() => { try { drawPump(); } catch (e) {} });
+  document.fonts.ready.then(redrawBrandedCharts);
 }
 let skipBrandLogo = false;
 
@@ -3976,7 +3985,7 @@ function drawBrandHeader(ctx, w, hBar, tagText) {
   const logo = Math.round(Math.min(56 * s, hBar - 20));
   const x = Math.round(18 * s);
   const y = Math.round((hBar - 3 * s - logo) / 2);
-  if (!skipBrandLogo && brandLogo.complete && brandLogo.naturalWidth) {
+  if (!skipBrandLogo && !window.skipBrandLogo && brandLogo.complete && brandLogo.naturalWidth) {
     ctx.save();
     roundRectPath(ctx, x, y, logo, logo, Math.round(14 * s));
     ctx.clip();
