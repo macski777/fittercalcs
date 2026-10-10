@@ -12,7 +12,7 @@
 </p>
 
 <p align="center">
-  <strong>Current version: 2.43</strong><br>
+  <strong>Current version: 2.44</strong><br>
   <a href="https://github.com/macski777/fittercalcs/releases/latest">Download FitterCalcs.apk</a>
   ·
   <a href="https://github.com/macski777/fittercalcs/releases/latest">Windows</a>
@@ -32,7 +32,7 @@ The launcher icon and the **FITTER / CALCS** wordmark use **Delta Corps Priest 1
 
 ## Install on Android
 
-1. Download [FitterCalcs.apk](https://github.com/macski777/fittercalcs/releases/download/v2.43/FitterCalcs.apk).
+1. Download [FitterCalcs.apk](https://github.com/macski777/fittercalcs/releases/download/v2.44/FitterCalcs.apk).
 2. Open the file on the phone.
 3. Allow install from this source if Android asks.
 4. Open **FitterCalcs**.
@@ -41,15 +41,17 @@ Needs Android 7 or newer.
 
 ## Install on Windows
 
-1. Download [FitterCalcs-Setup.exe](https://github.com/macski777/fittercalcs/releases/download/v2.43/FitterCalcs-Setup.exe).
+1. Download [FitterCalcs-Setup.exe](https://github.com/macski777/fittercalcs/releases/download/v2.44/FitterCalcs-Setup.exe).
 2. Double-click it. No admin, no wizard — it is a portable Windows app.
 3. Pin it to the taskbar or copy it to the Desktop if you want it handy.
+
+From **2.44** the Windows app checks for a newer build when it opens. Click **Update** and it downloads the new exe, replaces this one, and restarts. Copies older than 2.44 need this one download. After that they update themselves.
 
 Needs 64-bit Windows 10 or 11.
 
 ## Install on Linux
 
-1. Download [FitterCalcs-linux.tar.gz](https://github.com/macski777/fittercalcs/releases/download/v2.43/FitterCalcs-linux.tar.gz).
+1. Download [FitterCalcs-linux.tar.gz](https://github.com/macski777/fittercalcs/releases/download/v2.44/FitterCalcs-linux.tar.gz).
 2. Unpack it and run `./install.sh` (installs for your user only).
 3. Open **FitterCalcs** from the app menu, or run `fittercalcs`.
 
@@ -65,14 +67,14 @@ sudo apt install python3-gi gir1.2-gtk-3.0 gir1.2-webkit2-4.1
 
 ## Updates
 
-From **2.18** onward the app checks this repo when it opens.
+From **2.18** the phone checks this repo when it opens. From **2.44** the Windows app checks the same file.
 
 - A red **Update** banner appears when a newer build is online.
 - An Android notification is posted as well.
-- Tap **Update** to download and install.
+- Tap **Update** to download and install. On Windows that replaces `FitterCalcs-Setup.exe` and restarts the app.
 - Tap the version number (top right) to check by hand.
 
-Phones on **2.17 or older** need a one-time install of 2.18 or later (USB or this page). After that they update themselves.
+Phones on **2.17 or older** need a one-time install of 2.18 or later (USB or this page). Windows copies older than **2.44** need one download of that build. After that they update themselves.
 
 ## What’s in the app
 
@@ -140,4 +142,4 @@ Bump `versionName` / `versionCode` in `app/build.gradle` and `APP_VERSION` in th
 ./publish-update.sh "Short note for the update banner"
 ```
 
-That updates `update.json`, pushes `main`, and attaches `FitterCalcs.apk` to a GitHub release. Phones on 2.18+ pick it up next time they open the app.
+That updates `update.json`, pushes `main`, and attaches `FitterCalcs.apk` to a GitHub release. Phones on 2.18+ and Windows on 2.44+ pick it up next time they open the app.

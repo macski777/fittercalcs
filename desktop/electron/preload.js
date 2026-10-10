@@ -7,5 +7,7 @@ contextBridge.exposeInMainWorld("OnlyFitters", {
     ipcRenderer.invoke("emailPng", dataUrl, filename, subject, body),
   emailText: (subject, body) => ipcRenderer.invoke("emailText", subject, body),
   toast: (msg) => ipcRenderer.invoke("toast", msg),
-  fullscreen: (on) => ipcRenderer.invoke("fullscreen", !!on)
+  fullscreen: (on) => ipcRenderer.invoke("fullscreen", !!on),
+  checkUpdate: () => ipcRenderer.invoke("checkUpdate"),
+  installUpdate: () => ipcRenderer.invoke("installUpdate")
 });

@@ -1382,8 +1382,8 @@
 <script src="fan-calc.js"></script>
 <script src="fan-ui.js"></script>
 <script>
-const APP_VERSION = "2.43";
-const APP_BUILD = 54;
+const APP_VERSION = "2.44";
+const APP_BUILD = 55;
 const FAN_KEY = "fittercalcs-ft";
 function fanOn() {
   try { return localStorage.getItem(FAN_KEY) === "1"; } catch (e) { return false; }
@@ -3289,7 +3289,7 @@ function setup() {
       const note = document.getElementById("updateNotes");
       if (!banner) return;
       if (title) title.textContent = "FitterCalcs " + version + " is online";
-      if (note) note.textContent = notes || "Tap Update to download and install.";
+      if (note) note.textContent = notes || (window.FitterCalcsPC ? "Click Update to download and install." : "Tap Update to download and install.");
       banner.classList.remove("hidden");
     }
   };

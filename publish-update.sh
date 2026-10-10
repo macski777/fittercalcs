@@ -20,6 +20,7 @@ cat > "$ROOT/update.json" <<EOF
   "versionCode": $CODE,
   "versionName": "$NAME",
   "apkUrl": "https://github.com/macski777/fittercalcs/releases/download/v$NAME/FitterCalcs.apk",
+  "winUrl": "https://github.com/macski777/fittercalcs/releases/download/v$NAME/FitterCalcs-Setup.exe",
   "notes": $(python3 -c "import json,sys; print(json.dumps(sys.argv[1]))" "$NOTES")
 }
 EOF
@@ -42,4 +43,4 @@ gh release create "v$NAME" "$APK#FitterCalcs.apk" --title "FitterCalcs $NAME" --
   || gh release upload "v$NAME" "$APK#FitterCalcs.apk" --clobber
 
 echo "Published $NAME (versionCode $CODE)"
-echo "Phones on 2.18+ will see the update next time they open FitterCalcs."
+echo "Phones on 2.18+ and Windows on 2.44+ will see the update next time they open FitterCalcs."

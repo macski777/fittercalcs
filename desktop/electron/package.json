@@ -1,6 +1,7 @@
 {
   "name": "fittercalcs",
-  "version": "2.43.0",
+  "version": "2.44.0",
+  "versionCode": 55,
   "description": "Field calculator for fire protection fitters",
   "author": "macski777",
   "license": "UNLICENSED",
@@ -24,6 +25,7 @@
     "files": [
       "main.js",
       "preload.js",
+      "update.js",
       "assets/**"
     ],
     "win": {
