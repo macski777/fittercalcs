@@ -405,6 +405,17 @@
       padding: 10px;
       border-radius: 12px;
     }
+    .lookup .flow-box label {
+      color: var(--gold);
+      font-weight: 800;
+    }
+    .lookup .flow-box input {
+      border: 2px solid var(--gold);
+      background: rgba(232, 184, 109, 0.14);
+      color: var(--gold);
+      font-weight: 750;
+      font-size: 1.35rem;
+    }
     .warn { color: #e8b86d; }
     .actions { display: flex; gap: 8px; margin: 12px 0; }
     .actions button, .addpt {
@@ -894,7 +905,7 @@
       </div>
     </div>
     <div class="lookup">
-      <div>
+      <div class="flow-box">
         <label for="annuLsIn">Flow (L/min)</label>
         <input id="annuLsIn" type="number" inputmode="decimal" min="0" step="1" />
         <small id="annuLpm"></small>
@@ -1382,8 +1393,8 @@
 <script src="fan-calc.js"></script>
 <script src="fan-ui.js"></script>
 <script>
-const APP_VERSION = "2.44";
-const APP_BUILD = 55;
+const APP_VERSION = "2.45";
+const APP_BUILD = 56;
 const FAN_KEY = "fittercalcs-ft";
 function fanOn() {
   try { return localStorage.getItem(FAN_KEY) === "1"; } catch (e) { return false; }
