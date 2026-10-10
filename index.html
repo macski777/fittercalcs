@@ -880,13 +880,13 @@
         <div class="stat"><label>Pipe ID</label><b id="annuId"></b> <small>mm</small></div>
         <div class="stat"><label>Probe K</label><b id="annuKCalc"></b></div>
         <div class="stat"><label>Probe</label><b id="annuProbeOd">9.53</b> <small>mm OD</small></div>
-        <div class="stat"><label>Range</label><b>1–12</b> <small>inHg</small></div>
+        <div class="stat"><label>Range</label><b>0.5–30</b> <small>inHg</small></div>
       </div>
     </section>
     <div class="lookup">
       <div>
         <label for="inHg">DP (inHg)</label>
-        <input id="inHg" type="number" inputmode="decimal" min="1" max="12" step="1" value="5" />
+        <input id="inHg" type="number" inputmode="decimal" min="0.5" max="30" step="0.5" value="5" />
       </div>
       <div>
         <label for="annuKIn">K factor</label>
@@ -922,7 +922,7 @@
       K comes from the <strong>medium steel card Rev 03</strong>: DN50 0.638, DN65 0.617, DN80 0.665, DN90 0.661, DN100 0.672, DN125 0.671, DN150 0.706.
       Light, Heavy, SS 10S, SS 40S (ASME Sch 40 ID), and copper <strong>interpolate that K against mill ID</strong>. Sizes bigger than DN150 hold the DN150 K.
       <strong>3/8″</strong> still uses Diamond II 15/16 formula K. Type a K to match a different card; <strong>Use probe K</strong> puts the table/formula back.
-      Type <strong>flow (L/min)</strong> and the table highlights the next listed <strong>inHg</strong> up (1.73 → 2). Range is <strong>1–12 inHg</strong>. Type inHg to see the flow.
+      Type <strong>flow (L/min)</strong> and the table highlights the next <strong>0.5 inHg</strong> up (1.2 → 1.5). Range is <strong>0.5–30 inHg</strong>. Type inHg to see the flow.
       Steel IDs are <strong>AS 1074-1989 (R2018) Cl 2.3, Tables 2.1–2.3</strong> Light / Medium / Heavy. <strong>Use the laminated chart that shipped with the probe for a certified test.</strong>
     </p>
   </div>
@@ -1382,8 +1382,8 @@
 <script src="fan-calc.js"></script>
 <script src="fan-ui.js"></script>
 <script>
-const APP_VERSION = "2.42";
-const APP_BUILD = 53;
+const APP_VERSION = "2.43";
+const APP_BUILD = 54;
 const FAN_KEY = "fittercalcs-ft";
 function fanOn() {
   try { return localStorage.getItem(FAN_KEY) === "1"; } catch (e) { return false; }
@@ -3351,7 +3351,9 @@ const ANNU_DN_NPS = {
   "50": "2", "65": "2-1/2", "80": "3", "90": "3-1/2",
   "100": "4", "125": "5", "150": "6", "200": "8"
 };
-const ANNU_DP = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
+const ANNU_DP_STEP = 0.5;
+const ANNU_DP_MAX = 30;
+const ANNU_DP = Array.from({ length: ANNU_DP_MAX / ANNU_DP_STEP }, (_, i) => (i + 1) * ANNU_DP_STEP);
 const ANNU_K_CARD = [
   [53.1, 0.638],
   [68.9, 0.617],
@@ -3433,11 +3435,16 @@ function inHgFromFlow(idMm, ls, kUsed) {
   return (x * x) / INHG_TO_INH2O;
 }
 function ceilAnnuDp(inHg) {
-  if (!Number.isFinite(inHg) || inHg <= 0) return ANNU_DP[0];
+  const min = ANNU_DP[0];
+  const max = ANNU_DP[ANNU_DP.length - 1];
+  if (!Number.isFinite(inHg) || inHg <= min) return min;
+  if (inHg >= max) return max;
+  const steps = Math.ceil((inHg - 1e-6) / ANNU_DP_STEP);
+  const snapped = steps * ANNU_DP_STEP;
   for (let i = 0; i < ANNU_DP.length; i++) {
-    if (ANNU_DP[i] + 1e-6 >= inHg) return ANNU_DP[i];
+    if (Math.abs(ANNU_DP[i] - snapped) < 1e-6) return ANNU_DP[i];
   }
-  return ANNU_DP[ANNU_DP.length - 1];
+  return max;
 }
 function currentAnnuId() {
   if (DATA[annuKind]) {
@@ -3513,6 +3520,10 @@ function renderAnnu() {
       <td class="${cls}">${r.ms.toFixed(2)}</td>
     </tr>`;
   }).join("");
+  if (annuFromFlow) {
+    const sel = document.querySelector("#annuRows tr.sel");
+    if (sel) sel.scrollIntoView({ block: "nearest" });
+  }
   paintMenu("annuProbeMenu");
   paintMenu("annuPipeMenu");
   paintMenu("annuSizeMenu");
