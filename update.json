@@ -1,6 +1,7 @@
 {
-  "versionCode": 54,
-  "versionName": "2.43",
-  "apkUrl": "https://github.com/macski777/fittercalcs/releases/download/v2.43/FitterCalcs.apk",
-  "notes": "FitterCalcs 2.43"
+  "versionCode": 55,
+  "versionName": "2.44",
+  "apkUrl": "https://github.com/macski777/fittercalcs/releases/download/v2.44/FitterCalcs.apk",
+  "winUrl": "https://github.com/macski777/fittercalcs/releases/download/v2.44/FitterCalcs-Setup.exe",
+  "notes": "FitterCalcs 2.44"
 }
