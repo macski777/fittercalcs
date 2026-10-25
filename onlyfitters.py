@@ -6,6 +6,7 @@ import os
 import re
 import subprocess
 import sys
+import urllib.request
 from pathlib import Path
 
 import gi
@@ -17,13 +18,40 @@ from gi.repository import Gdk, GLib, Gtk, WebKit2
 
 APP_ID = "org.onlyfitters.app"
 APP_NAME = "FitterCalcs"
-APP_VERSION = "2.45"
+APP_VERSION = "2.46"
 APP_TITLE = "%s %s" % (APP_NAME, APP_VERSION)
 APP_DIR = Path(__file__).resolve().parent
 HTML = APP_DIR / "index.html"
 ICON = APP_DIR / "onlyfitters.png"
 PICTURES = Path.home() / "Pictures" / "FitterCalcs"
 WEBKIT_DIR = Path.home() / ".local" / "share" / "onlyfitters" / "webkit"
+
+
+def server_url():
+    candidates = [
+        APP_DIR / "server.url",
+        APP_DIR / "app" / "src" / "main" / "assets" / "server.url",
+    ]
+    for path in candidates:
+        try:
+            line = path.read_text(encoding="utf-8").strip().splitlines()[0].strip()
+        except (OSError, IndexError):
+            continue
+        if line.startswith("https://") and " " not in line and len(line) < 200:
+            return line if line.endswith("/") else line + "/"
+    return ""
+
+
+def server_up(url):
+    for _ in range(3):
+        try:
+            req = urllib.request.Request(url + "api/setup", method="GET")
+            with urllib.request.urlopen(req, timeout=6) as res:
+                if 200 <= getattr(res, "status", 200) < 500:
+                    return True
+        except Exception:
+            continue
+    return False
 
 BRIDGE_JS = r"""
 window.FitterCalcsPC = true;
@@ -194,7 +222,19 @@ class OnlyFitters(Gtk.Application):
             pass
         web.set_background_color(Gdk.RGBA(0.08, 0.07, 0.06, 1))
         stamp = str(int(HTML.stat().st_mtime)) if HTML.exists() else "1"
-        web.load_uri(HTML.resolve().as_uri() + "?v=" + stamp)
+        local_uri = HTML.resolve().as_uri() + "?v=" + stamp
+        remote = server_url()
+        start = remote if remote and server_up(remote) else ""
+        self.used_local = not start
+
+        def on_load_failed(_web, _event, _uri, _error):
+            if self.used_local:
+                return
+            self.used_local = True
+            web.load_uri(local_uri)
+
+        web.connect("load-failed", on_load_failed)
+        web.load_uri(start or local_uri)
 
         web.set_hexpand(True)
         web.set_vexpand(True)

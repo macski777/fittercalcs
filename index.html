@@ -755,6 +755,55 @@
       flex-shrink: 0;
     }
     .build { cursor: pointer; }
+    .account-bar, #peoplePanel {
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      padding: 10px;
+      margin-bottom: 12px;
+    }
+    .account-bar form, #accountOn {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      align-items: center;
+      width: 100%;
+    }
+    .account-bar[hidden], #accountOn[hidden], #setupForm[hidden], #loginForm[hidden], #registerForm[hidden], #peoplePanel[hidden] { display: none !important; }
+    .account-bar input {
+      flex: 1;
+      min-width: 7rem;
+      background: #1a1613;
+      border: 1px solid var(--line);
+      color: var(--text);
+      font: inherit;
+      padding: 10px;
+      border-radius: 12px;
+    }
+    .account-bar button, #peoplePanel button {
+      appearance: none;
+      border: 0;
+      border-radius: 12px;
+      padding: 10px 12px;
+      font: inherit;
+      font-weight: 700;
+      background: var(--red);
+      color: #fff;
+    }
+    .account-bar button.ghost, #peoplePanel button.ghost {
+      background: transparent;
+      color: var(--muted);
+      border: 1px solid var(--line);
+    }
+    .account-note, #accountSync {
+      color: var(--muted);
+      font-size: 0.82rem;
+      line-height: 1.35;
+    }
+    .account-note { width: 100%; margin: 0; }
+    #accountWho { font-weight: 800; }
+    #accountSync { color: var(--ok); flex: 1; min-width: 10rem; }
+    .account-error { color: #ffb4bc; font-size: 0.78rem; width: 100%; }
   </style>
 </head>
 <body>
@@ -775,6 +824,51 @@
       </div>
     </div>
   </header>
+
+  <div id="accountBar" class="account-bar" hidden>
+    <form id="setupForm" hidden>
+      <p class="account-note">Create the first account. Each person’s pump, hydro, and tank jobs are then kept on this server.</p>
+      <input id="setupUser" autocomplete="username" placeholder="Name" />
+      <input id="setupPass" type="password" autocomplete="new-password" placeholder="Password" />
+      <button type="submit">Create account</button>
+      <p id="setupError" class="account-error"></p>
+    </form>
+    <form id="loginForm" hidden>
+      <p class="account-note">Each person has their own account. Pump, hydro, and tank jobs stay with that name.</p>
+      <input id="loginUser" autocomplete="username" placeholder="Name" />
+      <input id="loginPass" type="password" autocomplete="current-password" placeholder="Password" />
+      <button type="submit">Sign in</button>
+      <button type="button" id="showRegister" class="ghost">Create account</button>
+      <p id="loginError" class="account-error"></p>
+    </form>
+    <form id="registerForm" hidden>
+      <p class="account-note">Create your own account. Jobs you save stay with this name, separate from everyone else.</p>
+      <input id="regUser" autocomplete="username" placeholder="Name" />
+      <input id="regPass" type="password" autocomplete="new-password" placeholder="Password" />
+      <button type="submit">Create account</button>
+      <button type="button" id="showLogin" class="ghost">Sign in</button>
+      <p id="regError" class="account-error"></p>
+    </form>
+    <div id="accountOn" hidden>
+      <span id="accountWho"></span>
+      <span id="accountSync">Jobs stay on this device until you sign in.</span>
+      <button type="button" id="accountPeople" hidden>People</button>
+      <button type="button" id="accountOut" class="ghost">Sign out</button>
+    </div>
+  </div>
+  <div id="peoplePanel" hidden>
+    <b>People</b>
+    <p class="account-note">Anyone can create their own account from the sign-in screen. You can still add someone here.</p>
+    <form id="addUserForm">
+      <div class="pickrow two">
+        <div class="field"><label for="newUser">Name</label><input id="newUser" autocomplete="off" /></div>
+        <div class="field"><label for="newPass">Password</label><input id="newPass" type="password" autocomplete="new-password" /></div>
+      </div>
+      <div class="actions"><button type="submit">Add person</button></div>
+      <p id="peopleError" class="account-error"></p>
+    </form>
+    <div id="peopleList"></div>
+  </div>
 
   <div id="updateBanner" class="update-banner hidden">
     <div>
@@ -1393,7 +1487,7 @@
 <script src="fan-calc.js"></script>
 <script src="fan-ui.js"></script>
 <script>
-const APP_VERSION = "2.45";
+const APP_VERSION = "2.46";
 const APP_BUILD = 56;
 const FAN_KEY = "fittercalcs-ft";
 function fanOn() {
@@ -3244,6 +3338,213 @@ function paintMenu(id) {
   const host = document.getElementById(id);
   if (host && host._paint) host._paint();
 }
+const FC_KINDS = ["pump", "hydro", "tank"];
+let fcUser = null;
+let fcApplying = false;
+let fcSyncTimer = 0;
+let fcSyncing = false;
+
+function fcOnServer() {
+  return location.protocol === "http:" || location.protocol === "https:";
+}
+function fcKeys() {
+  return {
+    pump: JOBS_KEY,
+    hydro: HYDRO_JOBS_KEY,
+    tank: TANK_JOBS_KEY
+  };
+}
+function fcDraftKeys() {
+  return {
+    pump: DRAFT_KEY,
+    hydro: HYDRO_DRAFT_KEY,
+    tank: TANK_DRAFT_KEY
+  };
+}
+function fcReadJobs(kind) {
+  return kind === "pump" ? loadJobs() : loadNamedJobs(fcKeys()[kind]);
+}
+function fcWriteJobs(kind, jobs) {
+  if (kind === "pump") storeJobs(jobs);
+  else storeNamedJobs(fcKeys()[kind], jobs);
+}
+function fcScheduleSync() {
+  if (!fcOnServer() || fcApplying || !fcUser) return;
+  clearTimeout(fcSyncTimer);
+  fcSyncTimer = setTimeout(fcSyncNow, 600);
+}
+async function fcApi(method, path, body) {
+  const opt = { method: method, credentials: "same-origin", headers: {} };
+  if (body !== undefined) {
+    opt.headers["Content-Type"] = "application/json";
+    opt.body = JSON.stringify(body);
+  }
+  try {
+    const res = await fetch(path, opt);
+    let data = null;
+    try { data = await res.json(); } catch (e) {}
+    return { ok: res.ok, status: res.status, data: data || {} };
+  } catch (e) {
+    return null;
+  }
+}
+function fcCollect() {
+  const jobs = {};
+  const known = {};
+  const drafts = {};
+  const draftKeys = fcDraftKeys();
+  FC_KINDS.forEach(kind => {
+    jobs[kind] = fcReadJobs(kind);
+    let seen = null;
+    try { seen = JSON.parse(localStorage.getItem("fc-known-" + kind) || "null"); } catch (e) {}
+    known[kind] = Array.isArray(seen) ? seen : jobs[kind].map(job => String(job.id));
+    try { drafts[kind] = JSON.parse(localStorage.getItem(draftKeys[kind]) || "null"); }
+    catch (e) { drafts[kind] = null; }
+  });
+  return { jobs: jobs, known: known, drafts: drafts };
+}
+function fcApply(state, restoreForms) {
+  fcApplying = true;
+  try {
+    const draftKeys = fcDraftKeys();
+    FC_KINDS.forEach(kind => {
+      const list = (state.jobs && state.jobs[kind]) || [];
+      fcWriteJobs(kind, list);
+      localStorage.setItem("fc-known-" + kind, JSON.stringify(list.map(job => String(job.id))));
+      const draft = state.drafts && state.drafts[kind];
+      if (draft) localStorage.setItem(draftKeys[kind], JSON.stringify(draft));
+    });
+    renderJobList();
+    renderHydroJobs();
+    renderTankJobs();
+    if (restoreForms && state.drafts) {
+      const pump = state.drafts.pump;
+      if (pump && pump.jobName) applyPumpState(pump, pump.id || "");
+      const hydro = state.drafts.hydro;
+      if (hydro && hydro.site) applyHydroInput(hydro, hydro.id || "");
+      const tank = state.drafts.tank;
+      if (tank && tank.site) applyTankInput(tank, tank.id || "");
+    }
+  } finally {
+    fcApplying = false;
+  }
+}
+function fcForgetOtherUser(username) {
+  const prev = localStorage.getItem("fc-user") || "";
+  if (prev && prev !== username) {
+    const draftKeys = fcDraftKeys();
+    FC_KINDS.forEach(kind => {
+      localStorage.removeItem(fcKeys()[kind]);
+      localStorage.removeItem(draftKeys[kind]);
+      localStorage.removeItem("fc-known-" + kind);
+    });
+    activeJobId = "";
+    activeHydroId = "";
+    activeTankId = "";
+  }
+  localStorage.setItem("fc-user", username);
+}
+function fcShowSignedOut(needed) {
+  fcUser = null;
+  const bar = document.getElementById("accountBar");
+  const setup = document.getElementById("setupForm");
+  const login = document.getElementById("loginForm");
+  const reg = document.getElementById("registerForm");
+  const on = document.getElementById("accountOn");
+  const people = document.getElementById("peoplePanel");
+  if (bar) bar.hidden = false;
+  if (setup) setup.hidden = !needed;
+  if (login) login.hidden = !!needed;
+  if (reg) reg.hidden = true;
+  if (on) on.hidden = true;
+  if (people) people.hidden = true;
+}
+function fcShowSignedIn(me) {
+  fcUser = me;
+  const bar = document.getElementById("accountBar");
+  const setup = document.getElementById("setupForm");
+  const login = document.getElementById("loginForm");
+  const on = document.getElementById("accountOn");
+  const who = document.getElementById("accountWho");
+  const peopleBtn = document.getElementById("accountPeople");
+  if (bar) bar.hidden = false;
+  if (setup) setup.hidden = true;
+  if (login) login.hidden = true;
+  if (on) on.hidden = false;
+  if (who) who.textContent = me.username;
+  if (peopleBtn) peopleBtn.hidden = !me.admin;
+  const sync = document.getElementById("accountSync");
+  if (sync) sync.textContent = "Saving jobs to the server…";
+}
+async function fcSyncNow() {
+  if (!fcUser || fcSyncing) return;
+  fcSyncing = true;
+  const restore = !fcUser._restored;
+  const res = await fcApi("POST", "/api/sync", fcCollect());
+  fcSyncing = false;
+  const sync = document.getElementById("accountSync");
+  if (!res || !res.ok) {
+    if (sync) sync.textContent = res && res.status === 401
+      ? "Sign in again to save jobs on the server."
+      : "Server not reached. Jobs stay on this device.";
+    return;
+  }
+  fcUser._restored = true;
+  fcApply(res.data, restore);
+  if (sync) sync.textContent = "Jobs saved on the server.";
+}
+async function fcLoadPeople() {
+  const res = await fcApi("GET", "/api/users");
+  const host = document.getElementById("peopleList");
+  if (!host || !res || !res.ok) return;
+  const users = (res.data.users || []).filter(person => !person.admin);
+  if (!users.length) {
+    host.innerHTML = '<p class="notes" style="margin:0">No other people yet.</p>';
+    return;
+  }
+  host.innerHTML = users.map(person =>
+    '<div class="jobcard"><h3>' + escPump(person.username) + '</h3>' +
+    '<div class="rowbtns"><button type="button" class="ghost" data-user="' + person.id + '">Remove</button></div></div>'
+  ).join("");
+  host.querySelectorAll("[data-user]").forEach(button => {
+    button.onclick = async () => {
+      const name = button.closest(".jobcard").querySelector("h3").textContent;
+      if (!confirm("Remove " + name + " and their saved jobs from the server?")) return;
+      const gone = await fcApi("DELETE", "/api/users/" + button.getAttribute("data-user"));
+      const err = document.getElementById("peopleError");
+      if (!gone || !gone.ok) {
+        if (err) err.textContent = (gone && gone.data && gone.data.error) || "Could not remove that person.";
+        return;
+      }
+      if (err) err.textContent = "";
+      fcLoadPeople();
+    };
+  });
+}
+async function fcBoot() {
+  if (!fcOnServer()) return;
+  const bar = document.getElementById("accountBar");
+  if (bar) bar.hidden = false;
+  const setup = await fcApi("GET", "/api/setup");
+  if (!setup) {
+    fcShowSignedOut(false);
+    const err = document.getElementById("loginError");
+    if (err) err.textContent = "Can't reach the server.";
+    return;
+  }
+  if (setup.data.needed) {
+    fcShowSignedOut(true);
+    return;
+  }
+  const me = await fcApi("GET", "/api/me");
+  if (me && me.ok) {
+    fcForgetOtherUser(me.data.username);
+    fcShowSignedIn(me.data);
+    await fcSyncNow();
+    return;
+  }
+  fcShowSignedOut(false);
+}
 function setup() {
   bindMenu("pipeTypeMenu", () => ORDER.map(key => ({ value: key, label: DATA[key].label })),
     () => schedule, (v) => { schedule = v; render(); });
@@ -3324,6 +3625,106 @@ function setup() {
     document.documentElement.classList.add("shot");
     showPage(shot);
   }
+  const setupForm = document.getElementById("setupForm");
+  if (setupForm) setupForm.onsubmit = async (ev) => {
+    ev.preventDefault();
+    const err = document.getElementById("setupError");
+    const res = await fcApi("POST", "/api/setup", {
+      username: document.getElementById("setupUser").value,
+      password: document.getElementById("setupPass").value
+    });
+    if (!res || !res.ok) {
+      if (err) err.textContent = (res && res.data && res.data.error) || "Could not create the account.";
+      return;
+    }
+    if (err) err.textContent = "";
+    fcForgetOtherUser(res.data.username);
+    fcShowSignedIn(res.data);
+    await fcSyncNow();
+  };
+  const loginForm = document.getElementById("loginForm");
+  if (loginForm) loginForm.onsubmit = async (ev) => {
+    ev.preventDefault();
+    const err = document.getElementById("loginError");
+    const res = await fcApi("POST", "/api/login", {
+      username: document.getElementById("loginUser").value,
+      password: document.getElementById("loginPass").value
+    });
+    if (!res || !res.ok) {
+      if (err) err.textContent = (res && res.data && res.data.error) || "Could not sign in.";
+      return;
+    }
+    if (err) err.textContent = "";
+    document.getElementById("loginPass").value = "";
+    fcForgetOtherUser(res.data.username);
+    fcShowSignedIn(res.data);
+    await fcSyncNow();
+  };
+  const showRegister = document.getElementById("showRegister");
+  const showLogin = document.getElementById("showLogin");
+  const registerForm = document.getElementById("registerForm");
+  if (showRegister && registerForm && loginForm) {
+    showRegister.onclick = () => {
+      loginForm.hidden = true;
+      registerForm.hidden = false;
+    };
+  }
+  if (showLogin && registerForm && loginForm) {
+    showLogin.onclick = () => {
+      registerForm.hidden = true;
+      loginForm.hidden = false;
+    };
+  }
+  if (registerForm) registerForm.onsubmit = async (ev) => {
+    ev.preventDefault();
+    const err = document.getElementById("regError");
+    const res = await fcApi("POST", "/api/register", {
+      username: document.getElementById("regUser").value,
+      password: document.getElementById("regPass").value
+    });
+    if (!res || !res.ok) {
+      if (err) err.textContent = (res && res.data && res.data.error) || "Could not create the account.";
+      return;
+    }
+    if (err) err.textContent = "";
+    document.getElementById("regPass").value = "";
+    fcForgetOtherUser(res.data.username);
+    fcShowSignedIn(res.data);
+    await fcSyncNow();
+  };
+  const outBtn = document.getElementById("accountOut");
+  if (outBtn) outBtn.onclick = async () => {
+    await fcApi("POST", "/api/logout");
+    fcUser = null;
+    const people = document.getElementById("peoplePanel");
+    if (people) people.hidden = true;
+    fcShowSignedOut(false);
+  };
+  const peopleBtn = document.getElementById("accountPeople");
+  if (peopleBtn) peopleBtn.onclick = () => {
+    const panel = document.getElementById("peoplePanel");
+    if (!panel) return;
+    panel.hidden = !panel.hidden;
+    if (!panel.hidden) fcLoadPeople();
+  };
+  const addUser = document.getElementById("addUserForm");
+  if (addUser) addUser.onsubmit = async (ev) => {
+    ev.preventDefault();
+    const err = document.getElementById("peopleError");
+    const res = await fcApi("POST", "/api/users", {
+      username: document.getElementById("newUser").value,
+      password: document.getElementById("newPass").value
+    });
+    if (!res || !res.ok) {
+      if (err) err.textContent = (res && res.data && res.data.error) || "Could not add that person.";
+      return;
+    }
+    if (err) err.textContent = "";
+    document.getElementById("newUser").value = "";
+    document.getElementById("newPass").value = "";
+    fcLoadPeople();
+  };
+  fcBoot();
 }
 
 const INHG_TO_INH2O = 13.595;
@@ -3802,6 +4203,7 @@ function loadJobs() {
 }
 function storeJobs(jobs) {
   localStorage.setItem(JOBS_KEY, JSON.stringify(jobs.slice(0, 80)));
+  fcScheduleSync();
 }
 function timeAgo(ts) {
   const s = Math.max(0, Math.round((Date.now() - ts) / 1000));
@@ -3854,6 +4256,7 @@ function autosavePump() {
   if (applyingPump) return;
   const s = currentPumpState();
   try { localStorage.setItem(DRAFT_KEY, JSON.stringify(s)); } catch (e) {}
+  fcScheduleSync();
   if (!s.jobName) {
     setPumpStatus("Name the job to keep it in the list");
     return;
@@ -4521,6 +4924,7 @@ function loadNamedJobs(key) {
 }
 function storeNamedJobs(key, jobs) {
   localStorage.setItem(key, JSON.stringify(jobs.slice(0, 80)));
+  fcScheduleSync();
 }
 function setNamedStatus(id, msg) {
   const el = document.getElementById(id);
@@ -4615,6 +5019,7 @@ function autosaveHydro() {
   const s = currentHydroInput();
   s.summary = hydroJobSummary();
   try { localStorage.setItem(HYDRO_DRAFT_KEY, JSON.stringify(s)); } catch (e) {}
+  fcScheduleSync();
   if (!s.site) {
     setNamedStatus("hydroSaveStatus", "Name the site to keep it in the list");
     return;
@@ -4671,6 +5076,7 @@ function newHydroJob() {
   renderHydro();
   renderHydroJobs();
   try { localStorage.setItem(HYDRO_DRAFT_KEY, JSON.stringify(currentHydroInput())); } catch (e) {}
+  fcScheduleSync();
   setNamedStatus("hydroSaveStatus", "New calc — name the site to autosave");
 }
 function currentTankInput() {
@@ -4746,6 +5152,7 @@ function autosaveTank() {
   const s = currentTankInput();
   s.summary = tankJobSummary();
   try { localStorage.setItem(TANK_DRAFT_KEY, JSON.stringify(s)); } catch (e) {}
+  fcScheduleSync();
   if (!s.site) {
     setNamedStatus("tankSaveStatus", "Name the site to keep it in the list");
     return;
@@ -4817,6 +5224,7 @@ function newTankJob() {
   renderTanks();
   renderTankJobs();
   try { localStorage.setItem(TANK_DRAFT_KEY, JSON.stringify(currentTankInput())); } catch (e) {}
+  fcScheduleSync();
   setNamedStatus("tankSaveStatus", "New calc — name the site to autosave");
 }
 

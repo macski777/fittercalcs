@@ -1,8 +1,46 @@
 const { app, BrowserWindow, dialog, ipcMain, shell } = require("electron");
 const { spawn } = require("child_process");
 const fs = require("fs");
+const https = require("https");
 const path = require("path");
 const updater = require("./update.js");
+
+function serverUrl() {
+  const candidates = [
+    path.join(__dirname, "server.url"),
+    path.join(__dirname, "assets", "server.url"),
+    path.join(__dirname, "..", "..", "app", "src", "main", "assets", "server.url")
+  ];
+  for (const file of candidates) {
+    try {
+      const line = fs.readFileSync(file, "utf8").trim().split(/\r?\n/)[0].trim();
+      if (line.startsWith("https://") && !line.includes(" ") && line.length < 200) {
+        return line.endsWith("/") ? line : line + "/";
+      }
+    } catch (e) {}
+  }
+  return "";
+}
+
+function serverUp(url) {
+  const once = () => new Promise((resolve) => {
+    const req = https.get(url + "api/setup", { timeout: 6000 }, (res) => {
+      res.resume();
+      resolve(res.statusCode >= 200 && res.statusCode < 500);
+    });
+    req.on("error", () => resolve(false));
+    req.on("timeout", () => {
+      req.destroy();
+      resolve(false);
+    });
+  });
+  return (async () => {
+    for (let i = 0; i < 3; i++) {
+      if (await once()) return true;
+    }
+    return false;
+  })();
+}
 
 function picturesDir() {
   return path.join(app.getPath("pictures"), "FitterCalcs");
@@ -151,7 +189,7 @@ async function installUpdate(win) {
   }
 }
 
-function createWindow() {
+async function createWindow() {
   const win = new BrowserWindow({
     width: 480,
     height: 880,
@@ -168,7 +206,20 @@ function createWindow() {
     }
   });
   win.setMenuBarVisibility(false);
-  win.loadFile(path.join(__dirname, "assets", "index.html"));
+  const localFile = path.join(__dirname, "assets", "index.html");
+  const remote = serverUrl();
+  let openedServer = false;
+  if (remote && await serverUp(remote)) {
+    openedServer = true;
+    win.loadURL(remote);
+  } else {
+    win.loadFile(localFile);
+  }
+  win.webContents.on("did-fail-load", (_event, code, _desc, _url, isMainFrame) => {
+    if (!isMainFrame || code === -3 || !openedServer) return;
+    openedServer = false;
+    win.loadFile(localFile);
+  });
   win.webContents.on("did-finish-load", () => checkForUpdate(win, false));
   return win;
 }

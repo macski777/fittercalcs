@@ -18,6 +18,8 @@ import android.provider.Settings;
 import android.util.Base64;
 import android.view.Window;
 import android.webkit.JavascriptInterface;
+import android.webkit.WebResourceRequest;
+import android.webkit.WebResourceError;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
@@ -25,9 +27,13 @@ import android.widget.Toast;
 
 import org.json.JSONObject;
 
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
+import java.io.InputStream;
 import java.io.OutputStream;
+import java.net.HttpURLConnection;
+import java.net.URL;
 
 public class MainActivity extends Activity {
     private WebView webView;
@@ -40,6 +46,8 @@ public class MainActivity extends Activity {
     private AppUpdate pendingUpdate;
     private boolean updateCheckStarted;
     private boolean installAfterPermission;
+    private boolean usedLocal;
+    private static final String LOCAL_PAGE = "file:///android_asset/index.html";
 
     @SuppressLint({"SetJavaScriptEnabled", "AddJavascriptInterface"})
     @Override
@@ -73,6 +81,11 @@ public class MainActivity extends Activity {
                     downloadAndInstall();
                 }
             }
+
+            @Override
+            public void onReceivedError(WebView view, WebResourceRequest request, WebResourceError error) {
+                if (request != null && request.isForMainFrame()) loadLocal();
+            }
         });
         webView.setDownloadListener((url, userAgent, contentDisposition, mimeType, contentLength) -> {
             if (url != null && url.startsWith("data:image")) {
@@ -86,8 +99,65 @@ public class MainActivity extends Activity {
             }
         });
         webView.addJavascriptInterface(new Bridge(), "OnlyFitters");
-        webView.loadUrl("file:///android_asset/index.html");
         setContentView(webView);
+        openCalculator();
+    }
+
+    private void openCalculator() {
+        final String server = readServerUrl();
+        if (server.isEmpty()) {
+            loadLocal();
+            return;
+        }
+        new Thread(() -> {
+            final boolean up = serverReachable(server);
+            runOnUiThread(() -> {
+                if (isFinishing() || webView == null) return;
+                if (up) webView.loadUrl(server);
+                else loadLocal();
+            });
+        }).start();
+    }
+
+    private void loadLocal() {
+        if (usedLocal || webView == null) return;
+        usedLocal = true;
+        webView.loadUrl(LOCAL_PAGE);
+    }
+
+    private String readServerUrl() {
+        try (InputStream in = getAssets().open("server.url")) {
+            ByteArrayOutputStream out = new ByteArrayOutputStream();
+            byte[] buf = new byte[256];
+            int n;
+            while ((n = in.read(buf)) > 0) out.write(buf, 0, n);
+            String text = out.toString("UTF-8").trim();
+            int nl = text.indexOf('\n');
+            if (nl >= 0) text = text.substring(0, nl).trim();
+            if (!text.startsWith("https://") || text.indexOf(' ') >= 0 || text.length() > 200) return "";
+            if (!text.endsWith("/")) text = text + "/";
+            return text;
+        } catch (Exception e) {
+            return "";
+        }
+    }
+
+    private boolean serverReachable(String server) {
+        for (int i = 0; i < 3; i++) {
+            HttpURLConnection conn = null;
+            try {
+                conn = (HttpURLConnection) new URL(server + "api/setup").openConnection();
+                conn.setConnectTimeout(6000);
+                conn.setReadTimeout(6000);
+                conn.setInstanceFollowRedirects(true);
+                int code = conn.getResponseCode();
+                if (code >= 200 && code < 500) return true;
+            } catch (Exception ignored) {
+            } finally {
+                if (conn != null) conn.disconnect();
+            }
+        }
+        return false;
     }
 
     @Override

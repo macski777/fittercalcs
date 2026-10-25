@@ -6,12 +6,13 @@ import re
 import subprocess
 import sys
 import tempfile
+import urllib.request
 import webbrowser
 from pathlib import Path
 from urllib.parse import quote
 
 APP_NAME = "FitterCalcs"
-APP_VERSION = "2.45"
+APP_VERSION = "2.46"
 
 
 def app_dir():
@@ -122,6 +123,34 @@ class Api:
             pass
 
 
+def read_server_url(root):
+    candidates = [
+        root / "server.url",
+        Path(__file__).resolve().parent / "server.url",
+        Path(__file__).resolve().parent.parent / "server.url",
+    ]
+    for path in candidates:
+        try:
+            line = path.read_text(encoding="utf-8").strip().splitlines()[0].strip()
+        except (OSError, IndexError):
+            continue
+        if line.startswith("https://") and " " not in line and len(line) < 200:
+            return line if line.endswith("/") else line + "/"
+    return ""
+
+
+def server_up(url):
+    for _ in range(3):
+        try:
+            req = urllib.request.Request(url + "api/setup", method="GET")
+            with urllib.request.urlopen(req, timeout=6) as res:
+                if 200 <= getattr(res, "status", 200) < 500:
+                    return True
+        except Exception:
+            continue
+    return False
+
+
 def main():
     import webview
 
@@ -134,7 +163,9 @@ def main():
     if not icon.exists():
         icon = Path(__file__).resolve().parent / "fittercalcs.ico"
     stamp = str(int(html.stat().st_mtime))
-    url = html.resolve().as_uri() + "?v=" + stamp
+    local_url = html.resolve().as_uri() + "?v=" + stamp
+    remote = read_server_url(root)
+    url = remote if remote and server_up(remote) else local_url
     webview.create_window(
         "%s %s" % (APP_NAME, APP_VERSION),
         url=url,

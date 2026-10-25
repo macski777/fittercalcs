@@ -1,7 +1,7 @@
 {
-  "versionCode": 56,
-  "versionName": "2.45",
-  "apkUrl": "https://github.com/macski777/fittercalcs/releases/download/v2.45/FitterCalcs.apk",
-  "winUrl": "https://github.com/macski777/fittercalcs/releases/download/v2.45/FitterCalcs-Setup.exe",
-  "notes": "FitterCalcs 2.45"
+  "versionCode": 57,
+  "versionName": "2.46",
+  "apkUrl": "https://github.com/macski777/fittercalcs/releases/download/v2.46/FitterCalcs.apk",
+  "winUrl": "https://github.com/macski777/fittercalcs/releases/download/v2.46/FitterCalcs-Setup.exe",
+  "notes": "Each person creates their own account. Pump, hydro, and tank jobs stay with that name. On Android, uninstall the old FitterCalcs once if the update will not install, then install this one."
 }

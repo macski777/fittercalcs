@@ -12,7 +12,7 @@
 </p>
 
 <p align="center">
-  <strong>Current version: 2.45</strong><br>
+  <strong>Current version: 2.46</strong><br>
   <a href="https://github.com/macski777/fittercalcs/releases/latest">Download FitterCalcs.apk</a>
   ·
   <a href="https://github.com/macski777/fittercalcs/releases/latest">Windows</a>
@@ -32,16 +32,17 @@ The launcher icon and the **FITTER / CALCS** wordmark use **Delta Corps Priest 1
 
 ## Install on Android
 
-1. Download [FitterCalcs.apk](https://github.com/macski777/fittercalcs/releases/download/v2.45/FitterCalcs.apk).
-2. Open the file on the phone.
-3. Allow install from this source if Android asks.
-4. Open **FitterCalcs**.
+1. Download [FitterCalcs.apk](https://github.com/macski777/fittercalcs/releases/download/v2.46/FitterCalcs.apk).
+2. If this phone already has FitterCalcs and Android refuses the new file, uninstall the old app once, then install this one.
+3. Open the file on the phone.
+4. Allow install from this source if Android asks.
+5. Open **FitterCalcs**. Each person creates their own account. Pump, hydro, and tank jobs stay with that name.
 
 Needs Android 7 or newer.
 
 ## Install on Windows
 
-1. Download [FitterCalcs-Setup.exe](https://github.com/macski777/fittercalcs/releases/download/v2.45/FitterCalcs-Setup.exe).
+1. Download [FitterCalcs-Setup.exe](https://github.com/macski777/fittercalcs/releases/download/v2.46/FitterCalcs-Setup.exe).
 2. Double-click it. No admin, no wizard — it is a portable Windows app.
 3. Pin it to the taskbar or copy it to the Desktop if you want it handy.
 
@@ -51,7 +52,7 @@ Needs 64-bit Windows 10 or 11.
 
 ## Install on Linux
 
-1. Download [FitterCalcs-linux.tar.gz](https://github.com/macski777/fittercalcs/releases/download/v2.45/FitterCalcs-linux.tar.gz).
+1. Download [FitterCalcs-linux.tar.gz](https://github.com/macski777/fittercalcs/releases/download/v2.46/FitterCalcs-linux.tar.gz).
 2. Unpack it and run `./install.sh` (installs for your user only).
 3. Open **FitterCalcs** from the app menu, or run `fittercalcs`.
 
