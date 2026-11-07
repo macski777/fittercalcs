@@ -15,9 +15,9 @@
   <strong>Current version: 3.2.2</strong><br>
   <a href="https://github.com/macski777/fittercalcs/releases/latest">Download FitterCalcs.apk</a>
   ·
-  <a href="https://github.com/macski777/fittercalcs/releases/latest">Windows</a>
+  <a href="https://github.com/macski777/fittercalcs/releases/tag/v2.46">Windows</a>
   ·
-  <a href="https://github.com/macski777/fittercalcs/releases/latest">Linux</a>
+  <a href="https://github.com/macski777/fittercalcs/releases/tag/v2.46">Linux</a>
 </p>
 
 ## Logo
@@ -47,6 +47,8 @@ Needs Android 7 or newer.
 3. Pin it to the taskbar or copy it to the Desktop if you want it handy.
 
 From **2.44** the Windows app checks for a newer build when it opens. Click **Update** and it downloads the new exe, replaces this one, and restarts. Copies older than 2.44 need this one download. After that they update themselves.
+
+**Windows is still on 2.46.** The 3.x builds are Android-first; a matching Windows build will be published separately. Until then the Windows app may see the Android release version and report that the update has no Windows download.
 
 Needs 64-bit Windows 10 or 11.
 
@@ -84,9 +86,9 @@ Phones on **2.17 or older** need a one-time install of 2.18 or later (USB or thi
 | **Pipe** | OD, wall, ID for AS 1074-1989 (R2018) Cl 2.3 Tables 2.1 / 2.2 / 2.3 Light / Medium / Heavy, SS 10S, SS 40S, CPVC. mm or inch. |
 | **Annubar** | Type L/min or inHg for 3/8", 20T, and 21T. Table is 0.5–30 inHg in 0.5 steps; highlights the next 0.5 inHg up. Medium-steel card K; other walls interpolate by ID. |
 | **Flange** | AS 2129-2000 Tables D/E/F/H, ANSI 150/300, PN16 — OD, PCD, bolts, holes. |
-| **Pump** | kPa vs L/s curve, autosave by job. Green **PASS** / red **FAIL** vs nominated duty. Email cites AS 2941-2013 Cl 10.3, AS 2419.1:2021 Cl 4.2.7.1.2, AS 2118.1:2017 Cl 14.9, AS 1851-2012 Table 3.4.3. |
-| **Hydro-Calcs** | Hazen-Williams friction + static rise. Green **PASS** / red **FAIL** on typical 5 m/s (AS 2118.1-1999 Cl 12.14 is 10 m/s pipe / 6 m/s valves). Autosave by site / job. **Save to device** writes the A4 PNG. Email cites AS 1074 Cl 2.3, AS 2118.1:2017 Cl 14.10, AS 2419.1:2021 Cl 4.2.7.1.2. |
-| **Tanks** | 1–4 tanks, combined effective kL. Hydrants 4 h (AS 2419.1:2021 Cl 4.2.1 / Cl 4.2.6.3). Sprinklers 30/60/90 min (AS 2118.1:2017 Cl 9.3 / Cl 10.3 / Sec 11). 20 mm overflow (AS/NZS 3500.1:2021 Cl 8.3.2). Autosave by site / job. **Save to device** writes the A4 PNG. |
+| **Pump** | kPa vs L/s curve, autosave by job. Green **PASS** / red **FAIL** vs nominated duty, neutral until a duty is entered. Email cites AS 2941-2013 Cl 10.3, AS 2419.1:2021 Cl 4.2.7.1.2, AS 2118.1:2017 Cl 14.9, AS 1851-2012 Table 3.4.3. |
+| **Hydro-Calcs** | Hazen-Williams friction + static rise. Green **PASS** / red **FAIL** on typical 5 m/s (AS 2118.1-1999 Cl 12.14 is 10 m/s pipe / 6 m/s valves), neutral until flow and length are entered. Autosave by site / job. **Save to device** writes the A4 PNG. Email cites AS 1074 Cl 2.3, AS 2118.1:2017 Cl 14.10, AS 2419.1:2021 Cl 4.2.7.1.2. |
+| **Tanks** | 1–4 tanks, combined effective kL. Hydrants 4 h (AS 2419.1:2021 Cl 4.2.1 / Cl 4.2.6.3). Sprinklers 30/60/90 min (AS 2118.1:2017 Cl 9.3 / Cl 10.3 / Sec 11). 20 mm overflow (AS/NZS 3500.1:2021 Cl 8.3.2). Stays neutral until every tank has a size and a demand is entered. Autosave by site / job. **Save to device** writes the A4 PNG. |
 | **AS-1851** | Field lookup for AS 1851-2012 routine service. System and frequency are dropdowns. Not a substitute for the Standard. |
 
 ### Pipe
@@ -123,7 +125,17 @@ Hazen-Williams friction plus static rise. Velocity within 5 m/s is green **PASS*
 
 Pick **1 to 4 tanks**, each cylindrical or rectangular. Effective volumes add. Pick hydrants, sprinklers, or both; type infill / make-up. Hydrants **4 h** (AS 2419.1:2021 Cl 4.2.1 / Cl 4.2.6.3). Sprinklers **30 / 60 / 90 min** (AS 2118.1:2017 Cl 9.3 Light, Cl 10.3 Ordinary, Section 11 High Hazard). Combined systems: AS 2419.1:2021 Cl 4.2.3. Overflow default 20 mm: AS/NZS 3500.1:2021 Cl 8.3.2. Vortex / capacities: AS 2304:2019 Cl 7.3.5 / Cl 7.5. Enough storage is green **PASS**; short is red **FAIL**. Calcs **autosave by site / job**. **Save to device** writes the A4 report PNG.
 
-<p align="center"><img src="docs/tanks.png" width="320" alt="Tanks tab — four tanks, combined storage vs hydrant duration"></p>
+<p align="center"><img src="docs/tanks.png" width="320" alt="Tanks tab — three tanks, combined storage vs hydrant duration"></p>
+
+### Results and saved reports
+
+A result only turns green **PASS** or red **FAIL** when it has real site data. With a field still empty the tab shows a grey **ENTER DIMENSIONS**, **ENTER DEMAND** or **ENTER READINGS** card instead, so a leftover default can never be mistaken for a result.
+
+<p align="center"><img src="docs/tanks-empty.png" width="320" alt="Tanks tab — result stays neutral until the tank size is entered"></p>
+
+Red is used only for **FAIL** and destructive actions; menus, tabs and buttons are gold. A partly sized tank set stays neutral too — it will not read **PASS** until every tank has a size.
+
+Saved reports open **locked**. Tapping a field to read it, or scrolling past one, changes nothing and asks nothing; the **Change this saved report?** prompt appears only when you type into a field or press a control. Work that has no site name yet is kept in **History** as a **Draft — not saved** row, with **Continue** to return to it.
 
 ### Annubar K
 
@@ -142,7 +154,7 @@ A floating **Ask Stillo** button opens a chat panel that answers questions from 
 - Click a source chip or a `[n]` citation to read the exact clause/table passage in the panel. **Open PDF at page** opens the original page; **Copy text** copies the passage.
 - On a phone, swipe right on the source reader to go back to the answer.
 - Android back (the system gesture/button or an inward edge swipe) closes the source reader first, then Ask Stillo.
-- Tap the microphone to dictate a question. Tap **Read aloud** on an answer or source, or turn on **Read answers** in the footer. The native voice bridge is in the **3.1.3 Android APK**; desktop Chrome uses browser speech. If device speech fails, the server provides a fallback voice.
+- Tap the microphone to dictate a question. Tap **Read aloud** on an answer or source, or turn on **Read answers** in the footer. The native voice bridge is in the **3.2.x Android APK**; desktop Chrome uses browser speech. If device speech fails, the server provides a fallback voice.
 - Older editions are labelled; add the current edition to the library when you have it.
 
 Index commands on the server:
@@ -170,4 +182,8 @@ Bump `versionName` / `versionCode` in `app/build.gradle` and `APP_VERSION` in th
 ./publish-update.sh "Short note for the update banner"
 ```
 
-That updates `update.json`, pushes `main`, and attaches `FitterCalcs.apk` to a GitHub release. Phones on 2.18+ and Windows on 2.44+ pick it up next time they open the app.
+That updates `update.json`, pushes `main`, and attaches `FitterCalcs.apk` to a GitHub release. Phones on 2.18+ pick it up next time they open the app.
+
+The build is signed from `keystore.jks` in the project root, pinned in `app/build.gradle`. Keep that file. If it goes missing the build stops rather than signing with a random debug key — a different certificate makes Android refuse the update as a different app, which is exactly the **App not installed** error. `keystore.jks` is gitignored and never published.
+
+Windows and Linux installers are uploaded by hand to the release; set `FITTERCALCS_WIN_URL` when running the script if you want `update.json` to advertise the Windows build.
