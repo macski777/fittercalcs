@@ -1,7 +1,7 @@
 {
-  "versionCode": 65,
-  "versionName": "3.2.2",
-  "apkUrl": "https://github.com/macski777/fittercalcs/releases/download/v3.2.2/FitterCalcs.apk",
+  "versionCode": 67,
+  "versionName": "3.3.1",
+  "apkUrl": "https://github.com/macski777/fittercalcs/releases/download/v3.3.1/FitterCalcs.apk",
   "winUrl": "",
-  "notes": "The change-or-leave-it prompt now only appears when you actually edit a saved report. Tapping a field, reading it, or scrolling past it no longer triggers it."
+  "notes": "3.3.1: pump and flow tests no longer pass when the required flow is beyond the points you actually measured. Two-pump chart and the new Flow tab are included."
 }
