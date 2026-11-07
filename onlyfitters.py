@@ -18,7 +18,7 @@ from gi.repository import Gdk, GLib, Gtk, WebKit2
 
 APP_ID = "org.onlyfitters.app"
 APP_NAME = "FitterCalcs"
-APP_VERSION = "2.46"
+APP_VERSION = "3.0"
 APP_TITLE = "%s %s" % (APP_NAME, APP_VERSION)
 APP_DIR = Path(__file__).resolve().parent
 HTML = APP_DIR / "index.html"

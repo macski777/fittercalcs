@@ -15,39 +15,50 @@ from pathlib import Path
 from urllib.parse import unquote, urlsplit
 
 import accounts
+import assistant
+import calibration
 
 ROOT = Path(__file__).resolve().parent
 WEB = ROOT / "app" / "src" / "main" / "assets"
 BACKUP = Path.home() / "backups" / "sprinkler-pipe-chart"
+RELEASES = Path.home() / "FitterCalcs-releases"
 DIST = ROOT / "dist"
 HOST = "0.0.0.0"
 PORT = int(os.environ.get("FITTERCALCS_PORT") or 8745)
 
 
-def installer_path(built_name, backup_name):
+def latest_apk():
+    """Newest build in the release archive, used when dist/ has no APK."""
+    builds = [p for p in RELEASES.glob("FitterCalcs-*.apk") if p.is_file()]
+    if not builds:
+        return BACKUP / "FitterCalcs-2.45.apk"
+    return max(builds, key=lambda p: [int(n) for n in p.stem.split("-")[-1].split(".")])
+
+
+def installer_path(built_name, fallback):
     built = DIST / built_name
     if built.is_file() and built.stat().st_size > 0:
         return built
-    return BACKUP / backup_name
+    return fallback
 
 
 DOWNLOADS = {
     "FitterCalcs.apk": (
-        installer_path("FitterCalcs.apk", "FitterCalcs-2.45.apk"),
+        installer_path("FitterCalcs.apk", latest_apk()),
         "application/vnd.android.package-archive",
     ),
     "FitterCalcs-Setup.exe": (
-        installer_path("FitterCalcs-Setup.exe", "FitterCalcs-Setup.exe"),
+        installer_path("FitterCalcs-Setup.exe", BACKUP / "FitterCalcs-Setup.exe"),
         "application/vnd.microsoft.portable-executable",
     ),
     "FitterCalcs-linux.tar.gz": (
-        installer_path("FitterCalcs-linux.tar.gz", "FitterCalcs-linux.tar.gz"),
+        installer_path("FitterCalcs-linux.tar.gz", BACKUP / "FitterCalcs-linux.tar.gz"),
         "application/gzip",
     ),
 }
 
 INSTALL_NOTES = {
-    "FitterCalcs.apk": "Android 7 or newer, build 2.46. It signs in to this server. If Android says this is a different app, uninstall the old FitterCalcs once, then open this file and allow install from this source.",
+    "FitterCalcs.apk": "Android 7 or newer, build 3.1.3, with Ask Stillo voice input and read-aloud. It signs in to this server. If Android says this is a different app, uninstall the old FitterCalcs once, then open this file and allow install from this source.",
     "FitterCalcs-Setup.exe": "64-bit Windows 10 or 11, build 2.46. Portable app, no admin wizard. It signs in to this server. Replace the old program with this file.",
     "FitterCalcs-linux.tar.gz": "Linux build 2.46. It signs in to this server. Unpack it and run install.sh. Needs Python 3, GTK 3, and WebKitGTK 4.1.",
 }
@@ -94,7 +105,7 @@ def install_page():
 <main>
   <h1>FitterCalcs</h1>
   <p><a href="/">Open the calculator</a> in this browser.</p>
-  <p>These files are build 2.46. They sign in to this server. Install the one for the device. An app already on a phone or a Windows PC does not switch over by itself, and its GitHub update check is still on 2.45.</p>
+  <p>The Android app is build 3.1.3 with Ask Stillo voice input and read-aloud. The Windows and Linux installers are build 2.46. They sign in to this server. Install the one for the device. An app already on a phone or a Windows PC does not switch over by itself, and its GitHub update check is still on 2.45.</p>
   <ul>
     %s
   </ul>
@@ -125,6 +136,12 @@ class Handler(SimpleHTTPRequestHandler):
         return path
 
     def do_GET(self):
+        if self._route().startswith("/api/assistant"):
+            assistant.handle_http(self, "GET")
+            return
+        if self._route().startswith("/api/calibration/file/"):
+            self._calibration_file("GET")
+            return
         if self._api("GET"):
             return
         self._dispatch(True)
@@ -136,9 +153,18 @@ class Handler(SimpleHTTPRequestHandler):
         self._dispatch(False)
 
     def do_POST(self):
+        if self._route().startswith("/api/assistant"):
+            assistant.handle_http(self, "POST")
+            return
+        if self._route().startswith("/api/calibration/file/"):
+            self._calibration_file("POST")
+            return
         self._api("POST")
 
     def do_DELETE(self):
+        if self._route().startswith("/api/assistant"):
+            assistant.handle_http(self, "DELETE")
+            return
         self._api("DELETE")
 
     def _client_ip(self):
@@ -173,7 +199,8 @@ class Handler(SimpleHTTPRequestHandler):
                 length = int(self.headers.get("Content-Length") or 0)
             except ValueError:
                 length = -1
-            if length < 0 or length > accounts.MAX_BODY:
+            limit = 8_000_000 if path.startswith("/api/calibration") else accounts.MAX_BODY
+            if length < 0 or length > limit:
                 self._json(413, {"error": "That upload is too large."})
                 return True
         raw = self.rfile.read(length) if length else b""
@@ -187,7 +214,8 @@ class Handler(SimpleHTTPRequestHandler):
             if not isinstance(data, dict):
                 self._json(400, {"error": "The request was not valid."})
                 return True
-        result = accounts.handle(
+        handler = calibration.handle if path.startswith("/api/calibration") else accounts.handle
+        result = handler(
             method,
             path,
             data,
@@ -196,7 +224,13 @@ class Handler(SimpleHTTPRequestHandler):
             origin=self.headers.get("Origin") or "",
             host=self.headers.get("Host") or "",
         )
-        self._json(result.status, result.body, session=result.session, clear=result.clear_session)
+        body = result.body
+        # The phone reads the session from the JSON body. The calculator page
+        # does not send this header, so its sign-in response stays cookie-only.
+        if result.session and self.headers.get("X-FitterCalcs-Client") == "calibration":
+            body = dict(result.body)
+            body["token"] = result.session
+        self._json(result.status, body, session=result.session, clear=result.clear_session)
         return True
 
     def _json(self, status, obj, session=None, clear=False):
@@ -224,6 +258,56 @@ class Handler(SimpleHTTPRequestHandler):
         self.end_headers()
         try:
             self.wfile.write(data)
+        except (BrokenPipeError, ConnectionResetError):
+            return
+
+    def _calibration_file(self, method):
+        path = self._route()
+        token = self._session_cookie()
+        if method == "GET":
+            result = calibration.read_file(token, path)
+            self._send_calibration_file(result)
+            return
+        try:
+            length = int(self.headers.get("Content-Length") or 0)
+        except ValueError:
+            length = -1
+        if length < 0 or length > calibration.MAX_FILE:
+            self._json(413, {"error": "That file is too large."})
+            return
+        raw = self.rfile.read(length) if length else b""
+        result = calibration.write_file(
+            token,
+            path,
+            raw,
+            self.headers.get("Content-Type") or "",
+            self.headers.get("X-Attachment-Name") or "",
+            self.headers.get("X-Attachment-Sha") or "",
+            origin=self.headers.get("Origin") or "",
+            host=self.headers.get("Host") or "",
+        )
+        if result.data is not None:
+            self._send_calibration_file(result)
+            return
+        self._json(result.status, result.body)
+
+    def _send_calibration_file(self, result):
+        if result.data is None:
+            self._json(result.status, result.body)
+            return
+        self.send_response(result.status)
+        self.send_header("Content-Type", result.content_type)
+        self.send_header("Content-Length", str(len(result.data)))
+        self.send_header("X-Content-Type-Options", "nosniff")
+        self.send_header("Cache-Control", "no-store")
+        if result.filename:
+            self.send_header(
+                "Content-Disposition",
+                'inline; filename="%s"' % result.filename.replace('"', ""),
+            )
+        self.end_headers()
+        try:
+            self.wfile.write(result.data)
         except (BrokenPipeError, ConnectionResetError):
             return
 
@@ -295,6 +379,7 @@ def main():
     if not (WEB / "index.html").is_file():
         raise SystemExit("Missing %s" % (WEB / "index.html"))
     accounts.init_db()
+    calibration.ensure_schema()
     httpd = Server((HOST, PORT), Handler)
     ip = lan_ip()
     print("FitterCalcs http://%s:%s/" % (ip, PORT), flush=True)

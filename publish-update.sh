@@ -15,6 +15,13 @@ if [ ! -f "$APK" ]; then
   exit 1
 fi
 
+# Keep one canonical copy of every build in the release archive.
+RELEASES="$HOME/FitterCalcs-releases"
+mkdir -p "$RELEASES"
+cp -f "$APK" "$RELEASES/FitterCalcs-$NAME.apk"
+python3 "$RELEASES/update-index.py"
+echo "Archived $RELEASES/FitterCalcs-$NAME.apk"
+
 cat > "$ROOT/update.json" <<EOF
 {
   "versionCode": $CODE,

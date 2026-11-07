@@ -17,3 +17,10 @@ desktop/electron/dist/
 desktop/electron/assets/
 *.tar.gz
 /FitterCalcs-Setup.exe
+
+# Ask document assistant — private library, index and key
+assistant.db
+knowledge.db
+*.env
+FitterDocs/
+.trash/

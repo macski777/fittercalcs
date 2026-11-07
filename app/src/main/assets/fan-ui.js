@@ -1,3 +1,9 @@
+const FAN_JOBS_KEY = "onlyfitters-fan-jobs";
+const FAN_DRAFT_KEY = "onlyfitters-fan-draft";
+let activeFanId = "";
+let applyingFan = false;
+let fanSaveTimer = null;
+
 function setupFanTest() {
   if (!window.FanCalc || document.getElementById("page-fantest").dataset.ready) return;
   document.getElementById("page-fantest").dataset.ready = "1";
@@ -17,6 +23,7 @@ function setupFanTest() {
         set(b.getAttribute("data-v"));
         host.querySelectorAll("button").forEach((x) => x.classList.toggle("on", x === b));
         renderFan();
+        scheduleFanSave();
       };
     });
   }
@@ -28,7 +35,10 @@ function setupFanTest() {
       "<tr><td><input data-i=\"" + i + "\" data-k=\"p\" type=\"number\" inputmode=\"decimal\" step=\"0.1\" value=\"" + (pt.p != null ? pt.p : "") + "\" /></td>" +
       "<td><input data-i=\"" + i + "\" data-k=\"q\" type=\"number\" inputmode=\"decimal\" step=\"0.1\" value=\"" + (pt.q != null ? pt.q : "") + "\" /></td></tr>"
     ).join("");
-    $(id).querySelectorAll("input").forEach((el) => el.addEventListener("input", renderFan));
+    $(id).querySelectorAll("input").forEach((el) => el.addEventListener("input", () => {
+      renderFan();
+      scheduleFanSave();
+    }));
   }
 
   function readPoints(id) {
@@ -577,27 +587,192 @@ function setupFanTest() {
     a.click();
   }
 
+  function paintChips(id, value) {
+    const host = $(id);
+    if (!host) return;
+    host.querySelectorAll("button").forEach((b) => b.classList.toggle("on", b.getAttribute("data-v") === value));
+  }
+  function paintFanChoices() {
+    paintChips("regChips", pressureReg);
+    paintChips("basisChips", minBasis);
+    paintChips("llfChips", llfOverride);
+    paintChips("omitChips", depressOmitted);
+    if (typeof paintMenu === "function") {
+      paintMenu("ftstdMenu");
+      paintMenu("ftmixMenu");
+      paintMenu("ftagentMenu");
+    }
+  }
+  function fanTitle() {
+    const label = jobLabel();
+    const num = $("jobNo").value.trim();
+    if (label && num) return label + " · " + num;
+    return label || num;
+  }
+  function setField(id, value, fallback) {
+    $(id).value = value != null && value !== "" ? value : fallback;
+  }
+  function currentFanState() {
+    const s = formInput();
+    s.client = $("client").value.trim();
+    s.jobNo = $("jobNo").value.trim();
+    s.enclosure = $("enclosure").value.trim();
+    s.testDate = $("testDate").value;
+    s.tester = $("tester").value.trim();
+    s.id = activeFanId;
+    s.site = fanTitle();
+    s.title = s.site;
+    s.updated = Date.now();
+    return s;
+  }
+  function fanSame(a, b) {
+    const key = (row) => [row.client, row.enclosure, row.jobNo].map((v) => String(v || "").trim().toLowerCase()).join("|");
+    const left = key(a);
+    return left !== "||" && left === key(b);
+  }
+  function applyFanInput(s, id) {
+    const blank = FanCalc.SKY_AUS;
+    applyingFan = true;
+    $("client").value = s.client || "";
+    $("jobNo").value = s.jobNo || "";
+    $("enclosure").value = s.enclosure || "";
+    $("testDate").value = s.testDate || "";
+    $("tester").value = s.tester || "";
+    standard = s.standard === "2006" ? "2006" : "2015";
+    mixing = s.mixing === "continuous" ? "continuous" : "descending";
+    pressureReg = s.pressureReg === "no" ? "no" : "yes";
+    minBasis = s.minBasis === "eightyfive" || s.minBasis === "extinguishing" ? s.minBasis : "over13";
+    llfOverride = s.llfOverride === "yes" ? "yes" : "no";
+    depressOmitted = s.depressOmitted === "yes" ? "yes" : "no";
+    agentName = FanCalc.AGENTS.some((a) => a.name === s.agent) ? s.agent : blank.agent;
+    setField("llfPct", s.llfPct, "15");
+    setField("insideC", s.insideC, "20");
+    setField("outsideC", s.outsideC, "20");
+    setField("designC", s.designC, "20");
+    setField("atmBar", s.atmBar, "1.013");
+    setField("biasTest", s.biasTest, "2");
+    setField("biasHold", s.biasHold, "2");
+    setField("floodedH", s.floodedH, "3.96");
+    setField("minHeight", s.minHeight, "2");
+    setField("volume", s.volume, "126.56");
+    setField("mass", s.mass, "66.5");
+    setField("roomStrength", s.roomStrength, "500");
+    setField("dischargeS", s.dischargeS, "9");
+    pointTable("pressPts", Array.isArray(s.pressPoints) && s.pressPoints.length ? s.pressPoints : blank.pressPoints);
+    pointTable("depPts", Array.isArray(s.depressPoints) && s.depressPoints.length ? s.depressPoints : blank.depressPoints);
+    activeFanId = id || s.id || "";
+    paintFanChoices();
+    renderFan();
+    applyingFan = false;
+    renderFanJobs();
+  }
+  function renderFanJobs() {
+    if (typeof renderNamedJobs !== "function") return;
+    renderNamedJobs("fanJobs", loadNamedJobs(FAN_JOBS_KEY), activeFanId,
+      "No saved tests yet. Type a client or enclosure — the test autosaves as you edit.",
+      (id) => {
+        const rec = loadNamedJobs(FAN_JOBS_KEY).find((j) => j.id === id);
+        if (!rec) return;
+        applyFanInput(rec, rec.id);
+        if (typeof fcLockSaved === "function") fcLockSaved("fan", rec.id, rec.site || rec.title || "test");
+      },
+      (id) => {
+        if (typeof fcForgetJob === "function") fcForgetJob("fan", id);
+      });
+  }
+  function autosaveFan() {
+    if (applyingFan || (typeof fcApplying !== "undefined" && fcApplying)) return;
+    if (window.fcHoldSave && window.fcHoldSave.fan) return;
+    if (typeof fcIsLockedKind === "function" && fcIsLockedKind("fan")) return;
+    const s = currentFanState();
+    const res = FanCalc.calculate(formInput());
+    s.summary = res.error ? "in progress" : (fmt(res.holdMin, 2) + " min · " + (res.pass ? "PASS" : "FAIL"));
+    if (s.site && typeof fcSameBody === "function") {
+      const jobs = loadNamedJobs(FAN_JOBS_KEY);
+      let i = activeFanId ? jobs.findIndex((j) => j.id === activeFanId) : -1;
+      if (i < 0) i = jobs.findIndex((j) => fanSame(j, s));
+      if (i >= 0 && fcSameBody(jobs[i], s)) return;
+    }
+    try { localStorage.setItem(FAN_DRAFT_KEY, JSON.stringify(s)); } catch (e) {}
+    if (typeof fcScheduleSync === "function") fcScheduleSync();
+    if (!s.site) {
+      if (typeof setNamedStatus === "function") setNamedStatus("fanSaveStatus", "Name the client or enclosure to keep it in the list");
+      return;
+    }
+    const rec = Object.assign({}, s, { id: activeFanId || ("f" + Date.now()) });
+    activeFanId = upsertNamedJob(FAN_JOBS_KEY, activeFanId, rec, fanSame);
+    s.id = activeFanId;
+    try { localStorage.setItem(FAN_DRAFT_KEY, JSON.stringify(s)); } catch (e) {}
+    setNamedStatus("fanSaveStatus", "Autosaved " + timeAgo(s.updated));
+    renderFanJobs();
+  }
+  function scheduleFanSave() {
+    if (typeof fcApplying !== "undefined" && fcApplying) return;
+    if (applyingFan) return;
+    if (window.fcHoldSave) window.fcHoldSave.fan = false;
+    clearTimeout(fanSaveTimer);
+    fanSaveTimer = setTimeout(autosaveFan, 400);
+  }
+  function newFanTest() {
+    if (typeof fcUnlockSaved === "function") fcUnlockSaved();
+    applyFanInput({
+      client: "",
+      jobNo: "",
+      enclosure: "",
+      testDate: "",
+      tester: "",
+      agent: FanCalc.SKY_AUS.agent,
+      standard: "2015",
+      mixing: "descending",
+      pressureReg: "yes",
+      minBasis: "over13",
+      llfOverride: "no",
+      depressOmitted: "no",
+      pressPoints: FanCalc.SKY_AUS.pressPoints,
+      depressPoints: FanCalc.SKY_AUS.depressPoints
+    }, "");
+    try { localStorage.setItem(FAN_DRAFT_KEY, JSON.stringify(currentFanState())); } catch (e) {}
+    if (typeof fcScheduleSync === "function") fcScheduleSync();
+    setNamedStatus("fanSaveStatus", "New test — name the client or enclosure to autosave");
+  }
   bindMenu("ftstdMenu", () => [
     { value: "2015", label: "ISO 14520-1:2015" },
     { value: "2006", label: "ISO 14520-1:2006" }
-  ], () => standard, (v) => { standard = v; renderFan(); });
+  ], () => standard, (v) => { standard = v; renderFan(); scheduleFanSave(); });
   bindMenu("ftmixMenu", () => [
     { value: "descending", label: "Descending interface" },
     { value: "continuous", label: "Continuous mixing" }
-  ], () => mixing, (v) => { mixing = v; renderFan(); });
-  bindMenu("ftagentMenu", () => FanCalc.AGENTS.map((a) => ({ value: a.name, label: a.name })), () => agentName, (v) => { agentName = v; renderFan(); });
+  ], () => mixing, (v) => { mixing = v; renderFan(); scheduleFanSave(); });
+  bindMenu("ftagentMenu", () => FanCalc.AGENTS.map((a) => ({ value: a.name, label: a.name })), () => agentName, (v) => { agentName = v; renderFan(); scheduleFanSave(); });
   chipGroup("regChips", (v) => { pressureReg = v; });
   chipGroup("basisChips", (v) => { minBasis = v; });
   chipGroup("llfChips", (v) => { llfOverride = v; });
   chipGroup("omitChips", (v) => { depressOmitted = v; });
-  document.querySelectorAll("#page-fantest input").forEach((el) => el.addEventListener("input", renderFan));
-  pointTable("pressPts", FanCalc.SKY_AUS.pressPoints);
-  pointTable("depPts", FanCalc.SKY_AUS.depressPoints);
-  $("saveReport").onclick = () => exportReport("save");
-  $("emailReport").onclick = () => exportReport("email");
+  document.querySelectorAll("#page-fantest input").forEach((el) => el.addEventListener("input", () => {
+    renderFan();
+    scheduleFanSave();
+  }));
+  let opening = null;
+  try { opening = JSON.parse(localStorage.getItem(FAN_DRAFT_KEY) || "null"); } catch (e) {}
+  if (opening && typeof opening === "object") applyFanInput(opening, opening.id || "");
+  else {
+    pointTable("pressPts", FanCalc.SKY_AUS.pressPoints);
+    pointTable("depPts", FanCalc.SKY_AUS.depressPoints);
+    renderFan();
+    renderFanJobs();
+  }
+  $("new").onclick = () => newFanTest();
+  $("saveReport").onclick = () => { autosaveFan(); exportReport("save"); };
+  $("emailReport").onclick = () => { autosaveFan(); exportReport("email"); };
   document.getElementById("ftchart").onclick = openFtChart;
   document.getElementById("ftchartOpen").onclick = openFtChart;
   document.getElementById("closeFtOverlay").onclick = closeFtChart;
-  renderFan();
+  document.addEventListener("visibilitychange", () => {
+    if (document.hidden) autosaveFan();
+  });
+  window.applyFanInput = applyFanInput;
+  window.renderFanJobs = renderFanJobs;
+  window.fanReportPack = reportPack;
   window.redrawFanChart = drawFanLeak;
+  window.autosaveFan = autosaveFan;
 }

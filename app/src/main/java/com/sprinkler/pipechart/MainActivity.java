@@ -15,6 +15,11 @@ import android.os.Bundle;
 import android.os.Environment;
 import android.provider.MediaStore;
 import android.provider.Settings;
+import android.speech.RecognitionListener;
+import android.speech.RecognizerIntent;
+import android.speech.SpeechRecognizer;
+import android.speech.tts.TextToSpeech;
+import android.speech.tts.UtteranceProgressListener;
 import android.util.Base64;
 import android.view.Window;
 import android.webkit.JavascriptInterface;
@@ -34,6 +39,8 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.Locale;
 
 public class MainActivity extends Activity {
     private WebView webView;
@@ -47,6 +54,13 @@ public class MainActivity extends Activity {
     private boolean updateCheckStarted;
     private boolean installAfterPermission;
     private boolean usedLocal;
+    private TextToSpeech tts;
+    private boolean ttsReady;
+    private SpeechRecognizer recognizer;
+    private boolean recognizing;
+    private boolean assistantOverlayOpen;
+    private static final int REQ_RECORD_AUDIO = 92;
+    private static final int REQ_VOICE_INPUT = 94;
     private static final String LOCAL_PAGE = "file:///android_asset/index.html";
 
     @SuppressLint({"SetJavaScriptEnabled", "AddJavascriptInterface"})
@@ -99,7 +113,9 @@ public class MainActivity extends Activity {
             }
         });
         webView.addJavascriptInterface(new Bridge(), "OnlyFitters");
+        webView.addJavascriptInterface(new VoiceBridge(), "FCVoice");
         setContentView(webView);
+        initTts();
         openCalculator();
     }
 
@@ -162,6 +178,13 @@ public class MainActivity extends Activity {
 
     @Override
     public void onBackPressed() {
+        if (assistantOverlayOpen && webView != null) {
+            webView.evaluateJavascript(
+                    "window.FCAssistantBack && window.FCAssistantBack()",
+                    null
+            );
+            return;
+        }
         if (webView != null && webView.canGoBack()) {
             webView.goBack();
             return;
@@ -185,6 +208,283 @@ public class MainActivity extends Activity {
         if (installAfterPermission) {
             installAfterPermission = false;
             downloadAndInstall();
+        }
+    }
+
+    private void initTts() {
+        tts = new TextToSpeech(this, status -> {
+            if (status != TextToSpeech.SUCCESS) {
+                ttsReady = false;
+                notifyVoiceState("error", "Text to speech is not available on this phone.");
+                return;
+            }
+            ttsReady = true;
+            int result = tts.setLanguage(new Locale("en", "AU"));
+            if (result == TextToSpeech.LANG_MISSING_DATA || result == TextToSpeech.LANG_NOT_SUPPORTED) {
+                tts.setLanguage(Locale.getDefault());
+            }
+            tts.setOnUtteranceProgressListener(new UtteranceProgressListener() {
+                @Override
+                public void onStart(String utteranceId) {
+                    notifyVoiceState("start", "");
+                }
+
+                @Override
+                public void onDone(String utteranceId) {
+                    notifyVoiceState("done", "");
+                }
+
+                @Override
+                public void onError(String utteranceId) {
+                    notifyVoiceState("error", "Text to speech stopped.");
+                }
+            });
+        });
+    }
+
+    private void notifyVoiceState(String state, String message) {
+        if (webView == null) return;
+        final String js = "window.FCVoiceOnDone && window.FCVoiceOnDone("
+                + JSONObject.quote(state) + ","
+                + JSONObject.quote(message == null ? "" : message) + ");";
+        webView.post(() -> {
+            if (webView != null) webView.evaluateJavascript(js, null);
+        });
+    }
+
+    private void notifyDictation(String state, String message) {
+        if (webView == null) return;
+        final String js = "window.FCVoiceOnDictation && window.FCVoiceOnDictation("
+                + JSONObject.quote(state) + ","
+                + JSONObject.quote(message == null ? "" : message) + ");";
+        webView.post(() -> {
+            if (webView != null) webView.evaluateJavascript(js, null);
+        });
+    }
+
+    private void notifyTranscript(String text, boolean isFinal) {
+        if (webView == null) return;
+        final String js = "window.FCVoiceOnText && window.FCVoiceOnText("
+                + JSONObject.quote(text == null ? "" : text) + ","
+                + (isFinal ? "true" : "false") + ");";
+        webView.post(() -> {
+            if (webView != null) webView.evaluateJavascript(js, null);
+        });
+    }
+
+    private boolean voicePageAllowed() {
+        if (webView == null) return false;
+        String url = webView.getUrl();
+        if (url == null) return false;
+        return url.startsWith("https://")
+                || url.startsWith("http://")
+                || url.startsWith("file:///android_asset/");
+    }
+
+    private void startRecognition() {
+        if (recognizer == null && !SpeechRecognizer.isRecognitionAvailable(this)) {
+            notifyDictation("error", "Speech recognition is not available on this phone.");
+            return;
+        }
+        if (checkSelfPermission(Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED) {
+            requestPermissions(new String[]{Manifest.permission.RECORD_AUDIO}, REQ_RECORD_AUDIO);
+            return;
+        }
+        if (recognizer == null) {
+            recognizer = SpeechRecognizer.createSpeechRecognizer(this);
+            recognizer.setRecognitionListener(new RecognitionListener() {
+                @Override
+                public void onReadyForSpeech(Bundle params) {
+                    if (recognizing) notifyDictation("listening", "");
+                }
+
+                @Override
+                public void onBeginningOfSpeech() {}
+
+                @Override
+                public void onRmsChanged(float rmsdB) {}
+
+                @Override
+                public void onBufferReceived(byte[] buffer) {}
+
+                @Override
+                public void onEndOfSpeech() {
+                    if (recognizing) notifyDictation("processing", "");
+                }
+
+                @Override
+                public void onError(int error) {
+                    if (!recognizing) return;
+                    recognizing = false;
+                    notifyDictation("error", recognitionError(error));
+                }
+
+                @Override
+                public void onResults(Bundle results) {
+                    if (!recognizing) return;
+                    recognizing = false;
+                    ArrayList<String> matches = results == null ? null
+                            : results.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION);
+                    String text = matches != null && !matches.isEmpty() ? matches.get(0) : "";
+                    notifyTranscript(text, true);
+                    notifyDictation("done", "");
+                }
+
+                @Override
+                public void onPartialResults(Bundle partialResults) {
+                    if (!recognizing) return;
+                    ArrayList<String> matches = partialResults == null ? null
+                            : partialResults.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION);
+                    if (matches != null && !matches.isEmpty()) notifyTranscript(matches.get(0), false);
+                }
+
+                @Override
+                public void onEvent(int eventType, Bundle params) {}
+            });
+        }
+        Intent intent = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
+        intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM);
+        intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE, "en-AU");
+        intent.putExtra(RecognizerIntent.EXTRA_PARTIAL_RESULTS, true);
+        intent.putExtra(RecognizerIntent.EXTRA_MAX_RESULTS, 1);
+        recognizing = true;
+        notifyDictation("listening", "");
+        try {
+            recognizer.startListening(intent);
+        } catch (Exception error) {
+            recognizing = false;
+            notifyDictation("error", "Speech recognition could not start.");
+        }
+    }
+
+    private void startVoiceInput() {
+        Intent intent = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
+        intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM);
+        intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE, "en-AU");
+        intent.putExtra(RecognizerIntent.EXTRA_PROMPT, "Ask Stillo a question");
+        intent.putExtra(RecognizerIntent.EXTRA_MAX_RESULTS, 1);
+        notifyDictation("listening", "");
+        try {
+            startActivityForResult(intent, REQ_VOICE_INPUT);
+        } catch (ActivityNotFoundException error) {
+            // No system voice dialog. Fall back to the in-app recognizer.
+            startRecognition();
+        } catch (Exception error) {
+            notifyDictation("error", "Dictation could not start.");
+        }
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode != REQ_VOICE_INPUT) return;
+        String text = "";
+        if (data != null) {
+            ArrayList<String> results = data.getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS);
+            if (results != null && !results.isEmpty()) {
+                text = results.get(0);
+            }
+        }
+        if (text != null && !text.trim().isEmpty()) {
+            notifyTranscript(text, true);
+            notifyDictation("done", "");
+        } else {
+            notifyDictation(
+                    "error",
+                    resultCode == RESULT_CANCELED ? "Dictation cancelled." : "No speech was recognised."
+            );
+        }
+    }
+
+    private String recognitionError(int error) {        switch (error) {
+            case SpeechRecognizer.ERROR_AUDIO:
+                return "There was a problem with the microphone.";
+            case SpeechRecognizer.ERROR_INSUFFICIENT_PERMISSIONS:
+                return "Microphone permission is required.";
+            case SpeechRecognizer.ERROR_NETWORK:
+            case SpeechRecognizer.ERROR_NETWORK_TIMEOUT:
+            case SpeechRecognizer.ERROR_SERVER:
+                return "Speech recognition needs an internet connection.";
+            case SpeechRecognizer.ERROR_NO_MATCH:
+                return "I didn't catch that. Tap the mic and try again.";
+            case SpeechRecognizer.ERROR_SPEECH_TIMEOUT:
+                return "I didn't hear anything. Tap the mic and try again.";
+            case SpeechRecognizer.ERROR_RECOGNIZER_BUSY:
+                return "The microphone is busy. Try again.";
+            default:
+                return "Dictation stopped.";
+        }
+    }
+
+    @Override
+    protected void onDestroy() {
+        if (tts != null) {
+            tts.stop();
+            tts.shutdown();
+            tts = null;
+        }
+        if (recognizer != null) {
+            recognizer.destroy();
+            recognizer = null;
+        }
+        super.onDestroy();
+    }
+
+    public class VoiceBridge {
+        @JavascriptInterface
+        public boolean available() {
+            return true;
+        }
+
+        @JavascriptInterface
+        public void setOverlay(boolean open) {
+            assistantOverlayOpen = open;
+        }
+
+        @JavascriptInterface
+        public void speak(final String text) {
+            final String clean = text == null ? "" : text.trim();
+            if (clean.isEmpty()) return;
+            runOnUiThread(() -> {
+                if (!voicePageAllowed()) {
+                    notifyVoiceState("error", "Voice is only available inside the FitterCalcs app.");
+                    return;
+                }
+                if (tts == null || !ttsReady) {
+                    notifyVoiceState("error", "Voice is still starting. Try again.");
+                    return;
+                }
+                tts.stop();
+                Bundle params = new Bundle();
+                params.putString(TextToSpeech.Engine.KEY_PARAM_UTTERANCE_ID, "fc-answer");
+                int result = tts.speak(clean, TextToSpeech.QUEUE_FLUSH, params, "fc-answer");
+                if (result == TextToSpeech.ERROR) {
+                    notifyVoiceState("error", "Text to speech could not start.");
+                }
+            });
+        }
+
+        @JavascriptInterface
+        public void stopSpeaking() {
+            runOnUiThread(() -> {
+                if (tts != null) tts.stop();
+            });
+        }
+
+        @JavascriptInterface
+        public void startDictation() {
+            runOnUiThread(() -> {
+                if (voicePageAllowed()) startVoiceInput();
+            });
+        }
+
+        @JavascriptInterface
+        public void stopDictation() {
+            runOnUiThread(() -> {
+                recognizing = false;
+                if (recognizer != null) recognizer.cancel();
+                notifyDictation("done", "");
+            });
         }
     }
 
@@ -376,6 +676,14 @@ public class MainActivity extends Activity {
     @Override
     public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        if (requestCode == REQ_RECORD_AUDIO) {
+            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                startRecognition();
+            } else {
+                notifyDictation("error", "Microphone permission was denied.");
+            }
+            return;
+        }
         if (requestCode == 91 && grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
             doSave("email".equals(pendingAction));
         } else if (requestCode == 91) {

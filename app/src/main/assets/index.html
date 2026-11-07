@@ -4,6 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <title>FitterCalcs</title>
+  <link rel="stylesheet" href="assistant.css" />
   <style>
     :root {
       --bg: #14110f;
@@ -13,6 +14,8 @@
       --text: #f4ede4;
       --muted: #a89b8c;
       --red: #d1243a;
+      --action: #e8b86d;
+      --on-action: #14110f;
       --red-dim: #8b1e2d;
       --gold: #e8b86d;
       --steel: #9aa8b5;
@@ -25,6 +28,7 @@
       color: var(--text);
       font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
       min-height: 100%;
+      overscroll-behavior-y: contain;
     }
     body {
       padding: calc(12px + env(safe-area-inset-top)) 14px calc(24px + env(safe-area-inset-bottom));
@@ -125,8 +129,8 @@
       padding: 8px 12px;
     }
     .units button.on, .chips button.on {
-      background: var(--red);
-      color: white;
+      background: var(--action);
+      color: var(--on-action);
     }
     .chips {
       display: flex;
@@ -161,10 +165,10 @@
       width: 100%;
       min-height: 46px;
       text-align: left;
-      background: var(--red);
-      color: #fff;
-      -webkit-text-fill-color: #fff;
-      border: 1px solid #a81c2e;
+      background: var(--action);
+      color: var(--on-action);
+      -webkit-text-fill-color: var(--on-action);
+      border: 1px solid #b98a3f;
       border-radius: 12px;
       font: inherit;
       font-weight: 700;
@@ -180,12 +184,12 @@
       top: 50%;
       margin-top: -2px;
       border: 5px solid transparent;
-      border-top-color: #fff;
+      border-top-color: var(--on-action);
     }
     .menu-btn[aria-expanded="true"]::after {
       margin-top: -8px;
       border-top-color: transparent;
-      border-bottom-color: #fff;
+      border-bottom-color: var(--on-action);
     }
     .menu-list {
       position: absolute;
@@ -222,7 +226,7 @@
       cursor: pointer;
     }
     .menu-list button.on,
-    .menu-list button:hover { background: var(--red); color: #fff; -webkit-text-fill-color: #fff; }
+    .menu-list button:hover { background: var(--action); color: var(--on-action); -webkit-text-fill-color: var(--on-action); }
     .visual {
       background: linear-gradient(180deg, #2a2420, var(--card));
       border: 1px solid var(--line);
@@ -258,9 +262,8 @@
     .stat label {
       display: block;
       color: var(--muted);
-      font-size: 0.68rem;
-      text-transform: uppercase;
-      letter-spacing: 0.08em;
+      font-size: 0.74rem;
+      letter-spacing: 0.02em;
     }
     .stat b {
       font-variant-numeric: tabular-nums;
@@ -298,7 +301,7 @@
       position: sticky;
       top: 0;
     }
-    tr.sel td { background: rgba(209, 36, 58, 0.18); }
+    tr.sel td { background: rgba(232, 184, 109, 0.18); }
     tr:active td { background: rgba(232, 184, 109, 0.12); }
     .compare {
       background: var(--card);
@@ -330,7 +333,7 @@
       border-radius: 99px;
       overflow: hidden;
     }
-    .fill { height: 100%; border-radius: 99px; background: var(--red); }
+    .fill { height: 100%; border-radius: 99px; background: var(--action); }
     .fill.light { background: #d1243a; }
     .fill.med { background: #e8b86d; }
     .fill.heavy { background: #9aa8b5; }
@@ -361,7 +364,7 @@
       padding: 10px 4px;
       border-radius: 12px;
     }
-    .nav button.on { background: var(--red); color: #fff; border-color: var(--red); }
+    .nav button.on { background: var(--action); color: var(--on-action); border-color: var(--action); }
     .page { display: none; }
     .page.on { display: block; }
     #page-fantest .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
@@ -389,9 +392,8 @@
     .lookup label {
       display: block;
       color: var(--muted);
-      font-size: 0.68rem;
-      text-transform: uppercase;
-      letter-spacing: 0.08em;
+      font-size: 0.74rem;
+      letter-spacing: 0.02em;
       margin-bottom: 4px;
     }
     .lookup input {
@@ -426,13 +428,18 @@
       padding: 12px 10px;
       font: inherit;
       font-weight: 700;
-      background: var(--red);
-      color: #fff;
+      background: var(--action);
+      color: var(--on-action);
     }
     .actions button.ghost, .addpt {
       background: var(--card);
       color: var(--text);
       border: 1px solid var(--line);
+    }
+    .actions button.save {
+      background: #3f9a6a;
+      color: #fff;
+      border: 0;
     }
     .addpt { width: 100%; margin-bottom: 12px; }
     .ptrow {
@@ -456,9 +463,8 @@
     .field label {
       display: block;
       color: var(--muted);
-      font-size: 0.68rem;
-      text-transform: uppercase;
-      letter-spacing: 0.08em;
+      font-size: 0.74rem;
+      letter-spacing: 0.02em;
       margin-bottom: 4px;
     }
     .field.menu-field > label {
@@ -527,8 +533,8 @@
       padding: 10px 14px;
       font: inherit;
       font-weight: 700;
-      background: var(--red);
-      color: #fff;
+      background: var(--action);
+      color: var(--on-action);
     }
     #pumpChartBig, #ftChartBig {
       flex: 1;
@@ -557,6 +563,8 @@
       margin-bottom: 8px;
     }
     .jobcard.on { border-color: var(--gold); }
+    .jobcard.draft { border-style: dashed; border-color: var(--action); }
+    .jobcard.draft h3 { color: var(--action); }
     .jobcard h3 { margin: 0 0 2px; font-size: 0.95rem; }
     .jobcard .meta { color: var(--muted); font-size: 0.72rem; }
     .jobcard .rowbtns { display: flex; gap: 8px; margin-top: 8px; }
@@ -568,8 +576,8 @@
       padding: 8px;
       font: inherit;
       font-weight: 700;
-      background: var(--red);
-      color: #fff;
+      background: var(--action);
+      color: var(--on-action);
     }
     .jobcard .rowbtns button.ghost {
       background: transparent;
@@ -673,13 +681,13 @@
     .hc-out .stat b { font-size: 1.15rem; }
     .hc-total {
       grid-column: 1 / -1;
-      background: var(--red);
-      color: #fff;
+      background: var(--action);
+      color: var(--on-action);
       border: 0;
     }
-    .hc-total label { color: #ffd4d8; }
-    .hc-total b { color: #fff; }
-    .hc-pass, .hc-fail {
+    .hc-total label { color: rgba(20,17,15,0.72); }
+    .hc-total b { color: var(--on-action); }
+    .hc-pass, .hc-fail, .hc-neutral {
       grid-column: 1 / -1;
       border: 0;
       padding: 12px 14px;
@@ -687,20 +695,23 @@
     }
     .hc-pass { background: #0f6a3a; }
     .hc-fail { background: #d1243a; }
-    .hc-pass label, .hc-fail label { color: rgba(255,255,255,0.82); }
-    .hc-pass b, .hc-fail b {
+    .hc-neutral { background: #3a322c; }
+    .hc-pass label, .hc-fail label, .hc-neutral label { color: rgba(255,255,255,0.82); }
+    .hc-pass b, .hc-fail b, .hc-neutral b {
       display: block;
       color: #fff;
       font-size: 1.85rem;
       letter-spacing: 0.18em;
       line-height: 1.1;
     }
-    .hc-pass small, .hc-fail small {
+    .hc-neutral b { font-size: 1.1rem; letter-spacing: 0.04em; color: var(--muted); }
+    .hc-pass small, .hc-fail small, .hc-neutral small {
       color: rgba(255,255,255,0.92);
       white-space: normal;
       display: block;
       margin-top: 4px;
     }
+    .hc-neutral small { color: var(--muted); }
     .sysbox .chips { margin-bottom: 8px; }
     .sysbox .chips:last-child { margin-bottom: 0; }
     .sysbox b.subhead { margin-top: 10px; font-size: 0.78rem; color: var(--muted); font-weight: 700; }
@@ -755,42 +766,88 @@
       flex-shrink: 0;
     }
     .build { cursor: pointer; }
-    .account-bar, #peoplePanel {
+    .account-gate {
+      position: fixed;
+      inset: 0;
+      z-index: 90;
+      background: var(--bg);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px 16px;
+      overflow: auto;
+      overscroll-behavior-y: contain;
+    }
+    .pull-refresh {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 120;
+      display: flex;
+      justify-content: center;
+      pointer-events: none;
+    }
+    .pull-refresh[hidden] { display: none !important; }
+    .pull-refresh span {
+      margin-top: calc(8px + env(safe-area-inset-top));
+      background: var(--card);
+      border: 1px solid var(--line);
+      color: var(--gold);
+      font-weight: 800;
+      font-size: 0.78rem;
+      letter-spacing: 0.02em;
+      white-space: nowrap;
+      padding: 8px 14px;
+      border-radius: 999px;
+      box-shadow: 0 8px 22px #000a;
+    }
+    .pull-refresh.busy span { color: #3f9a6a; }
+    .account-card {
+      width: min(420px, 100%);
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 20px;
+      padding: 22px 18px;
+    }
+    .account-card .logo { width: 72px; height: 72px; border-radius: 18px; }
+    .account-card h2 { margin: 12px 0 4px; font-size: 1.45rem; }
+    .account-gate form, .account-connected {
+      display: flex;
+      gap: 8px;
+    }
+    .account-gate form { flex-direction: column; align-items: stretch; }
+    .account-connected {
+      flex-wrap: wrap;
+      align-items: center;
       background: var(--card);
       border: 1px solid var(--line);
       border-radius: 16px;
-      padding: 10px;
+      padding: 10px 12px;
       margin-bottom: 12px;
     }
-    .account-bar form, #accountOn {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 8px;
-      align-items: center;
+    .account-gate[hidden], .account-card[hidden], .account-connected[hidden], #setupForm[hidden], #loginForm[hidden], #registerForm[hidden] { display: none !important; }
+    .account-card h2:empty { display: none; }
+    .account-gate input {
       width: 100%;
-    }
-    .account-bar[hidden], #accountOn[hidden], #setupForm[hidden], #loginForm[hidden], #registerForm[hidden], #peoplePanel[hidden] { display: none !important; }
-    .account-bar input {
-      flex: 1;
-      min-width: 7rem;
       background: #1a1613;
       border: 1px solid var(--line);
       color: var(--text);
       font: inherit;
-      padding: 10px;
+      padding: 12px;
       border-radius: 12px;
     }
-    .account-bar button, #peoplePanel button {
+    .account-gate button, .account-connected button {
       appearance: none;
       border: 0;
       border-radius: 12px;
-      padding: 10px 12px;
+      padding: 12px 14px;
       font: inherit;
       font-weight: 700;
-      background: var(--red);
-      color: #fff;
+      background: var(--action);
+      color: var(--on-action);
     }
-    .account-bar button.ghost, #peoplePanel button.ghost {
+    .account-gate button.ghost, .account-connected button.ghost {
       background: transparent;
       color: var(--muted);
       border: 1px solid var(--line);
@@ -801,12 +858,95 @@
       line-height: 1.35;
     }
     .account-note { width: 100%; margin: 0; }
-    #accountWho { font-weight: 800; }
-    #accountSync { color: var(--ok); flex: 1; min-width: 10rem; }
+    #accountWho { font-weight: 800; flex: 1; min-width: 12rem; color: #3f9a6a; }
+    #accountSync { color: var(--ok); flex-basis: 100%; }
+    #accountSync:empty { display: none; }
     .account-error { color: #ffb4bc; font-size: 0.78rem; width: 100%; }
+    .edit-lock {
+      position: fixed;
+      inset: 0;
+      z-index: 85;
+      background: rgba(20, 17, 15, 0.78);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px 16px;
+    }
+    .edit-lock[hidden] { display: none !important; }
+    .edit-lock-card {
+      width: min(420px, 100%);
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 20px;
+      padding: 22px 18px;
+    }
+    .edit-lock-card h2 { margin: 0 0 8px; font-size: 1.35rem; }
+    .edit-lock-card p { color: var(--muted); margin: 0 0 16px; line-height: 1.4; }
+    .edit-lock-card strong { color: var(--text); }
+    .edit-lock-actions { display: flex; gap: 8px; }
+    .edit-lock-actions button {
+      appearance: none;
+      flex: 1;
+      border: 0;
+      border-radius: 12px;
+      padding: 12px 14px;
+      font: inherit;
+      font-weight: 700;
+      background: var(--action);
+      color: var(--on-action);
+    }
+    .edit-lock-actions button.ghost {
+      background: transparent;
+      color: var(--muted);
+      border: 1px solid var(--line);
+    }
+    .share-people { display: flex; flex-direction: column; gap: 8px; margin: 0 0 12px; max-height: 240px; overflow: auto; }
+    .share-people button {
+      appearance: none;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 12px 14px;
+      font: inherit;
+      font-weight: 700;
+      background: var(--bg2);
+      color: var(--text);
+      text-align: left;
+    }
   </style>
 </head>
 <body>
+  <div id="pullRefresh" class="pull-refresh" hidden><span id="pullRefreshText">Pull to sync</span></div>
+  <div id="editLock" class="edit-lock" hidden>
+    <div class="edit-lock-card" role="dialog" aria-modal="true" aria-labelledby="editLockHeading">
+      <h2 id="editLockHeading">Change this saved report?</h2>
+      <p><strong id="editLockName">This saved report</strong> stays as it was saved until you agree to change it.</p>
+      <div class="edit-lock-actions">
+        <button type="button" id="editLockYes">Change it</button>
+        <button type="button" class="ghost" id="editLockNo">Leave it</button>
+      </div>
+    </div>
+  </div>
+  <div id="shareBox" class="edit-lock" hidden>
+    <div class="edit-lock-card" role="dialog" aria-modal="true" aria-labelledby="shareHeading">
+      <h2 id="shareHeading">Share this saved report?</h2>
+      <p><strong id="shareName">This saved report</strong> is copied to the account you pick. Your copy stays here.</p>
+      <div id="sharePeople" class="share-people"></div>
+      <p id="shareError" class="account-error"></p>
+      <div class="edit-lock-actions">
+        <button type="button" class="ghost" id="shareCancel">Cancel</button>
+      </div>
+    </div>
+  </div>
+  <div id="deleteConfirm" class="edit-lock" hidden>
+    <div class="edit-lock-card" role="dialog" aria-modal="true" aria-labelledby="deleteHeading">
+      <h2 id="deleteHeading">Delete this report?</h2>
+      <p><strong id="deleteName">This saved report</strong> is removed from this account.</p>
+      <div class="edit-lock-actions">
+        <button type="button" class="ghost" id="deleteNo">Keep it</button>
+        <button type="button" id="deleteYes">Delete</button>
+      </div>
+    </div>
+  </div>
   <header>
     <div class="brand">
       <img class="logo" src="logo.png" width="76" height="76" alt="FitterCalcs" />
@@ -825,49 +965,45 @@
     </div>
   </header>
 
-  <div id="accountBar" class="account-bar" hidden>
-    <form id="setupForm" hidden>
-      <p class="account-note">Create the first account. Each person’s pump, hydro, and tank jobs are then kept on this server.</p>
-      <input id="setupUser" autocomplete="username" placeholder="Name" />
-      <input id="setupPass" type="password" autocomplete="new-password" placeholder="Password" />
-      <button type="submit">Create account</button>
-      <p id="setupError" class="account-error"></p>
-    </form>
-    <form id="loginForm" hidden>
-      <p class="account-note">Each person has their own account. Pump, hydro, and tank jobs stay with that name.</p>
-      <input id="loginUser" autocomplete="username" placeholder="Name" />
-      <input id="loginPass" type="password" autocomplete="current-password" placeholder="Password" />
-      <button type="submit">Sign in</button>
-      <button type="button" id="showRegister" class="ghost">Create account</button>
-      <p id="loginError" class="account-error"></p>
-    </form>
-    <form id="registerForm" hidden>
-      <p class="account-note">Create your own account. Jobs you save stay with this name, separate from everyone else.</p>
-      <input id="regUser" autocomplete="username" placeholder="Name" />
-      <input id="regPass" type="password" autocomplete="new-password" placeholder="Password" />
-      <button type="submit">Create account</button>
-      <button type="button" id="showLogin" class="ghost">Sign in</button>
-      <p id="regError" class="account-error"></p>
-    </form>
-    <div id="accountOn" hidden>
-      <span id="accountWho"></span>
-      <span id="accountSync">Jobs stay on this device until you sign in.</span>
-      <button type="button" id="accountPeople" hidden>People</button>
-      <button type="button" id="accountOut" class="ghost">Sign out</button>
+  <div id="accountGate" class="account-gate" hidden>
+    <div id="accountCard" class="account-card" hidden>
+      <img class="logo" src="logo.png" width="72" height="72" alt="FitterCalcs" />
+      <h2 id="gateHeading"></h2>
+      <form id="setupForm" hidden>
+        <p class="account-note">Create the first account. Each person’s pump, hydro, and tank jobs are then kept on this server.</p>
+        <input id="setupUser" autocomplete="username" placeholder="Name" />
+        <input id="setupPass" type="password" autocomplete="new-password" placeholder="Password" />
+        <button type="submit">Create account</button>
+        <p id="setupError" class="account-error"></p>
+      </form>
+      <form id="loginForm" hidden>
+        <p class="account-note">Sign in once. This phone keeps you signed in.</p>
+        <input id="loginUser" autocomplete="username" placeholder="Name" />
+        <input id="loginPass" type="password" autocomplete="current-password" placeholder="Password" />
+        <button type="submit">Sign in</button>
+        <button type="button" id="showRegister" class="ghost">Create account</button>
+        <p id="loginError" class="account-error"></p>
+      </form>
+      <form id="registerForm" hidden>
+        <p class="account-note">Create your own account. Jobs you save stay with this name.</p>
+        <input id="regUser" autocomplete="username" placeholder="Name" />
+        <input id="regPass" type="password" autocomplete="new-password" placeholder="Password" />
+        <button type="submit">Create account</button>
+        <button type="button" id="showLogin" class="ghost">Sign in</button>
+        <p id="regError" class="account-error"></p>
+      </form>
     </div>
   </div>
-  <div id="peoplePanel" hidden>
-    <b>People</b>
-    <p class="account-note">Anyone can create their own account from the sign-in screen. You can still add someone here.</p>
-    <form id="addUserForm">
-      <div class="pickrow two">
-        <div class="field"><label for="newUser">Name</label><input id="newUser" autocomplete="off" /></div>
-        <div class="field"><label for="newPass">Password</label><input id="newPass" type="password" autocomplete="new-password" /></div>
-      </div>
-      <div class="actions"><button type="submit">Add person</button></div>
-      <p id="peopleError" class="account-error"></p>
-    </form>
-    <div id="peopleList"></div>
+  <script>
+    if (location.protocol === "http:" || location.protocol === "https:") {
+      var gate = document.getElementById("accountGate");
+      if (gate) gate.hidden = false;
+    }
+  </script>
+  <div id="accountOn" class="account-connected" hidden>
+    <span id="accountWho"></span>
+    <span id="accountSync"></span>
+    <button type="button" id="accountOut" class="ghost">Sign out</button>
   </div>
 
   <div id="updateBanner" class="update-banner hidden">
@@ -1132,15 +1268,15 @@
     <div id="pumpPts"></div>
     <button type="button" class="addpt" id="addPt">+ Add point</button>
     <div class="actions">
-      <button type="button" class="ghost" id="newPumpJob">New curve</button>
+      <button type="button" class="save" id="newPumpJob">Save</button>
       <button type="button" class="ghost" id="savePump">Save to device</button>
       <button type="button" id="emailPump">Email report</button>
     </div>
-    <p class="notes"><span id="pumpSaveStatus"></span> Curves <strong>autosave by job name</strong>. Save keeps the chart PNG. Email sends a customer report citing <strong>AS 2941-2013 Cl 10.3</strong> (shop performance), <strong>AS 2419.1:2021 Cl 4.2.7.1.2</strong> (residual pressure), <strong>AS 2118.1:2017 Cl 14.9</strong> (sprinkler pumpsets) and <strong>AS 1851-2012 Table 3.4.3</strong> (yearly performance), with the curve attached. Field record — not a certified lab curve.</p>
+    <p class="notes"><span id="pumpSaveStatus"></span> Curves <strong>autosave by job name</strong>. Save stores this job and starts a new one. Save to device keeps the chart PNG. Email sends a customer report citing <strong>AS 2941-2013 Cl 10.3</strong> (shop performance), <strong>AS 2419.1:2021 Cl 4.2.7.1.2</strong> (residual pressure), <strong>AS 2118.1:2017 Cl 14.9</strong> (sprinkler pumpsets) and <strong>AS 1851-2012 Table 3.4.3</strong> (yearly performance), with the curve attached. Field record — not a certified lab curve.</p>
     <div class="jobs-head">
       <h2>History</h2>
     </div>
-    <p class="notes" style="margin-top:0">Autosaved pump curves. Open one to load it back onto this page.</p>
+    <p class="notes" style="margin-top:0">Autosaved pump curves. Open one to load it back. It stays locked until you agree to change it.</p>
     <div id="pumpJobs"></div>
   </div>
 
@@ -1168,15 +1304,15 @@
     <div class="hc-grid">
       <div class="field" style="margin:0">
         <label for="hcQ">Flow (L/s)</label>
-        <input id="hcQ" type="number" inputmode="decimal" step="0.1" value="20" />
+        <input id="hcQ" type="number" inputmode="decimal" step="0.1" placeholder="e.g. 20" />
       </div>
       <div class="field" style="margin:0">
         <label for="hcL">Pipe length (m)</label>
-        <input id="hcL" type="number" inputmode="decimal" step="0.1" value="30" />
+        <input id="hcL" type="number" inputmode="decimal" step="0.1" placeholder="e.g. 30" />
       </div>
       <div class="field" style="margin:0">
         <label for="hcElb">90° elbows (qty)</label>
-        <input id="hcElb" type="number" inputmode="numeric" step="1" value="4" />
+        <input id="hcElb" type="number" inputmode="numeric" step="1" placeholder="e.g. 4" />
       </div>
       <div class="field" style="margin:0">
         <label for="hcRise">Rise height (m)</label>
@@ -1193,15 +1329,15 @@
     </div>
     <div class="hc-out" id="hcOut"></div>
     <div class="actions">
-      <button type="button" class="ghost" id="newHydro">New calc</button>
+      <button type="button" class="save" id="newHydro">Save</button>
       <button type="button" class="ghost" id="saveHydro">Save to device</button>
       <button type="button" id="emailHydro">Email report</button>
     </div>
-    <p class="notes"><span id="hydroSaveStatus"></span> Calcs <strong>autosave by site / job</strong>. Save keeps the A4 report PNG. Email sends that PNG with the customer report.</p>
+    <p class="notes"><span id="hydroSaveStatus"></span> Calcs <strong>autosave by site / job</strong>. Save stores this calc and starts a new one. Save to device keeps the A4 report PNG. Email sends that PNG with the customer report.</p>
     <div class="jobs-head">
       <h2>History</h2>
     </div>
-    <p class="notes" style="margin-top:0">Autosaved hydro calcs. Open one to load it back onto this page.</p>
+    <p class="notes" style="margin-top:0">Autosaved hydro calcs. Open one to load it back. It stays locked until you agree to change it.</p>
     <div id="hydroJobs"></div>
     <p class="notes">
       Hazen-Williams friction plus 9.81 kPa per metre of rise. Elbows use 90° equivalent length from fire hydraulic tables (<strong>AS 2118.1:2017 Cl 14.10 / 14.11</strong>).
@@ -1273,15 +1409,15 @@
     </div>
     <div class="hc-out" id="tkOut"></div>
     <div class="actions">
-      <button type="button" class="ghost" id="newTank">New calc</button>
+      <button type="button" class="save" id="newTank">Save</button>
       <button type="button" class="ghost" id="saveTank">Save to device</button>
       <button type="button" id="emailTanks">Email report</button>
     </div>
-    <p class="notes"><span id="tankSaveStatus"></span> Calcs <strong>autosave by site / job</strong>. Save keeps the A4 report PNG. Email sends that PNG with the customer report.</p>
+    <p class="notes"><span id="tankSaveStatus"></span> Calcs <strong>autosave by site / job</strong>. Save stores this calc and starts a new one. Save to device keeps the A4 report PNG. Email sends that PNG with the customer report.</p>
     <div class="jobs-head">
       <h2>History</h2>
     </div>
-    <p class="notes" style="margin-top:0">Autosaved tank calcs. Open one to load it back onto this page.</p>
+    <p class="notes" style="margin-top:0">Autosaved tank calcs. Open one to load it back. It stays locked until you agree to change it.</p>
     <div id="tankJobs"></div>
     <p class="notes">
       Pick <strong>1 to 4 tanks</strong>. Effective capacities add. Infill is the combined make-up into the bank.
@@ -1459,9 +1595,16 @@
     <div class="hc-out" id="ftout"></div>
     <p class="notes" id="ftwarn"></p>
     <div class="actions">
+      <button type="button" class="ghost" id="ftnew">New test</button>
       <button type="button" class="ghost" id="ftsaveReport">Save to device</button>
       <button type="button" id="ftemailReport">Email report</button>
     </div>
+    <p class="notes"><span id="fanSaveStatus"></span> Tests <strong>autosave by client / enclosure</strong>. Save keeps the A4 report PNG. Email sends that PNG with the customer report.</p>
+    <div class="jobs-head">
+      <h2>History</h2>
+    </div>
+    <p class="notes" style="margin-top:0">Autosaved fan tests. Open one to load it back. It stays locked until you agree to change it.</p>
+    <div id="fanJobs"></div>
     <p class="notes">
       Door-fan enclosure integrity for gaseous fire suppression. Leakage is fitted from the fan points the same way as the Sky Aus UPS Room sheet: correct each room pressure by the test bias, then fit ln(flow) against ln(pressure). Hold time uses <strong>ISO 14520-1 Annex E</strong>. The 2015 setting uses that edition’s equivalent sharp-interface height; the 2006 setting uses the earlier interface height. <strong>AS ISO 14520</strong> is the Australian adoption of ISO 14520. <strong>AS 1851-2012</strong> requires room integrity testing of installed gaseous systems. This sheet’s acceptance, and the usual gaseous-agent retention, is <strong>10 minutes</strong>. Carbon dioxide is not in this agent list.
       Agent densities, design and extinguishing concentrations, and the k1/k2 specific-volume constants are the parameters on that sheet. Halocarbon vent areas use its FM-200 and Novec discharge equations (safety factor 1.2, vent efficiency 100%, relative humidity 38%). Inert vent area is its mass-flow estimate. Field estimate. Confirm the current standard and the system design before sign-off.
@@ -1487,7 +1630,7 @@
 <script src="fan-calc.js"></script>
 <script src="fan-ui.js"></script>
 <script>
-const APP_VERSION = "2.46";
+const APP_VERSION = "3.2.0";
 const APP_BUILD = 56;
 const FAN_KEY = "fittercalcs-ft";
 function fanOn() {
@@ -2587,7 +2730,7 @@ function setupHydro() {
       scheduleHydroSave();
     });
   });
-  document.getElementById("newHydro").onclick = () => newHydroJob();
+  document.getElementById("newHydro").onclick = () => fcSaveAndSync("hydro");
   document.getElementById("saveHydro").onclick = () => {
     autosaveHydro();
     saveHydroPng();
@@ -2616,9 +2759,16 @@ const HYDRO_VEL_MAX = 5;
 const PASS_COL = "#0f6a3a";
 const FAIL_COL = "#d1243a";
 
-function verdictLabel(ok) { return ok ? "PASS" : "FAIL"; }
+function verdictLabel(ok) {
+  if (ok === null || ok === undefined) return "NOT CHECKED";
+  return ok ? "PASS" : "FAIL";
+}
 function verdictHtml(v) {
-  if (!v) return "";
+  if (!v || v.ok === null || v.ok === undefined) {
+    const tag = (v && v.tag) || "ENTER READINGS";
+    const detail = (v && v.detail) || "Enter the site readings to see PASS or FAIL.";
+    return '<div class="stat hc-neutral"><label>Result</label><b>' + tag + '</b> <small>' + detail + '</small></div>';
+  }
   return '<div class="stat ' + (v.ok ? "hc-pass" : "hc-fail") + '"><label>Result</label><b>' + verdictLabel(v.ok) + '</b> <small>' + v.detail + '</small></div>';
 }
 function emailLetter(opts) {
@@ -2787,25 +2937,25 @@ function tankUnitHtml(i) {
       <div class="hc-grid" id="tkCyl${i}">
         <div class="field" style="margin:0">
           <label for="tkD${i}">Internal diameter (m)</label>
-          <input id="tkD${i}" type="number" inputmode="decimal" step="0.01" value="6.5" />
+          <input id="tkD${i}" type="number" inputmode="decimal" step="0.01" placeholder="e.g. 6.5" />
         </div>
         <div class="field" style="margin:0">
           <label for="tkH${i}">Shell height (m)</label>
-          <input id="tkH${i}" type="number" inputmode="decimal" step="0.01" value="3.6" />
+          <input id="tkH${i}" type="number" inputmode="decimal" step="0.01" placeholder="e.g. 3.6" />
         </div>
       </div>
       <div class="hc-grid hidden" id="tkRect${i}">
         <div class="field" style="margin:0">
           <label for="tkL${i}">Internal length (m)</label>
-          <input id="tkL${i}" type="number" inputmode="decimal" step="0.01" value="6" />
+          <input id="tkL${i}" type="number" inputmode="decimal" step="0.01" placeholder="e.g. 6" />
         </div>
         <div class="field" style="margin:0">
           <label for="tkW${i}">Internal width (m)</label>
-          <input id="tkW${i}" type="number" inputmode="decimal" step="0.01" value="4" />
+          <input id="tkW${i}" type="number" inputmode="decimal" step="0.01" placeholder="e.g. 4" />
         </div>
         <div class="field" style="margin:0">
           <label for="tkHr${i}">Water height (m)</label>
-          <input id="tkHr${i}" type="number" inputmode="decimal" step="0.01" value="3.6" />
+          <input id="tkHr${i}" type="number" inputmode="decimal" step="0.01" placeholder="e.g. 3.6" />
         </div>
       </div>
     </div>`;
@@ -2878,7 +3028,7 @@ function setupTanks() {
       scheduleTankSave();
     });
   });
-  document.getElementById("newTank").onclick = () => newTankJob();
+  document.getElementById("newTank").onclick = () => fcSaveAndSync("tank");
   document.getElementById("saveTank").onclick = () => {
     autosaveTank();
     saveTankPng();
@@ -2979,7 +3129,15 @@ function tankState() {
   if (sys.id === "hydrant") need = hydNeed;
   else if (sys.id === "sprinkler") need = sprNeed;
   else need = combNeed;
-  const status = tankStatus(keff, need);
+  const status = incomplete.length
+    ? {
+        ok: null,
+        tag: "ENTER DIMENSIONS",
+        detail: "Tank " + incomplete.join(", ") + " still needs a size before this can pass or fail."
+      }
+    : (need == null
+        ? { ok: null, tag: "ENTER DEMAND", detail: "Add the hydrant or sprinkler demand to check the storage." }
+        : tankStatus(keff, need));
   let durObj = hyd;
   let durLabel = "Hydrant supply with infill";
   let durSmall = "AS 2419.1:2021 Cl 4.2.1 / Cl 4.2.6.3 requires 4 h";
@@ -3007,7 +3165,7 @@ function renderTanks() {
   const s = tankState();
   const out = document.getElementById("tkOut");
   if (!s) {
-    out.innerHTML = '<div class="stat hc-total"><label>Effective capacity</label><b>—</b> <small>kL</small></div>';
+    out.innerHTML = '<div class="stat hc-neutral"><label>Result</label><b>ENTER DIMENSIONS</b> <small>Enter the tank size to see PASS or FAIL.</small></div>';
     return;
   }
   const badHeff = s.tanks.some(t => t.ok && t.Heff <= 0);
@@ -3338,11 +3496,18 @@ function paintMenu(id) {
   const host = document.getElementById(id);
   if (host && host._paint) host._paint();
 }
-const FC_KINDS = ["pump", "hydro", "tank"];
+const FC_KINDS = ["pump", "hydro", "tank", "fan"];
 let fcUser = null;
 let fcApplying = false;
 let fcSyncTimer = 0;
 let fcSyncing = false;
+let fcSyncPromise = null;
+let fcRefreshing = false;
+let fcLock = null;
+let fcEditNext = null;
+let fcShareBusy = false;
+let fcDeleteRun = null;
+window.fcHoldSave = { pump: false, hydro: false, tank: false, fan: false };
 
 function fcOnServer() {
   return location.protocol === "http:" || location.protocol === "https:";
@@ -3351,14 +3516,16 @@ function fcKeys() {
   return {
     pump: JOBS_KEY,
     hydro: HYDRO_JOBS_KEY,
-    tank: TANK_JOBS_KEY
+    tank: TANK_JOBS_KEY,
+    fan: FAN_JOBS_KEY
   };
 }
 function fcDraftKeys() {
   return {
     pump: DRAFT_KEY,
     hydro: HYDRO_DRAFT_KEY,
-    tank: TANK_DRAFT_KEY
+    tank: TANK_DRAFT_KEY,
+    fan: FAN_DRAFT_KEY
   };
 }
 function fcReadJobs(kind) {
@@ -3403,27 +3570,268 @@ function fcCollect() {
   });
   return { jobs: jobs, known: known, drafts: drafts };
 }
+function fcBlankPumpSheet() {
+  applyingPump = true;
+  activeJobId = "";
+  document.getElementById("jobName").value = "";
+  document.getElementById("testYear").value = new Date().getFullYear();
+  document.getElementById("pumpId").value = "";
+  document.getElementById("reqQ").value = "";
+  document.getElementById("reqP").value = "";
+  document.getElementById("reqNote").value = "";
+  pumpPts = [{ q: 0, p: 800 }, { q: 10, p: 720 }, { q: 20, p: 580 }, { q: 30, p: 380 }];
+  if (window.fcHoldSave) window.fcHoldSave.pump = true;
+  renderPumpRows();
+  drawPump();
+  applyingPump = false;
+  renderJobList();
+}
+function fcBlankHydroSheet() {
+  applyingHydro = true;
+  activeHydroId = "";
+  document.getElementById("hcSite").value = "";
+  hcSched = "asMed";
+  hcNps = "4";
+  document.getElementById("hcQ").value = "";
+  document.getElementById("hcL").value = "";
+  document.getElementById("hcElb").value = "";
+  document.getElementById("hcRise").value = "0";
+  document.getElementById("hcC").value = "120";
+  fillHcSizes();
+  if (window.fcHoldSave) window.fcHoldSave.hydro = true;
+  applyingHydro = false;
+  renderHydro();
+  renderHydroJobs();
+}
+function fcBlankTankSheet() {
+  applyingTank = true;
+  activeTankId = "";
+  document.getElementById("tkSite").value = "";
+  tkCount = 1;
+  tkSys = "hydrant";
+  tkHazard = "OH";
+  tkShapes = ["cyl", "cyl", "cyl", "cyl"];
+  document.getElementById("tkTop").value = "20";
+  document.getElementById("tkBot").value = "150";
+  document.getElementById("tkQh").value = "";
+  document.getElementById("tkQs").value = "";
+  document.getElementById("tkQi").value = "";
+  for (let i = 0; i < 4; i++) {
+    document.getElementById("tkD" + i).value = "";
+    document.getElementById("tkH" + i).value = "";
+    document.getElementById("tkL" + i).value = "";
+    document.getElementById("tkW" + i).value = "";
+    document.getElementById("tkHr" + i).value = "";
+  }
+  syncTankChips();
+  if (window.fcHoldSave) window.fcHoldSave.tank = true;
+  applyingTank = false;
+  renderTanks();
+  renderTankJobs();
+}
+function fcBlankFanSheet() {
+  if (window.fcHoldSave) window.fcHoldSave.fan = true;
+  if (typeof applyFanInput === "function") {
+    applyFanInput({ client: "", jobNo: "", enclosure: "", testDate: "", tester: "" }, "");
+    return;
+  }
+  ["ftclient", "ftjobNo", "ftenclosure"].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.value = "";
+  });
+  try { activeFanId = ""; } catch (e) {}
+}
+function fcSameBody(a, b) {
+  if (!a || !b || typeof a !== "object" || typeof b !== "object") return false;
+  const skip = { id: true, updated: true, sharedBy: true };
+  const keys = Object.create(null);
+  Object.keys(a).forEach(k => { if (!skip[k]) keys[k] = true; });
+  Object.keys(b).forEach(k => { if (!skip[k]) keys[k] = true; });
+  return Object.keys(keys).every(k => JSON.stringify(a[k]) === JSON.stringify(b[k]));
+}
+function fcFieldValue(id) {
+  const el = document.getElementById(id);
+  return el ? String(el.value || "") : "";
+}
+function fcReportKey(kind, rec) {
+  if (!rec || typeof rec !== "object") return "";
+  if (kind === "pump") {
+    const key = jobStorageKey(rec.jobName, rec.year, rec.pumpId);
+    return key === "||" ? "" : key;
+  }
+  if (kind === "hydro" || kind === "tank") return String(rec.site || rec.title || "").trim().toLowerCase();
+  if (kind === "fan") {
+    const key = ["client", "enclosure", "jobNo"].map(field => String(rec[field] || "").trim().toLowerCase()).join("|");
+    return key === "||" ? "" : key;
+  }
+  return "";
+}
+function fcOpenSheetKey(kind) {
+  if (kind === "pump") {
+    const key = fcFieldValue("jobName").trim().toLowerCase() + "|" + fcFieldValue("testYear") + "|" + fcFieldValue("pumpId").trim().toLowerCase();
+    return key === "||" ? "" : key;
+  }
+  if (kind === "hydro") return fcFieldValue("hcSite").trim().toLowerCase();
+  if (kind === "tank") return fcFieldValue("tkSite").trim().toLowerCase();
+  if (kind === "fan") {
+    const key = ["ftclient", "ftenclosure", "ftjobNo"].map(id => fcFieldValue(id).trim().toLowerCase()).join("|");
+    return key === "||" ? "" : key;
+  }
+  return "";
+}
+function fcActiveId(kind) {
+  if (kind === "pump") return activeJobId || "";
+  if (kind === "hydro") return activeHydroId || "";
+  if (kind === "tank") return activeTankId || "";
+  if (kind === "fan") {
+    try { return activeFanId || ""; } catch (e) { return ""; }
+  }
+  return "";
+}
+function fcDraftRec(kind) {
+  try {
+    const rec = JSON.parse(localStorage.getItem(fcDraftKeys()[kind]) || "null");
+    return rec && typeof rec === "object" ? rec : null;
+  } catch (e) {
+    return null;
+  }
+}
+function fcRememberGone(kind, id) {
+  const gone = String(id || "");
+  if (!gone) return;
+  let seen = [];
+  try {
+    const parsed = JSON.parse(localStorage.getItem("fc-known-" + kind) || "[]");
+    if (Array.isArray(parsed)) seen = parsed.map(item => String(item || "")).filter(Boolean);
+  } catch (e) {}
+  if (seen.indexOf(gone) < 0) seen.push(gone);
+  localStorage.setItem("fc-known-" + kind, JSON.stringify(seen.slice(-200)));
+}
+function fcClearSaveTimer(kind) {
+  if (kind === "pump") clearTimeout(pumpSaveTimer);
+  else if (kind === "hydro") clearTimeout(hydroSaveTimer);
+  else if (kind === "tank") clearTimeout(tankSaveTimer);
+  else if (kind === "fan") {
+    try { clearTimeout(fanSaveTimer); } catch (e) {}
+  }
+}
+function fcSetDeletedStatus(kind) {
+  if (kind === "pump") setPumpStatus("Deleted");
+  else if (kind === "hydro") setNamedStatus("hydroSaveStatus", "Deleted");
+  else if (kind === "tank") setNamedStatus("tankSaveStatus", "Deleted");
+  else if (kind === "fan") setNamedStatus("fanSaveStatus", "Deleted");
+}
+function fcRenderKind(kind) {
+  if (kind === "pump") renderJobList();
+  else if (kind === "hydro") renderHydroJobs();
+  else if (kind === "tank") renderTankJobs();
+  else if (kind === "fan" && typeof renderFanJobs === "function") renderFanJobs();
+}
+function fcBlankKind(kind) {
+  if (window.fcHoldSave) window.fcHoldSave[kind] = true;
+  if (kind === "pump") fcBlankPumpSheet();
+  else if (kind === "hydro") fcBlankHydroSheet();
+  else if (kind === "tank") fcBlankTankSheet();
+  else if (kind === "fan") fcBlankFanSheet();
+}
+function fcClearActiveId(kind) {
+  if (kind === "pump") activeJobId = "";
+  else if (kind === "hydro") activeHydroId = "";
+  else if (kind === "tank") activeTankId = "";
+  else if (kind === "fan") {
+    try { activeFanId = ""; } catch (e) {}
+  }
+}
+function fcForgetJob(kind, id) {
+  if (!fcKeys()[kind]) return;
+  const gone = String(id || "");
+  fcClearSaveTimer(kind);
+  const jobs = gone ? fcReadJobs(kind) : [];
+  const rec = gone ? jobs.find(j => String(j.id) === gone) : null;
+  if (gone) {
+    fcWriteJobs(kind, jobs.filter(j => String(j.id) !== gone));
+    fcRememberGone(kind, gone);
+  }
+  const wanted = rec ? fcReportKey(kind, rec) : "";
+  const sheetKey = fcOpenSheetKey(kind);
+  const active = String(fcActiveId(kind) || "");
+  const draft = fcDraftRec(kind);
+  const draftId = draft && draft.id ? String(draft.id) : "";
+  const draftKey = draft ? fcReportKey(kind, draft) : "";
+  const sheetMatches = !!(wanted && sheetKey && wanted === sheetKey);
+  const activeMatches = !!(gone && active === gone);
+  const draftMatches = !!((wanted && draftKey && wanted === draftKey) || (gone && draftId && draftId === gone));
+  if (!gone || draftMatches || sheetMatches || activeMatches) {
+    try { localStorage.removeItem(fcDraftKeys()[kind]); } catch (e) {}
+  }
+  if (!gone) {
+    const sheetIsDraft = !active || (!!draftKey && draftKey === sheetKey);
+    if (sheetIsDraft) {
+      fcUnlockIf(kind, active);
+      fcBlankKind(kind);
+    }
+    fcSetDeletedStatus(kind);
+    return;
+  }
+  if (sheetMatches) {
+    fcUnlockIf(kind, gone);
+    fcBlankKind(kind);
+  } else if (activeMatches) {
+    fcClearActiveId(kind);
+    fcUnlockIf(kind, gone);
+    fcRenderKind(kind);
+  } else fcRenderKind(kind);
+  fcSetDeletedStatus(kind);
+}
+window.fcForgetJob = fcForgetJob;
+window.fcSameBody = fcSameBody;
 function fcApply(state, restoreForms) {
   fcApplying = true;
   try {
+    if (restoreForms) {
+      clearTimeout(pumpSaveTimer);
+      clearTimeout(hydroSaveTimer);
+      clearTimeout(tankSaveTimer);
+      try { clearTimeout(fanSaveTimer); } catch (e) {}
+    }
     const draftKeys = fcDraftKeys();
     FC_KINDS.forEach(kind => {
       const list = (state.jobs && state.jobs[kind]) || [];
       fcWriteJobs(kind, list);
       localStorage.setItem("fc-known-" + kind, JSON.stringify(list.map(job => String(job.id))));
       const draft = state.drafts && state.drafts[kind];
-      if (draft) localStorage.setItem(draftKeys[kind], JSON.stringify(draft));
+      if (state.drafts && Object.prototype.hasOwnProperty.call(state.drafts, kind)) {
+        if (draft) localStorage.setItem(draftKeys[kind], JSON.stringify(draft));
+        else localStorage.removeItem(draftKeys[kind]);
+      }
     });
     renderJobList();
     renderHydroJobs();
     renderTankJobs();
-    if (restoreForms && state.drafts) {
-      const pump = state.drafts.pump;
-      if (pump && pump.jobName) applyPumpState(pump, pump.id || "");
-      const hydro = state.drafts.hydro;
-      if (hydro && hydro.site) applyHydroInput(hydro, hydro.id || "");
-      const tank = state.drafts.tank;
-      if (tank && tank.site) applyTankInput(tank, tank.id || "");
+    if (typeof renderFanJobs === "function") renderFanJobs();
+    if (restoreForms) {
+      fcUnlockSaved();
+      const drafts = (state && state.drafts) || {};
+      const pump = drafts.pump;
+      if (pump && typeof pump === "object") {
+        if (window.fcHoldSave) window.fcHoldSave.pump = false;
+        applyPumpState(pump, pump.id || "");
+      } else fcBlankPumpSheet();
+      const hydro = drafts.hydro;
+      if (hydro && typeof hydro === "object") {
+        if (window.fcHoldSave) window.fcHoldSave.hydro = false;
+        applyHydroInput(hydro, hydro.id || "");
+      } else fcBlankHydroSheet();
+      const tank = drafts.tank;
+      if (tank && typeof tank === "object") {
+        if (window.fcHoldSave) window.fcHoldSave.tank = false;
+        applyTankInput(tank, tank.id || "");
+      } else fcBlankTankSheet();
+      const fan = drafts.fan;
+      if (fan && typeof fan === "object" && typeof applyFanInput === "function") {
+        if (window.fcHoldSave) window.fcHoldSave.fan = false;
+        applyFanInput(fan, fan.id || "");
+      } else fcBlankFanSheet();
     }
   } finally {
     fcApplying = false;
@@ -3441,90 +3849,507 @@ function fcForgetOtherUser(username) {
     activeJobId = "";
     activeHydroId = "";
     activeTankId = "";
+    if (typeof activeFanId !== "undefined") activeFanId = "";
   }
   localStorage.setItem("fc-user", username);
 }
 function fcShowSignedOut(needed) {
   fcUser = null;
-  const bar = document.getElementById("accountBar");
+  const gate = document.getElementById("accountGate");
+  const heading = document.getElementById("gateHeading");
   const setup = document.getElementById("setupForm");
   const login = document.getElementById("loginForm");
   const reg = document.getElementById("registerForm");
   const on = document.getElementById("accountOn");
-  const people = document.getElementById("peoplePanel");
-  if (bar) bar.hidden = false;
+  const card = document.getElementById("accountCard");
+  const who = document.getElementById("accountWho");
+  const sync = document.getElementById("accountSync");
+  if (gate) gate.hidden = false;
+  if (card) card.hidden = false;
+  if (heading) heading.textContent = needed ? "Create the first account" : "Sign in";
   if (setup) setup.hidden = !needed;
   if (login) login.hidden = !!needed;
   if (reg) reg.hidden = true;
   if (on) on.hidden = true;
-  if (people) people.hidden = true;
+  if (who) who.textContent = "";
+  if (sync) sync.textContent = "";
 }
 function fcShowSignedIn(me) {
   fcUser = me;
-  const bar = document.getElementById("accountBar");
-  const setup = document.getElementById("setupForm");
-  const login = document.getElementById("loginForm");
+  const gate = document.getElementById("accountGate");
+  const reg = document.getElementById("registerForm");
   const on = document.getElementById("accountOn");
   const who = document.getElementById("accountWho");
-  const peopleBtn = document.getElementById("accountPeople");
-  if (bar) bar.hidden = false;
-  if (setup) setup.hidden = true;
-  if (login) login.hidden = true;
+  if (gate) gate.hidden = true;
+  if (reg) reg.hidden = true;
   if (on) on.hidden = false;
-  if (who) who.textContent = me.username;
-  if (peopleBtn) peopleBtn.hidden = !me.admin;
+  if (who) who.textContent = me.username + " is connected to the server";
   const sync = document.getElementById("accountSync");
-  if (sync) sync.textContent = "Saving jobs to the server…";
+  if (sync) sync.textContent = "";
 }
 async function fcSyncNow() {
-  if (!fcUser || fcSyncing) return;
-  fcSyncing = true;
-  const restore = !fcUser._restored;
-  const res = await fcApi("POST", "/api/sync", fcCollect());
-  fcSyncing = false;
-  const sync = document.getElementById("accountSync");
-  if (!res || !res.ok) {
-    if (sync) sync.textContent = res && res.status === 401
-      ? "Sign in again to save jobs on the server."
-      : "Server not reached. Jobs stay on this device.";
-    return;
-  }
-  fcUser._restored = true;
-  fcApply(res.data, restore);
-  if (sync) sync.textContent = "Jobs saved on the server.";
+  if (!fcUser) return "skip";
+  if (fcSyncPromise) return fcSyncPromise;
+  fcSyncPromise = (async function() {
+    fcSyncing = true;
+    try {
+      const restore = !fcUser._restored;
+      const res = await fcApi("POST", "/api/sync", fcCollect());
+      const sync = document.getElementById("accountSync");
+      if (!res || !res.ok) {
+        if (res && res.status === 401) {
+          fcShowSignedOut(false);
+          const err = document.getElementById("loginError");
+          if (err) err.textContent = "Sign in again to save jobs on the server.";
+          return "auth";
+        }
+        if (sync) sync.textContent = "Server not reached. Jobs stay on this device.";
+        return "fail";
+      }
+      if (fcUser) fcUser._restored = true;
+      fcApply(res.data, restore);
+      if (sync) sync.textContent = "";
+      return "ok";
+    } finally {
+      fcSyncing = false;
+      fcSyncPromise = null;
+    }
+  })();
+  return fcSyncPromise;
 }
-async function fcLoadPeople() {
-  const res = await fcApi("GET", "/api/users");
-  const host = document.getElementById("peopleList");
-  if (!host || !res || !res.ok) return;
-  const users = (res.data.users || []).filter(person => !person.admin);
-  if (!users.length) {
-    host.innerHTML = '<p class="notes" style="margin:0">No other people yet.</p>';
-    return;
+function fcFlushDrafts() {
+  try { autosavePump(); } catch (e) {}
+  try { autosaveHydro(); } catch (e) {}
+  try { autosaveTank(); } catch (e) {}
+  try { if (typeof window.autosaveFan === "function") window.autosaveFan(); } catch (e) {}
+  clearTimeout(fcSyncTimer);
+}
+function fcCurrentPage() {
+  const on = document.querySelector(".nav button.on");
+  return (on && on.getAttribute("data-page")) || "pipe";
+}
+function fcRememberPage(page) {
+  const name = page || fcCurrentPage();
+  try { sessionStorage.setItem("fc-page", name); } catch (e) {}
+  return name;
+}
+function fcRestorePage() {
+  let name = "";
+  try { name = sessionStorage.getItem("fc-page") || ""; } catch (e) {}
+  if (!name || !document.getElementById("page-" + name)) return;
+  showPage(name);
+}
+function fcReloadPage() {
+  fcRememberPage();
+  location.reload();
+}
+function fcSheetName(kind) {
+  if (kind === "hydro") return document.getElementById("hcSite").value.trim();
+  if (kind === "tank") return document.getElementById("tkSite").value.trim();
+  return document.getElementById("jobName").value.trim();
+}
+function fcSetKindStatus(kind, msg) {
+  if (kind === "hydro") setNamedStatus("hydroSaveStatus", msg);
+  else if (kind === "tank") setNamedStatus("tankSaveStatus", msg);
+  else setPumpStatus(msg);
+}
+function fcStartNewPump() {
+  fcUnlockSaved();
+  fcBlankPumpSheet();
+  try { localStorage.setItem(DRAFT_KEY, JSON.stringify(currentPumpState())); } catch (e) {}
+}
+function fcBeginNewJob(kind) {
+  if (kind === "hydro") newHydroJob();
+  else if (kind === "tank") newTankJob();
+  else fcStartNewPump();
+  if (window.fcHoldSave) window.fcHoldSave[kind] = true;
+}
+async function fcSaveAndSync(kind) {
+  const page = fcRememberPage();
+  if (kind !== "hydro" && kind !== "tank") kind = "pump";
+  if (window.fcHoldSave) window.fcHoldSave[kind] = false;
+  const named = fcSheetName(kind);
+  fcFlushDrafts();
+  fcBeginNewJob(kind);
+  if (window.OnlyFitters && typeof OnlyFitters.sync === "function") {
+    try { OnlyFitters.sync(); } catch (e) {}
   }
-  host.innerHTML = users.map(person =>
-    '<div class="jobcard"><h3>' + escPump(person.username) + '</h3>' +
-    '<div class="rowbtns"><button type="button" class="ghost" data-user="' + person.id + '">Remove</button></div></div>'
-  ).join("");
-  host.querySelectorAll("[data-user]").forEach(button => {
-    button.onclick = async () => {
-      const name = button.closest(".jobcard").querySelector("h3").textContent;
-      if (!confirm("Remove " + name + " and their saved jobs from the server?")) return;
-      const gone = await fcApi("DELETE", "/api/users/" + button.getAttribute("data-user"));
-      const err = document.getElementById("peopleError");
-      if (!gone || !gone.ok) {
-        if (err) err.textContent = (gone && gone.data && gone.data.error) || "Could not remove that person.";
+  let status = "skip";
+  if (fcOnServer() && fcUser) status = await fcSyncNow();
+  if (!named) fcSetKindStatus(kind, "Draft saved — name it to keep it");
+  else if (status === "fail") fcSetKindStatus(kind, "Saved on this device. Server not reached.");
+  else if (status === "auth") fcSetKindStatus(kind, "Sign in again to save on the server.");
+  else fcSetKindStatus(kind, "Saved");
+  showPage(page);
+}
+function fcPullPhrase(ready) {
+  const signedIn = fcOnServer() && !!fcUser;
+  const canUpdate = window.OnlyFitters && typeof OnlyFitters.checkUpdate === "function";
+  if (ready) {
+    if (signedIn && canUpdate) return "Release to sync and update";
+    if (signedIn) return "Release to sync";
+    return "Release to refresh";
+  }
+  if (signedIn && canUpdate) return "Pull to sync and update";
+  if (signedIn) return "Pull to sync";
+  return "Pull to refresh";
+}
+function fcPullPlace(dy, text, busy) {
+  const host = document.getElementById("pullRefresh");
+  const label = document.getElementById("pullRefreshText");
+  if (!host) return;
+  host.hidden = false;
+  host.classList.toggle("busy", !!busy);
+  const travel = busy ? 8 : Math.max(0, Math.min(72, dy * 0.45));
+  host.style.transform = "translateY(" + travel + "px)";
+  if (label) label.textContent = text;
+}
+function fcPullHide() {
+  const host = document.getElementById("pullRefresh");
+  if (!host) return;
+  host.classList.remove("busy");
+  host.style.transform = "";
+  host.hidden = true;
+}
+function fcPullBlocked(target) {
+  if (!target || typeof target.closest !== "function") return true;
+  if (document.documentElement.classList.contains("overlay-open")) return true;
+  if (target.closest("input, textarea, select, button, canvas, a, .menu-list")) return true;
+  if (document.querySelector(".menu-btn[aria-expanded='true']")) return true;
+  let node = target;
+  while (node && node !== document.body) {
+    if (node.scrollHeight > node.clientHeight + 4) {
+      const oy = window.getComputedStyle(node).overflowY;
+      if ((oy === "auto" || oy === "scroll") && node.scrollTop > 2) return true;
+    }
+    node = node.parentElement;
+  }
+  const top = window.scrollY || document.documentElement.scrollTop || document.body.scrollTop || 0;
+  return top > 2;
+}
+async function fcDoRefresh() {
+  if (fcRefreshing) return;
+  fcRefreshing = true;
+  fcRememberPage();
+  const signedIn = fcOnServer() && !!fcUser;
+  fcPullPlace(80, signedIn ? "Syncing…" : "Refreshing…", true);
+  try {
+    if (fcSyncPromise) {
+      try { await fcSyncPromise; } catch (e) {}
+    }
+    fcFlushDrafts();
+    let status = "skip";
+    if (fcOnServer() && fcUser) status = await fcSyncNow();
+    try {
+      if (window.OnlyFitters && typeof OnlyFitters.checkUpdate === "function") OnlyFitters.checkUpdate();
+    } catch (e) {}
+    if (!fcOnServer() || status === "fail" || status === "auth") {
+      fcPullHide();
+      return;
+    }
+    if (status !== "ok") {
+      const ping = await fcApi("GET", "/api/setup");
+      if (!ping) {
+        fcPullHide();
+        const err = document.getElementById("loginError");
+        if (err) err.textContent = "Can't reach the server.";
         return;
       }
-      if (err) err.textContent = "";
-      fcLoadPeople();
-    };
+    }
+    window.fcReloadPage();
+  } catch (e) {
+    fcPullHide();
+  } finally {
+    fcRefreshing = false;
+  }
+}
+const FC_LOCK_FREE = {
+  newPumpJob: 1, newHydro: 1, newTank: 1, ftnew: 1,
+  savePump: 1, emailPump: 1, saveHydro: 1, emailHydro: 1,
+  saveTank: 1, emailTanks: 1, ftsaveReport: 1, ftemailReport: 1,
+  expandPump: 1, ftchartOpen: 1, closePumpOverlay: 1, closeFtOverlay: 1
+};
+function fcLockPageId(kind) {
+  if (kind === "pump") return "page-pump";
+  if (kind === "hydro") return "page-hydro";
+  if (kind === "tank") return "page-tanks";
+  if (kind === "fan") return "page-fantest";
+  return "";
+}
+function fcIsLockedKind(kind) {
+  return !!(fcLock && fcLock.kind === kind);
+}
+function fcUnlockSaved() {
+  fcLock = null;
+}
+function fcUnlockIf(kind, id) {
+  if (fcIsLockedKind(kind) && String(fcLock.id) === String(id)) fcUnlockSaved();
+}
+function fcLockSaved(kind, id, name) {
+  fcLock = { kind: kind, id: String(id || ""), name: name || "This saved report" };
+  fcEditNext = null;
+  const box = document.getElementById("editLock");
+  if (box) box.hidden = true;
+  const ids = { pump: "pumpSaveStatus", hydro: "hydroSaveStatus", tank: "tankSaveStatus", fan: "fanSaveStatus" };
+  const el = document.getElementById(ids[kind] || "");
+  if (el) el.textContent = "Opened " + fcLock.name + ". Locked until you agree to change it.";
+}
+function fcLockControl(node) {
+  if (!fcLock || !node || !node.closest) return null;
+  const page = document.getElementById(fcLockPageId(fcLock.kind));
+  if (!page || !page.contains(node)) return null;
+  if (node.closest(".jobcard")) return null;
+  const control = node.closest("input, textarea, select, button");
+  if (!control || !page.contains(control)) return null;
+  if (FC_LOCK_FREE[control.id]) return null;
+  return control;
+}
+function fcAskEdit(control) {
+  fcEditNext = control || fcEditNext;
+  const box = document.getElementById("editLock");
+  const name = document.getElementById("editLockName");
+  if (name) name.textContent = (fcLock && fcLock.name) || "This saved report";
+  if (!box || !box.hidden) return;
+  box.hidden = false;
+  const yes = document.getElementById("editLockYes");
+  if (yes) yes.focus();
+}
+function fcLeaveEdit() {
+  const box = document.getElementById("editLock");
+  if (box) box.hidden = true;
+  fcEditNext = null;
+}
+function fcAgreeEdit() {
+  const control = fcEditNext;
+  const kind = fcLock && fcLock.kind;
+  fcLeaveEdit();
+  fcUnlockSaved();
+  if (kind === "pump") setPumpStatus("Changing this saved report.");
+  else if (kind === "hydro") setNamedStatus("hydroSaveStatus", "Changing this saved report");
+  else if (kind === "tank") setNamedStatus("tankSaveStatus", "Changing this saved report");
+  else if (kind === "fan" && typeof setNamedStatus === "function") setNamedStatus("fanSaveStatus", "Changing this saved report");
+  if (!control) return;
+  if (control.tagName === "BUTTON") control.click();
+  else { try { control.focus(); } catch (e) {} }
+}
+function fcBlockLockedEdit(ev) {
+  const control = fcLockControl(ev.target);
+  if (!control) return;
+  ev.preventDefault();
+  ev.stopPropagation();
+  if (control.blur) control.blur();
+  fcAskEdit(control);
+}
+function fcInstallEditLock() {
+  const yes = document.getElementById("editLockYes");
+  const no = document.getElementById("editLockNo");
+  if (yes) yes.onclick = () => fcAgreeEdit();
+  if (no) no.onclick = () => fcLeaveEdit();
+  document.addEventListener("pointerdown", fcBlockLockedEdit, true);
+  document.addEventListener("touchstart", fcBlockLockedEdit, { capture: true, passive: false });
+  document.addEventListener("beforeinput", fcBlockLockedEdit, true);
+  document.addEventListener("focusin", (ev) => {
+    const control = fcLockControl(ev.target);
+    if (!control) return;
+    if (control.blur) control.blur();
+    fcAskEdit(control);
+  }, true);
+  document.addEventListener("keydown", (ev) => {
+    if (ev.key === "Escape") {
+      fcLeaveEdit();
+      fcCloseShare();
+      fcCloseDelete();
+    }
+  });
+  const shareCancel = document.getElementById("shareCancel");
+  if (shareCancel) shareCancel.onclick = () => fcCloseShare();
+  const deleteNo = document.getElementById("deleteNo");
+  const deleteYes = document.getElementById("deleteYes");
+  if (deleteNo) deleteNo.onclick = () => fcCloseDelete();
+  if (deleteYes) deleteYes.onclick = () => fcConfirmDelete();
+}
+function fcCloseDelete() {
+  const box = document.getElementById("deleteConfirm");
+  if (box) box.hidden = true;
+  fcDeleteRun = null;
+}
+function fcAskDelete(name, run) {
+  fcLeaveEdit();
+  fcCloseShare();
+  const box = document.getElementById("deleteConfirm");
+  const label = document.getElementById("deleteName");
+  if (!box) {
+    if (typeof run === "function") run();
+    return;
+  }
+  if (label) label.textContent = name || "This saved report";
+  fcDeleteRun = typeof run === "function" ? run : null;
+  box.hidden = false;
+  const keep = document.getElementById("deleteNo");
+  if (keep) keep.focus();
+}
+function fcConfirmDelete() {
+  const run = fcDeleteRun;
+  fcCloseDelete();
+  if (typeof run === "function") run();
+}
+function fcShareNote(kind, msg) {
+  if (kind === "pump") setPumpStatus(msg);
+  else setNamedStatus(kind + "SaveStatus", msg);
+}
+function fcCloseShare() {
+  const box = document.getElementById("shareBox");
+  if (box) box.hidden = true;
+  fcShareBusy = false;
+}
+async function fcBeginShare(kind, id, label) {
+  if (window.OnlyFitters && typeof OnlyFitters.shareJob === "function") {
+    OnlyFitters.shareJob(kind, String(id || ""), label || "");
+    return;
+  }
+  if (!fcOnServer() || !id) return;
+  fcLeaveEdit();
+  fcCloseDelete();
+  if (!fcUser) {
+    fcShareNote(kind, "Sign in to share this report");
+    return;
+  }
+  const box = document.getElementById("shareBox");
+  const people = document.getElementById("sharePeople");
+  const name = document.getElementById("shareName");
+  const err = document.getElementById("shareError");
+  if (!box || !people) return;
+  if (name) name.textContent = label || "This saved report";
+  if (err) err.textContent = "";
+  people.innerHTML = '<p class="notes" style="margin:0">Loading accounts…</p>';
+  box.hidden = false;
+  fcFlushDrafts();
+  const synced = await fcSyncNow();
+  if (box.hidden) return;
+  if (synced === "auth") {
+    fcCloseShare();
+    return;
+  }
+  const res = await fcApi("GET", "/api/people");
+  if (box.hidden) return;
+  if (!res || !res.ok) {
+    people.innerHTML = "";
+    if (res && res.status === 401) {
+      fcCloseShare();
+      fcShowSignedOut(false);
+      return;
+    }
+    if (err) err.textContent = (res && res.data && res.data.error) || "Can't reach the server.";
+    return;
+  }
+  const list = (res.data && res.data.people) || [];
+  if (!list.length) {
+    people.innerHTML = '<p class="notes" style="margin:0">Add another account in Fitter-Hub first.</p>';
+    return;
+  }
+  people.innerHTML = "";
+  list.forEach(username => {
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.textContent = username;
+    btn.onclick = () => fcSendShare(kind, id, username);
+    people.appendChild(btn);
+  });
+}
+async function fcSendShare(kind, id, username) {
+  if (fcShareBusy) return;
+  fcShareBusy = true;
+  const err = document.getElementById("shareError");
+  if (err) err.textContent = "";
+  const res = await fcApi("POST", "/api/share", { kind: kind, id: id, to: username });
+  fcShareBusy = false;
+  const box = document.getElementById("shareBox");
+  if (!res || !res.ok) {
+    if (res && res.status === 401) {
+      fcCloseShare();
+      fcShowSignedOut(false);
+      return;
+    }
+    if (err) err.textContent = (res && res.data && res.data.error) || "Can't reach the server.";
+    return;
+  }
+  if (box) box.hidden = true;
+  fcShareNote(kind, "Shared with " + ((res.data && res.data.username) || username));
+}
+function fcInstallPull() {
+  const trigger = 70;
+  let pull = null;
+  function start(y, x, target) {
+    if (fcRefreshing || pull) return;
+    if (fcPullBlocked(target)) return;
+    pull = { y0: y, x0: x, dy: 0, locked: false };
+  }
+  function move(y, x) {
+    if (!pull) return false;
+    const dy = y - pull.y0;
+    const dx = x - pull.x0;
+    if (!pull.locked) {
+      if (Math.abs(dy) < 8 && Math.abs(dx) < 8) return false;
+      if (Math.abs(dx) > Math.abs(dy)) {
+        pull = null;
+        fcPullHide();
+        return false;
+      }
+      pull.locked = true;
+    }
+    pull.dy = dy;
+    if (dy > 0) fcPullPlace(dy, fcPullPhrase(dy >= trigger), false);
+    else fcPullHide();
+    return !!(pull && dy > 0);
+  }
+  function end() {
+    if (!pull) return;
+    const dy = pull.locked ? pull.dy : 0;
+    pull = null;
+    if (dy >= trigger) fcDoRefresh();
+    else fcPullHide();
+  }
+  document.addEventListener("touchstart", (ev) => {
+    if (ev.touches.length !== 1) {
+      pull = null;
+      fcPullHide();
+      return;
+    }
+    const t = ev.touches[0];
+    start(t.clientY, t.clientX, ev.target);
+  }, { passive: true });
+  document.addEventListener("touchmove", (ev) => {
+    if (!pull || ev.touches.length !== 1) return;
+    const t = ev.touches[0];
+    if (move(t.clientY, t.clientX)) ev.preventDefault();
+  }, { passive: false });
+  document.addEventListener("touchend", end, { passive: true });
+  document.addEventListener("touchcancel", () => {
+    pull = null;
+    fcPullHide();
+  }, { passive: true });
+  document.addEventListener("pointerdown", (ev) => {
+    if (ev.pointerType === "touch" || ev.button !== 0) return;
+    start(ev.clientY, ev.clientX, ev.target);
+  });
+  document.addEventListener("pointermove", (ev) => {
+    if (ev.pointerType === "touch" || !pull) return;
+    if (move(ev.clientY, ev.clientX)) ev.preventDefault();
+  });
+  document.addEventListener("pointerup", (ev) => {
+    if (ev.pointerType === "touch") return;
+    end();
+  });
+  document.addEventListener("pointercancel", (ev) => {
+    if (ev.pointerType === "touch") return;
+    pull = null;
+    fcPullHide();
   });
 }
 async function fcBoot() {
   if (!fcOnServer()) return;
-  const bar = document.getElementById("accountBar");
-  if (bar) bar.hidden = false;
+  const gate = document.getElementById("accountGate");
+  if (gate) gate.hidden = false;
   const setup = await fcApi("GET", "/api/setup");
   if (!setup) {
     fcShowSignedOut(false);
@@ -3545,6 +4370,9 @@ async function fcBoot() {
   }
   fcShowSignedOut(false);
 }
+function saveUnits() {
+  try { localStorage.setItem("onlyfitters-pipe-units", metric ? "mm" : "in"); } catch (e) {}
+}
 function setup() {
   bindMenu("pipeTypeMenu", () => ORDER.map(key => ({ value: key, label: DATA[key].label })),
     () => schedule, (v) => { schedule = v; render(); });
@@ -3552,10 +4380,11 @@ function setup() {
     () => nps, (v) => { nps = v; render(); });
   document.addEventListener("click", closeMenus);
   document.addEventListener("keydown", (ev) => { if (ev.key === "Escape") closeMenus(); });
-  document.getElementById("btnIn").onclick = () => { metric = false; document.getElementById("btnIn").classList.add("on"); document.getElementById("btnMm").classList.remove("on"); render(); fillHcSizes(); };
+  document.getElementById("btnIn").onclick = () => { metric = false; saveUnits(); document.getElementById("btnIn").classList.add("on"); document.getElementById("btnMm").classList.remove("on"); render(); fillHcSizes(); };
   let mmTaps = [];
   document.getElementById("btnMm").onclick = () => {
     metric = true;
+    saveUnits();
     document.getElementById("btnMm").classList.add("on");
     document.getElementById("btnIn").classList.remove("on");
     render();
@@ -3566,6 +4395,14 @@ function setup() {
     mmTaps = mmTaps.filter((t) => now - t <= 10000);
     if (mmTaps.length >= 7) unlockFan();
   };
+  try {
+    if (localStorage.getItem("onlyfitters-pipe-units") === "in") {
+      metric = false;
+      document.getElementById("btnIn").classList.add("on");
+      document.getElementById("btnMm").classList.remove("on");
+      render();
+    }
+  } catch (e) {}
   document.querySelectorAll(".nav button").forEach(btn => {
     btn.addEventListener("click", () => {
       const page = btn.getAttribute("data-page");
@@ -3624,7 +4461,7 @@ function setup() {
   if (shot) {
     document.documentElement.classList.add("shot");
     showPage(shot);
-  }
+  } else fcRestorePage();
   const setupForm = document.getElementById("setupForm");
   if (setupForm) setupForm.onsubmit = async (ev) => {
     ev.preventDefault();
@@ -3667,12 +4504,16 @@ function setup() {
     showRegister.onclick = () => {
       loginForm.hidden = true;
       registerForm.hidden = false;
+      const heading = document.getElementById("gateHeading");
+      if (heading) heading.textContent = "Create account";
     };
   }
   if (showLogin && registerForm && loginForm) {
     showLogin.onclick = () => {
       registerForm.hidden = true;
       loginForm.hidden = false;
+      const heading = document.getElementById("gateHeading");
+      if (heading) heading.textContent = "Sign in";
     };
   }
   if (registerForm) registerForm.onsubmit = async (ev) => {
@@ -3696,34 +4537,10 @@ function setup() {
   if (outBtn) outBtn.onclick = async () => {
     await fcApi("POST", "/api/logout");
     fcUser = null;
-    const people = document.getElementById("peoplePanel");
-    if (people) people.hidden = true;
     fcShowSignedOut(false);
   };
-  const peopleBtn = document.getElementById("accountPeople");
-  if (peopleBtn) peopleBtn.onclick = () => {
-    const panel = document.getElementById("peoplePanel");
-    if (!panel) return;
-    panel.hidden = !panel.hidden;
-    if (!panel.hidden) fcLoadPeople();
-  };
-  const addUser = document.getElementById("addUserForm");
-  if (addUser) addUser.onsubmit = async (ev) => {
-    ev.preventDefault();
-    const err = document.getElementById("peopleError");
-    const res = await fcApi("POST", "/api/users", {
-      username: document.getElementById("newUser").value,
-      password: document.getElementById("newPass").value
-    });
-    if (!res || !res.ok) {
-      if (err) err.textContent = (res && res.data && res.data.error) || "Could not add that person.";
-      return;
-    }
-    if (err) err.textContent = "";
-    document.getElementById("newUser").value = "";
-    document.getElementById("newPass").value = "";
-    fcLoadPeople();
-  };
+  fcInstallPull();
+  fcInstallEditLock();
   fcBoot();
 }
 
@@ -4253,18 +5070,16 @@ function applyPumpState(s, id) {
   renderJobList();
 }
 function autosavePump() {
-  if (applyingPump) return;
+  if (applyingPump || fcApplying || fcIsLockedKind("pump")) return;
+  if (window.fcHoldSave && window.fcHoldSave.pump) return;
   const s = currentPumpState();
-  try { localStorage.setItem(DRAFT_KEY, JSON.stringify(s)); } catch (e) {}
-  fcScheduleSync();
-  if (!s.jobName) {
-    setPumpStatus("Name the job to keep it in the list");
-    return;
-  }
   const jobs = loadJobs();
   const k = jobStorageKey(s.jobName, s.year, s.pumpId);
-  let i = jobs.findIndex(j => j.id === activeJobId);
-  if (i < 0) i = jobs.findIndex(j => jobStorageKey(j.jobName, j.year, j.pumpId) === k);
+  let i = -1;
+  if (s.jobName) {
+    i = jobs.findIndex(j => j.id === activeJobId);
+    if (i < 0) i = jobs.findIndex(j => jobStorageKey(j.jobName, j.year, j.pumpId) === k);
+  }
   const rec = {
     id: i >= 0 ? jobs[i].id : String(Date.now()),
     jobName: s.jobName,
@@ -4275,6 +5090,15 @@ function autosavePump() {
     pts: s.pts,
     updated: s.updated
   };
+  if (i >= 0 && jobs[i].sharedBy) rec.sharedBy = jobs[i].sharedBy;
+  if (i >= 0 && fcSameBody(jobs[i], rec)) return;
+  try { localStorage.setItem(DRAFT_KEY, JSON.stringify(s)); } catch (e) {}
+  fcScheduleSync();
+  if (!s.jobName) {
+    setPumpStatus("Draft saved — name it to keep it");
+    return;
+  }
+  if (fcApplying) return;
   activeJobId = rec.id;
   if (i >= 0) jobs[i] = rec;
   else jobs.unshift(rec);
@@ -4284,7 +5108,8 @@ function autosavePump() {
   renderJobList();
 }
 function schedulePumpSave() {
-  if (applyingPump) return;
+  if (applyingPump || fcApplying) return;
+  if (window.fcHoldSave) window.fcHoldSave.pump = false;
   clearTimeout(pumpSaveTimer);
   pumpSaveTimer = setTimeout(autosavePump, 400);
 }
@@ -4299,9 +5124,10 @@ function renderJobList() {
   host.innerHTML = jobs.map(j => `
     <div class="jobcard${j.id === activeJobId ? " on" : ""}">
       <h3>${escPump(j.jobName)}</h3>
-      <div class="meta">${escPump(j.year || "")}${j.pumpId ? " · " + escPump(j.pumpId) : ""} · ${j.pts ? j.pts.length : 0} pts · ${timeAgo(j.updated || 0)}</div>
+      <div class="meta">${j.sharedBy ? "From " + escPump(j.sharedBy) + " · " : ""}${escPump(j.year || "")}${j.pumpId ? " · " + escPump(j.pumpId) : ""} · ${j.pts ? j.pts.length : 0} pts · ${timeAgo(j.updated || 0)}</div>
       <div class="rowbtns">
         <button type="button" data-open="${escPump(j.id)}">Open</button>
+        <button type="button" class="ghost" data-share="${escPump(j.id)}">Share</button>
         <button type="button" class="ghost" data-del="${escPump(j.id)}">Delete</button>
       </div>
     </div>`).join("");
@@ -4309,14 +5135,19 @@ function renderJobList() {
     const rec = loadJobs().find(j => j.id === b.getAttribute("data-open"));
     if (!rec) return;
     applyPumpState(rec, rec.id);
-    setPumpStatus("Opened " + rec.jobName);
+    fcLockSaved("pump", rec.id, rec.jobName);
+  });
+  host.querySelectorAll("[data-share]").forEach(b => b.onclick = () => {
+    const rec = loadJobs().find(j => j.id === b.getAttribute("data-share"));
+    if (!rec) return;
+    fcBeginShare("pump", rec.id, rec.jobName);
   });
   host.querySelectorAll("[data-del]").forEach(b => b.onclick = () => {
     const id = b.getAttribute("data-del");
-    storeJobs(loadJobs().filter(j => j.id !== id));
-    if (activeJobId === id) activeJobId = "";
-    renderJobList();
-    setPumpStatus("Deleted");
+    const rec = loadJobs().find(j => j.id === id);
+    fcAskDelete(rec && rec.jobName, () => {
+      fcForgetJob("pump", id);
+    });
   });
 }
 function escPump(s) {
@@ -4934,31 +5765,56 @@ function upsertNamedJob(key, activeId, rec, same) {
   const jobs = loadNamedJobs(key);
   let i = activeId ? jobs.findIndex(j => j.id === activeId) : -1;
   if (i < 0) i = jobs.findIndex(j => same(j, rec));
+  if (i >= 0 && fcSameBody(jobs[i], rec)) return jobs[i].id;
   rec.id = i >= 0 ? jobs[i].id : (rec.id || String(Date.now()));
+  if (i >= 0 && jobs[i].sharedBy) rec.sharedBy = jobs[i].sharedBy;
   if (i >= 0) jobs[i] = rec;
   else jobs.unshift(rec);
   jobs.sort((a, b) => (b.updated || 0) - (a.updated || 0));
   try { storeNamedJobs(key, jobs); } catch (e) {}
   return rec.id;
 }
-function renderNamedJobs(hostId, jobs, activeId, emptyMsg, onOpen, onDel) {
+function renderNamedJobs(hostId, jobs, activeId, emptyMsg, onOpen, onDel, draft, onDraft) {
   const host = document.getElementById(hostId);
   if (!host) return;
-  if (!jobs.length) {
+  if (!jobs.length && !draft) {
     host.innerHTML = '<p class="notes" style="margin:0 0 8px">' + emptyMsg + '</p>';
     return;
   }
-  host.innerHTML = jobs.map(j => `
+  const draftHtml = draft ? `
+    <div class="jobcard draft">
+      <h3>Draft — not saved</h3>
+      <div class="meta">${escPump(draft.summary || "")}${draft.summary ? " · " : ""}${timeAgo(draft.updated || 0)}</div>
+      <div class="rowbtns">
+        <button type="button" data-open-draft="1">Continue</button>
+      </div>
+    </div>` : "";
+  host.innerHTML = draftHtml + jobs.map(j => `
     <div class="jobcard${j.id === activeId ? " on" : ""}">
       <h3>${escPump(j.title)}</h3>
-      <div class="meta">${escPump(j.summary || "")}${j.summary ? " · " : ""}${timeAgo(j.updated || 0)}</div>
+      <div class="meta">${j.sharedBy ? "From " + escPump(j.sharedBy) + " · " : ""}${escPump(j.summary || "")}${j.summary ? " · " : ""}${timeAgo(j.updated || 0)}</div>
       <div class="rowbtns">
         <button type="button" data-open="${escPump(j.id)}">Open</button>
+        <button type="button" class="ghost" data-share="${escPump(j.id)}">Share</button>
         <button type="button" class="ghost" data-del="${escPump(j.id)}">Delete</button>
       </div>
     </div>`).join("");
+  const shareKind = { hydroJobs: "hydro", tankJobs: "tank", fanJobs: "fan" }[hostId] || "";
+  host.querySelectorAll("[data-open-draft]").forEach(b => b.onclick = () => {
+    if (onDraft) onDraft();
+  });
   host.querySelectorAll("[data-open]").forEach(b => b.onclick = () => onOpen(b.getAttribute("data-open")));
-  host.querySelectorAll("[data-del]").forEach(b => b.onclick = () => onDel(b.getAttribute("data-del")));
+  host.querySelectorAll("[data-share]").forEach(b => b.onclick = () => {
+    if (!shareKind) return;
+    const rec = jobs.find(j => j.id === b.getAttribute("data-share"));
+    if (!rec) return;
+    fcBeginShare(shareKind, rec.id, rec.title || rec.site || "Saved report");
+  });
+  host.querySelectorAll("[data-del]").forEach(b => b.onclick = () => {
+    const id = b.getAttribute("data-del");
+    const rec = jobs.find(j => j.id === id);
+    fcAskDelete(rec && (rec.title || rec.site || rec.jobName), () => onDel(id));
+  });
 }
 function deliverReport(mode, pack) {
   if (!pack) return;
@@ -5015,15 +5871,27 @@ function applyHydroInput(s, id) {
   renderHydroJobs();
 }
 function autosaveHydro() {
-  if (applyingHydro) return;
+  if (applyingHydro || fcApplying || fcIsLockedKind("hydro")) return;
+  if (window.fcHoldSave && window.fcHoldSave.hydro) return;
   const s = currentHydroInput();
   s.summary = hydroJobSummary();
+  if (s.site) {
+    const jobs = loadNamedJobs(HYDRO_JOBS_KEY);
+    let i = activeHydroId ? jobs.findIndex(j => j.id === activeHydroId) : -1;
+    if (i < 0) i = jobs.findIndex(j => (j.site || "").trim().toLowerCase() === s.site.trim().toLowerCase());
+    if (i >= 0 && fcSameBody(jobs[i], {
+      title: s.site, site: s.site, sched: s.sched, nps: s.nps,
+      Q: s.Q, L: s.L, elb: s.elb, rise: s.rise, C: s.C, summary: s.summary
+    })) return;
+  }
   try { localStorage.setItem(HYDRO_DRAFT_KEY, JSON.stringify(s)); } catch (e) {}
   fcScheduleSync();
   if (!s.site) {
-    setNamedStatus("hydroSaveStatus", "Name the site to keep it in the list");
+    setNamedStatus("hydroSaveStatus", "Draft saved — name it to keep it");
+    renderHydroJobs();
     return;
   }
+  if (fcApplying) return;
   const rec = {
     id: activeHydroId || ("h" + Date.now()),
     title: s.site,
@@ -5040,35 +5908,49 @@ function autosaveHydro() {
   renderHydroJobs();
 }
 function scheduleHydroSave() {
-  if (applyingHydro) return;
+  if (applyingHydro || fcApplying) return;
+  if (window.fcHoldSave) window.fcHoldSave.hydro = false;
   clearTimeout(hydroSaveTimer);
   hydroSaveTimer = setTimeout(autosaveHydro, 400);
 }
+function hydroDraftCard(jobs) {
+  if (activeHydroId) return null;
+  const s = currentHydroInput();
+  const touched = s.site || (s.Q || "").trim() || (s.L || "").trim() || (s.elb || "").trim();
+  if (!touched) return null;
+  const site = (s.site || "").trim().toLowerCase();
+  if (site && jobs.some(j => (j.site || j.title || "").trim().toLowerCase() === site)) return null;
+  return { summary: hydroJobSummary(), updated: s.updated };
+}
 function renderHydroJobs() {
-  renderNamedJobs("hydroJobs", loadNamedJobs(HYDRO_JOBS_KEY), activeHydroId,
+  const jobs = loadNamedJobs(HYDRO_JOBS_KEY);
+  renderNamedJobs("hydroJobs", jobs, activeHydroId,
     "No saved jobs yet. Type a site / job — the calc autosaves as you edit.",
     id => {
       const rec = loadNamedJobs(HYDRO_JOBS_KEY).find(j => j.id === id);
       if (!rec) return;
       applyHydroInput(rec, rec.id);
-      setNamedStatus("hydroSaveStatus", "Opened " + rec.site);
+      fcLockSaved("hydro", rec.id, rec.site);
     },
     id => {
-      storeNamedJobs(HYDRO_JOBS_KEY, loadNamedJobs(HYDRO_JOBS_KEY).filter(j => j.id !== id));
-      if (activeHydroId === id) activeHydroId = "";
-      renderHydroJobs();
-      setNamedStatus("hydroSaveStatus", "Deleted");
+      fcForgetJob("hydro", id);
+    },
+    hydroDraftCard(jobs),
+    () => {
+      document.getElementById("hcSite").focus();
+      window.scrollTo({ top: 0, behavior: "smooth" });
     });
 }
 function newHydroJob() {
+  fcUnlockSaved();
   applyingHydro = true;
   activeHydroId = "";
   document.getElementById("hcSite").value = "";
   hcSched = "asMed";
   hcNps = "4";
-  document.getElementById("hcQ").value = "20";
-  document.getElementById("hcL").value = "30";
-  document.getElementById("hcElb").value = "4";
+  document.getElementById("hcQ").value = "";
+  document.getElementById("hcL").value = "";
+  document.getElementById("hcElb").value = "";
   document.getElementById("hcRise").value = "0";
   document.getElementById("hcC").value = "120";
   fillHcSizes();
@@ -5077,7 +5959,7 @@ function newHydroJob() {
   renderHydroJobs();
   try { localStorage.setItem(HYDRO_DRAFT_KEY, JSON.stringify(currentHydroInput())); } catch (e) {}
   fcScheduleSync();
-  setNamedStatus("hydroSaveStatus", "New calc — name the site to autosave");
+  setNamedStatus("hydroSaveStatus", "New calc started — type to autosave");
 }
 function currentTankInput() {
   const units = [];
@@ -5148,15 +6030,27 @@ function applyTankInput(s, id) {
   renderTankJobs();
 }
 function autosaveTank() {
-  if (applyingTank) return;
+  if (applyingTank || fcApplying || fcIsLockedKind("tank")) return;
+  if (window.fcHoldSave && window.fcHoldSave.tank) return;
   const s = currentTankInput();
   s.summary = tankJobSummary();
+  if (s.site) {
+    const jobs = loadNamedJobs(TANK_JOBS_KEY);
+    let i = activeTankId ? jobs.findIndex(j => j.id === activeTankId) : -1;
+    if (i < 0) i = jobs.findIndex(j => (j.site || "").trim().toLowerCase() === s.site.trim().toLowerCase());
+    if (i >= 0 && fcSameBody(jobs[i], {
+      title: s.site, site: s.site, count: s.count, sys: s.sys, hazard: s.hazard,
+      top: s.top, bot: s.bot, Qh: s.Qh, Qs: s.Qs, Qi: s.Qi, units: s.units, summary: s.summary
+    })) return;
+  }
   try { localStorage.setItem(TANK_DRAFT_KEY, JSON.stringify(s)); } catch (e) {}
   fcScheduleSync();
   if (!s.site) {
-    setNamedStatus("tankSaveStatus", "Name the site to keep it in the list");
+    setNamedStatus("tankSaveStatus", "Draft saved — name it to keep it");
+    renderTankJobs();
     return;
   }
+  if (fcApplying) return;
   const rec = {
     id: activeTankId || ("t" + Date.now()),
     title: s.site,
@@ -5179,27 +6073,41 @@ function autosaveTank() {
   renderTankJobs();
 }
 function scheduleTankSave() {
-  if (applyingTank) return;
+  if (applyingTank || fcApplying) return;
+  if (window.fcHoldSave) window.fcHoldSave.tank = false;
   clearTimeout(tankSaveTimer);
   tankSaveTimer = setTimeout(autosaveTank, 400);
 }
+function tankDraftCard(jobs) {
+  if (activeTankId) return null;
+  const s = currentTankInput();
+  const touched = s.site || (s.units || []).some(u => (u.D || "").trim() || (u.L || "").trim());
+  if (!touched) return null;
+  const site = (s.site || "").trim().toLowerCase();
+  if (site && jobs.some(j => (j.site || j.title || "").trim().toLowerCase() === site)) return null;
+  return { summary: tankJobSummary(), updated: s.updated };
+}
 function renderTankJobs() {
-  renderNamedJobs("tankJobs", loadNamedJobs(TANK_JOBS_KEY), activeTankId,
+  const jobs = loadNamedJobs(TANK_JOBS_KEY);
+  renderNamedJobs("tankJobs", jobs, activeTankId,
     "No saved jobs yet. Type a site / job — the calc autosaves as you edit.",
     id => {
       const rec = loadNamedJobs(TANK_JOBS_KEY).find(j => j.id === id);
       if (!rec) return;
       applyTankInput(rec, rec.id);
-      setNamedStatus("tankSaveStatus", "Opened " + rec.site);
+      fcLockSaved("tank", rec.id, rec.site);
     },
     id => {
-      storeNamedJobs(TANK_JOBS_KEY, loadNamedJobs(TANK_JOBS_KEY).filter(j => j.id !== id));
-      if (activeTankId === id) activeTankId = "";
-      renderTankJobs();
-      setNamedStatus("tankSaveStatus", "Deleted");
+      fcForgetJob("tank", id);
+    },
+    tankDraftCard(jobs),
+    () => {
+      document.getElementById("tkSite").focus();
+      window.scrollTo({ top: 0, behavior: "smooth" });
     });
 }
 function newTankJob() {
+  fcUnlockSaved();
   applyingTank = true;
   activeTankId = "";
   document.getElementById("tkSite").value = "";
@@ -5213,11 +6121,11 @@ function newTankJob() {
   document.getElementById("tkQs").value = "";
   document.getElementById("tkQi").value = "";
   for (let i = 0; i < 4; i++) {
-    document.getElementById("tkD" + i).value = "6.5";
-    document.getElementById("tkH" + i).value = "3.6";
-    document.getElementById("tkL" + i).value = "6";
-    document.getElementById("tkW" + i).value = "4";
-    document.getElementById("tkHr" + i).value = "3.6";
+    document.getElementById("tkD" + i).value = "";
+    document.getElementById("tkH" + i).value = "";
+    document.getElementById("tkL" + i).value = "";
+    document.getElementById("tkW" + i).value = "";
+    document.getElementById("tkHr" + i).value = "";
   }
   syncTankChips();
   applyingTank = false;
@@ -5225,7 +6133,7 @@ function newTankJob() {
   renderTankJobs();
   try { localStorage.setItem(TANK_DRAFT_KEY, JSON.stringify(currentTankInput())); } catch (e) {}
   fcScheduleSync();
-  setNamedStatus("tankSaveStatus", "New calc — name the site to autosave");
+  setNamedStatus("tankSaveStatus", "New calc started — type to autosave");
 }
 
 function hydroReportPack() {
@@ -5320,7 +6228,7 @@ function saveHydroPng() {
 }
 function tankReportPack() {
   const s = tankState();
-  if (!s) return null;
+  if (!s || s.incomplete.length) return null;
   const subject = subjectWithResult("Fire tank capacity estimate", s.site, s.status);
   const infillTxt = s.inf > 0 ? s.inf.toFixed(1) + " L/s" : "nil (no make-up credited)";
   const netLine = function(draw) {
@@ -5666,22 +6574,7 @@ function setupPump() {
     drawPump();
     schedulePumpSave();
   };
-  document.getElementById("newPumpJob").onclick = () => {
-    applyingPump = true;
-    document.getElementById("jobName").value = "";
-    document.getElementById("testYear").value = new Date().getFullYear();
-    document.getElementById("pumpId").value = "";
-    document.getElementById("reqQ").value = "";
-    document.getElementById("reqP").value = "";
-    document.getElementById("reqNote").value = "";
-    pumpPts = [{ q: 0, p: 800 }, { q: 10, p: 720 }, { q: 20, p: 580 }, { q: 30, p: 380 }];
-    activeJobId = "";
-    renderPumpRows();
-    drawPump();
-    applyingPump = false;
-    setPumpStatus("New curve — name the job to autosave");
-    renderJobList();
-  };
+  document.getElementById("newPumpJob").onclick = () => fcSaveAndSync("pump");
   ["jobName", "testYear", "pumpId", "reqQ", "reqP", "reqNote"].forEach(id => {
     document.getElementById(id).addEventListener("input", () => {
       drawPump();
@@ -5713,5 +6606,6 @@ function setupPump() {
 
 setup();
 </script>
+<script src="assistant-ui.js"></script>
 </body>
 </html>

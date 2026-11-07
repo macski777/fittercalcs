@@ -12,7 +12,7 @@
 </p>
 
 <p align="center">
-  <strong>Current version: 2.46</strong><br>
+  <strong>Current version: 3.2.0</strong><br>
   <a href="https://github.com/macski777/fittercalcs/releases/latest">Download FitterCalcs.apk</a>
   ·
   <a href="https://github.com/macski777/fittercalcs/releases/latest">Windows</a>
@@ -32,7 +32,7 @@ The launcher icon and the **FITTER / CALCS** wordmark use **Delta Corps Priest 1
 
 ## Install on Android
 
-1. Download [FitterCalcs.apk](https://github.com/macski777/fittercalcs/releases/download/v2.46/FitterCalcs.apk).
+1. Download [FitterCalcs.apk](https://github.com/macski777/fittercalcs/releases/download/v3.2.0/FitterCalcs.apk).
 2. If this phone already has FitterCalcs and Android refuses the new file, uninstall the old app once, then install this one.
 3. Open the file on the phone.
 4. Allow install from this source if Android asks.
@@ -130,6 +130,33 @@ Pick **1 to 4 tanks**, each cylindrical or rectangular. Effective volumes add. P
 - **20T** (single-mount 3/8″) and **21T** (dual-mount 3/8″) use the medium steel card: DN50 **0.638**, DN65 **0.617**, DN80 **0.665**, DN90 **0.661**, DN100 **0.672**, DN125 **0.671**, DN150 **0.706**.
 - Light, Heavy, SS 10S, SS 40S (Sch 40 ID), and copper interpolate that K against mill ID. DN200+ holds the DN150 K.
 - **3/8″** still uses the Diamond II formula. You can still type a K from another card. **Use probe K** puts the table/formula back.
+
+## Ask Stillo — document assistant
+
+A floating **Ask Stillo** button opens a chat panel that answers questions from the documents in `~/Documents/FitterDocs` on the server. It uses DeepSeek (`deepseek-flash`) with a local full-text index; only the matching passages and the question are sent.
+
+- Access is limited to the names in `~/.config/fittercalcs/assistant.json`; admins always have access.
+- The DeepSeek key lives in `~/.config/fittercalcs/assistant.env` (mode 600). Never commit it.
+- Admins get a gear button in the panel to upload, rescan, or remove documents. PDFs, Word, Excel, PowerPoint, text, Markdown, CSV, HTML, email and scanned images are supported.
+- Answers cite the document, clause or table, and page. If the answer is not in the library, the assistant says so instead of guessing.
+- Click a source chip or a `[n]` citation to read the exact clause/table passage in the panel. **Open PDF at page** opens the original page; **Copy text** copies the passage.
+- On a phone, swipe right on the source reader to go back to the answer.
+- Android back (the system gesture/button or an inward edge swipe) closes the source reader first, then Ask Stillo.
+- Tap the microphone to dictate a question. Tap **Read aloud** on an answer or source, or turn on **Read answers** in the footer. The native voice bridge is in the **3.1.3 Android APK**; desktop Chrome uses browser speech. If device speech fails, the server provides a fallback voice.
+- Older editions are labelled; add the current edition to the library when you have it.
+
+Index commands on the server:
+
+```bash
+python3 knowledge.py sync          # add or update documents
+python3 knowledge.py stats         # documents, pages, chunks
+python3 knowledge.py search "AS 2419.1 hydrant storage"
+python3 knowledge.py ask "What are the hydrant storage requirements?"
+```
+
+The index is stored in `~/.local/share/fittercalcs/assistant/knowledge.db`. It is not part of the public repo, and neither are the documents or the API key.
+
+The assistant is a search aid, not a substitute for the current Standard. The phone and desktop app pick it up automatically when online because they load the server UI; the offline fallback does not include it.
 
 ## Field use
 

@@ -12,7 +12,7 @@ from pathlib import Path
 from urllib.parse import quote
 
 APP_NAME = "FitterCalcs"
-APP_VERSION = "2.46"
+APP_VERSION = "3.0"
 
 
 def app_dir():
