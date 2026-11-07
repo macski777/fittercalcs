@@ -46,8 +46,11 @@ git add update.json
 git diff --cached --quiet || git commit -m "update.json $NAME"
 git push origin HEAD:main 2>/dev/null || git push -u origin HEAD:main
 
-gh release create "v$NAME" "$APK#FitterCalcs.apk" --title "FitterCalcs $NAME" --notes "$NOTES" --clobber 2>/dev/null \
-  || gh release upload "v$NAME" "$APK#FitterCalcs.apk" --clobber
+if ! gh release view "v$NAME" >/dev/null 2>&1; then
+  gh release create "v$NAME" "$APK#FitterCalcs.apk" --title "FitterCalcs $NAME" --notes "$NOTES"
+else
+  gh release upload "v$NAME" "$APK#FitterCalcs.apk" --clobber
+fi
 
 echo "Published $NAME (versionCode $CODE)"
 echo "Phones on 2.18+ and Windows on 2.44+ will see the update next time they open FitterCalcs."

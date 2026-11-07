@@ -2,6 +2,6 @@
   "versionCode": 63,
   "versionName": "3.2.0",
   "apkUrl": "https://github.com/macski777/fittercalcs/releases/download/v3.2.0/FitterCalcs.apk",
-  "winUrl": "https://github.com/macski777/fittercalcs/releases/download/v3.2.0/FitterCalcs-Setup.exe",
+  "winUrl": "",
   "notes": "Tanks and Hydro no longer show PASS until real site data is entered. Red now means FAIL only, and unsaved work appears in History as a draft."
 }
