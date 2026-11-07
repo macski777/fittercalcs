@@ -34,6 +34,7 @@
       padding: calc(12px + env(safe-area-inset-top)) 14px calc(24px + env(safe-area-inset-bottom));
       max-width: 720px;
       margin: 0 auto;
+      overflow-anchor: none;
     }
     header {
       display: flex;
@@ -481,14 +482,95 @@
       font-size: 1.2rem;
       height: 42px;
     }
-    #pumpChart, #ftchart {
+    .pump-card, .flowrow {
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 10px 12px 6px;
+      margin-bottom: 12px;
+    }
+    .pump-head {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-bottom: 10px;
+    }
+    .pump-head > b { margin-right: auto; font-size: 0.95rem; }
+    .pump-head .chips {
+      margin: 0;
+      padding: 0;
+      border: 0;
+    }
+    .pump-head .chips button { padding: 6px 10px; }
+    .pump-remove {
+      margin-left: auto;
+      background: transparent;
+      border: 1px solid var(--line);
+      color: var(--muted);
+      border-radius: 10px;
+      padding: 6px 10px;
+      font: inherit;
+      font-size: 0.78rem;
+    }
+    .pump-card .addpt { margin: 4px 0 8px; }
+    .flowrow input {
+      width: 100%;
+      background: #1a1613;
+      border: 1px solid var(--line);
+      color: var(--text);
+      font: inherit;
+      font-variant-numeric: tabular-nums;
+      padding: 10px;
+      border-radius: 12px;
+    }
+    .flow-row-top {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 8px;
+    }
+    .flow-row-top .flow-name { flex: 1; min-width: 0; }
+    .flow-row-top .chips { margin: 0; padding: 0; border: 0; }
+    .flow-row-top .chips button { padding: 6px 10px; }
+    .flow-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin-bottom: 8px;
+    }
+    .flow-grid.three { grid-template-columns: 1fr 1fr 1fr; }
+    .flow-calc {
+      background: #1a1613;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 10px;
+      font-variant-numeric: tabular-nums;
+      font-weight: 700;
+      min-height: 42px;
+      display: flex;
+      align-items: center;
+    }
+    .flow-calc small { color: var(--muted); font-weight: 600; margin-left: 6px; }
+    .flow-del {
+      appearance: none;
+      border: 1px solid var(--line);
+      background: transparent;
+      color: var(--muted);
+      border-radius: 10px;
+      width: 40px;
+      height: 40px;
+      font-size: 1.1rem;
+      flex-shrink: 0;
+    }
+    #pumpChart, #ftchart, #flowChart {
       width: 100%;
       height: auto;
       display: block;
       background: #f4ede4;
       border-radius: 12px;
-      cursor: pointer;
     }
+    #pumpChart, #ftchart { cursor: pointer; }
     .chart-expand {
       appearance: none;
       width: 100%;
@@ -712,6 +794,9 @@
       margin-top: 4px;
     }
     .hc-neutral small { color: var(--muted); }
+    .hc-half { grid-column: auto / span 1; }
+    .hc-half b { font-size: 1.35rem; letter-spacing: 0.1em; }
+    .hc-half small { font-size: 0.78rem; }
     .sysbox .chips { margin-bottom: 8px; }
     .sysbox .chips:last-child { margin-bottom: 0; }
     .sysbox b.subhead { margin-top: 10px; font-size: 0.78rem; color: var(--muted); font-weight: 700; }
@@ -1019,8 +1104,9 @@
     <button type="button" data-page="annubar">Annubar</button>
     <button type="button" data-page="flange">Flange</button>
     <button type="button" data-page="pump">Pump</button>
-    <button type="button" data-page="hydro">Hydro-Calcs</button>
+    <button type="button" data-page="hydro">Pipe Loss</button>
     <button type="button" data-page="tanks">Tanks</button>
+    <button type="button" data-page="flow">Flow</button>
     <button type="button" data-page="as1851">AS-1851</button>
     <button type="button" data-page="fantest" id="fanTab" class="hidden">Fan Test</button>
   </div>
@@ -1264,9 +1350,9 @@
       <button type="button" class="chart-expand" id="expandPump">Large chart</button>
     </section>
     <div class="hc-out" id="pumpVerdict"></div>
-    <p class="notes" style="margin-top:0">Enter flow (L/s) and pressure (kPa). The curve is a spline through the points. With a system duty entered, the tab and email report show <strong>PASS</strong> (green) or <strong>FAIL</strong> (red).</p>
-    <div id="pumpPts"></div>
-    <button type="button" class="addpt" id="addPt">+ Add point</button>
+    <p class="notes" style="margin-top:0">Enter flow (L/s) and pressure (kPa) for each pump. Each curve is a spline through its points. With a system duty entered, every pump is checked against it and the set only passes when they all pass.</p>
+    <div id="pumpCards"></div>
+    <button type="button" class="addpt" id="addPump">+ Add second pump</button>
     <div class="actions">
       <button type="button" class="save" id="newPumpJob">Save</button>
       <button type="button" class="ghost" id="savePump">Save to device</button>
@@ -1427,6 +1513,55 @@
       Enough storage is a green <strong>PASS</strong>; short is a red <strong>FAIL</strong> on the tab and on the email report.
       Email cites those clauses. Field estimate — confirm on the current Standard.
     </p>
+  </div>
+
+  <div id="page-flow" class="page">
+    <div class="field">
+      <label for="flowSite">Site / job</label>
+      <input id="flowSite" type="text" placeholder="e.g. 12 Smith St hydrant flow test" autocomplete="off" />
+    </div>
+    <div class="field menu-field">
+      <label for="flowSysPick">System</label>
+      <div class="menu" id="flowSysMenu">
+        <button type="button" class="menu-btn" id="flowSysPick" aria-haspopup="listbox" aria-expanded="false"></button>
+        <div class="menu-list" role="listbox" hidden></div>
+      </div>
+    </div>
+    <div class="sysbox">
+      <b>Required at the test point</b>
+      <div class="lookup">
+        <div class="field" style="margin:0">
+          <label for="flowReqQ">Required flow (L/min)</label>
+          <input id="flowReqQ" type="number" inputmode="decimal" step="10" placeholder="e.g. 600" />
+        </div>
+        <div class="field" style="margin:0">
+          <label for="flowReqP">Required residual (kPa)</label>
+          <input id="flowReqP" type="number" inputmode="decimal" step="1" placeholder="e.g. 200" />
+        </div>
+      </div>
+      <div class="field" style="margin:10px 0 0">
+        <label for="flowReqNote">Notes</label>
+        <input id="flowReqNote" type="text" placeholder="e.g. hydraulically most disadvantaged hydrant" autocomplete="off" />
+      </div>
+    </div>
+    <section class="visual">
+      <canvas id="flowChart" width="900" height="640" aria-label="Flow test chart"></canvas>
+    </section>
+    <div class="hc-out" id="flowVerdict"></div>
+    <p class="notes" style="margin-top:0">One row per outlet or test point. <strong>Pitot</strong> uses nozzle size and pitot pressure to work out L/min; <strong>Meter</strong> takes a measured L/min.</p>
+    <div id="flowRows"></div>
+    <button type="button" class="addpt" id="addFlowPoint">+ Add test point</button>
+    <div class="actions">
+      <button type="button" class="save" id="newFlowJob">Save</button>
+      <button type="button" class="ghost" id="saveFlow">Save to device</button>
+      <button type="button" id="emailFlow">Email report</button>
+    </div>
+    <p class="notes"><span id="flowSaveStatus"></span> Tests <strong>autosave by site / job</strong>. Save stores this test and starts a new one.</p>
+    <div class="jobs-head">
+      <h2>History</h2>
+    </div>
+    <p class="notes" style="margin-top:0">Autosaved flow tests. Open one to load it back.</p>
+    <div id="flowJobs"></div>
   </div>
 
   <div id="page-as1851" class="page">
@@ -1630,7 +1765,7 @@
 <script src="fan-calc.js"></script>
 <script src="fan-ui.js"></script>
 <script>
-const APP_VERSION = "3.2.2";
+const APP_VERSION = "3.3.0";
 const APP_BUILD = 56;
 const FAN_KEY = "fittercalcs-ft";
 function fanOn() {
@@ -2763,13 +2898,15 @@ function verdictLabel(ok) {
   if (ok === null || ok === undefined) return "NOT CHECKED";
   return ok ? "PASS" : "FAIL";
 }
-function verdictHtml(v) {
+function verdictHtml(v, label, compact) {
+  const lab = label || "Result";
+  const half = compact ? " hc-half" : "";
   if (!v || v.ok === null || v.ok === undefined) {
     const tag = (v && v.tag) || "ENTER READINGS";
     const detail = (v && v.detail) || "Enter the site readings to see PASS or FAIL.";
-    return '<div class="stat hc-neutral"><label>Result</label><b>' + tag + '</b> <small>' + detail + '</small></div>';
+    return '<div class="stat hc-neutral' + half + '"><label>' + lab + '</label><b>' + tag + '</b> <small>' + detail + '</small></div>';
   }
-  return '<div class="stat ' + (v.ok ? "hc-pass" : "hc-fail") + '"><label>Result</label><b>' + verdictLabel(v.ok) + '</b> <small>' + v.detail + '</small></div>';
+  return '<div class="stat ' + (v.ok ? "hc-pass" : "hc-fail") + half + '"><label>' + lab + '</label><b>' + verdictLabel(v.ok) + '</b> <small>' + v.detail + '</small></div>';
 }
 function emailLetter(opts) {
   const lines = [
@@ -3206,7 +3343,7 @@ function renderTanks() {
 function showPage(page) {
   if (page === "fantest" && !fanOn()) page = "pipe";
   document.querySelectorAll(".nav button").forEach(b => b.classList.toggle("on", b.getAttribute("data-page") === page));
-  ["pipe", "annubar", "flange", "pump", "hydro", "tanks", "as1851", "fantest"].forEach(p => {
+  ["pipe", "annubar", "flange", "pump", "hydro", "tanks", "flow", "as1851", "fantest"].forEach(p => {
     const el = document.getElementById("page-" + p);
     if (el) el.classList.toggle("on", p === page);
   });
@@ -3230,6 +3367,10 @@ function showPage(page) {
     document.getElementById("appSub").innerHTML = "Tank volume • 1–4 tanks • infill hours<br>Autosave by site / job";
     renderTanks();
     renderTankJobs();
+  } else if (page === "flow") {
+    document.getElementById("appSub").innerHTML = "Hydrant and sprinkler flow tests<br>Flow L/min · residual kPa · autosave by site";
+    renderFlowJobs();
+    drawFlow();
   } else if (page === "as1851") {
     document.getElementById("appSub").innerHTML = "Routine service of fire protection systems<br>What is in AS 1851 · frequencies · typical field checks";
     renderAS1851();
@@ -3496,7 +3637,7 @@ function paintMenu(id) {
   const host = document.getElementById(id);
   if (host && host._paint) host._paint();
 }
-const FC_KINDS = ["pump", "hydro", "tank", "fan"];
+const FC_KINDS = ["pump", "hydro", "tank", "fan", "flow"];
 let fcUser = null;
 let fcApplying = false;
 let fcSyncTimer = 0;
@@ -3507,7 +3648,7 @@ let fcLock = null;
 let fcEditNext = null;
 let fcShareBusy = false;
 let fcDeleteRun = null;
-window.fcHoldSave = { pump: false, hydro: false, tank: false, fan: false };
+window.fcHoldSave = { pump: false, hydro: false, tank: false, fan: false, flow: false };
 
 function fcOnServer() {
   return location.protocol === "http:" || location.protocol === "https:";
@@ -3517,7 +3658,8 @@ function fcKeys() {
     pump: JOBS_KEY,
     hydro: HYDRO_JOBS_KEY,
     tank: TANK_JOBS_KEY,
-    fan: FAN_JOBS_KEY
+    fan: FAN_JOBS_KEY,
+    flow: FLOW_JOBS_KEY
   };
 }
 function fcDraftKeys() {
@@ -3525,7 +3667,8 @@ function fcDraftKeys() {
     pump: DRAFT_KEY,
     hydro: HYDRO_DRAFT_KEY,
     tank: TANK_DRAFT_KEY,
-    fan: FAN_DRAFT_KEY
+    fan: FAN_DRAFT_KEY,
+    flow: FLOW_DRAFT_KEY
   };
 }
 function fcReadJobs(kind) {
@@ -3579,9 +3722,9 @@ function fcBlankPumpSheet() {
   document.getElementById("reqQ").value = "";
   document.getElementById("reqP").value = "";
   document.getElementById("reqNote").value = "";
-  pumpPts = [{ q: 0, p: 800 }, { q: 10, p: 720 }, { q: 20, p: 580 }, { q: 30, p: 380 }];
+  pumpCurves = [{ id: "p1", driver: "electric", pts: [{ q: "", p: "" }] }];
   if (window.fcHoldSave) window.fcHoldSave.pump = true;
-  renderPumpRows();
+  renderPumpCards();
   drawPump();
   applyingPump = false;
   renderJobList();
@@ -3659,7 +3802,7 @@ function fcReportKey(kind, rec) {
     const key = jobStorageKey(rec.jobName, rec.year, rec.pumpId);
     return key === "||" ? "" : key;
   }
-  if (kind === "hydro" || kind === "tank") return String(rec.site || rec.title || "").trim().toLowerCase();
+  if (kind === "hydro" || kind === "tank" || kind === "flow") return String(rec.site || rec.title || "").trim().toLowerCase();
   if (kind === "fan") {
     const key = ["client", "enclosure", "jobNo"].map(field => String(rec[field] || "").trim().toLowerCase()).join("|");
     return key === "||" ? "" : key;
@@ -3673,6 +3816,7 @@ function fcOpenSheetKey(kind) {
   }
   if (kind === "hydro") return fcFieldValue("hcSite").trim().toLowerCase();
   if (kind === "tank") return fcFieldValue("tkSite").trim().toLowerCase();
+  if (kind === "flow") return fcFieldValue("flowSite").trim().toLowerCase();
   if (kind === "fan") {
     const key = ["ftclient", "ftenclosure", "ftjobNo"].map(id => fcFieldValue(id).trim().toLowerCase()).join("|");
     return key === "||" ? "" : key;
@@ -3683,6 +3827,7 @@ function fcActiveId(kind) {
   if (kind === "pump") return activeJobId || "";
   if (kind === "hydro") return activeHydroId || "";
   if (kind === "tank") return activeTankId || "";
+  if (kind === "flow") return activeFlowId || "";
   if (kind === "fan") {
     try { return activeFanId || ""; } catch (e) { return ""; }
   }
@@ -3711,6 +3856,7 @@ function fcClearSaveTimer(kind) {
   if (kind === "pump") clearTimeout(pumpSaveTimer);
   else if (kind === "hydro") clearTimeout(hydroSaveTimer);
   else if (kind === "tank") clearTimeout(tankSaveTimer);
+  else if (kind === "flow") clearTimeout(flowSaveTimer);
   else if (kind === "fan") {
     try { clearTimeout(fanSaveTimer); } catch (e) {}
   }
@@ -3719,12 +3865,14 @@ function fcSetDeletedStatus(kind) {
   if (kind === "pump") setPumpStatus("Deleted");
   else if (kind === "hydro") setNamedStatus("hydroSaveStatus", "Deleted");
   else if (kind === "tank") setNamedStatus("tankSaveStatus", "Deleted");
+  else if (kind === "flow") setNamedStatus("flowSaveStatus", "Deleted");
   else if (kind === "fan") setNamedStatus("fanSaveStatus", "Deleted");
 }
 function fcRenderKind(kind) {
   if (kind === "pump") renderJobList();
   else if (kind === "hydro") renderHydroJobs();
   else if (kind === "tank") renderTankJobs();
+  else if (kind === "flow") renderFlowJobs();
   else if (kind === "fan" && typeof renderFanJobs === "function") renderFanJobs();
 }
 function fcBlankKind(kind) {
@@ -3732,12 +3880,14 @@ function fcBlankKind(kind) {
   if (kind === "pump") fcBlankPumpSheet();
   else if (kind === "hydro") fcBlankHydroSheet();
   else if (kind === "tank") fcBlankTankSheet();
+  else if (kind === "flow") fcBlankFlowSheet();
   else if (kind === "fan") fcBlankFanSheet();
 }
 function fcClearActiveId(kind) {
   if (kind === "pump") activeJobId = "";
   else if (kind === "hydro") activeHydroId = "";
   else if (kind === "tank") activeTankId = "";
+  else if (kind === "flow") activeFlowId = "";
   else if (kind === "fan") {
     try { activeFanId = ""; } catch (e) {}
   }
@@ -3808,6 +3958,7 @@ function fcApply(state, restoreForms) {
     renderJobList();
     renderHydroJobs();
     renderTankJobs();
+    renderFlowJobs();
     if (typeof renderFanJobs === "function") renderFanJobs();
     if (restoreForms) {
       fcUnlockSaved();
@@ -3827,6 +3978,11 @@ function fcApply(state, restoreForms) {
         if (window.fcHoldSave) window.fcHoldSave.tank = false;
         applyTankInput(tank, tank.id || "");
       } else fcBlankTankSheet();
+      const flow = drafts.flow;
+      if (flow && typeof flow === "object") {
+        if (window.fcHoldSave) window.fcHoldSave.flow = false;
+        applyFlowState(flow, flow.id || "");
+      } else fcBlankFlowSheet();
       const fan = drafts.fan;
       if (fan && typeof fan === "object" && typeof applyFanInput === "function") {
         if (window.fcHoldSave) window.fcHoldSave.fan = false;
@@ -3849,6 +4005,7 @@ function fcForgetOtherUser(username) {
     activeJobId = "";
     activeHydroId = "";
     activeTankId = "";
+    activeFlowId = "";
     if (typeof activeFanId !== "undefined") activeFanId = "";
   }
   localStorage.setItem("fc-user", username);
@@ -3921,6 +4078,7 @@ function fcFlushDrafts() {
   try { autosavePump(); } catch (e) {}
   try { autosaveHydro(); } catch (e) {}
   try { autosaveTank(); } catch (e) {}
+  try { autosaveFlow(); } catch (e) {}
   try { if (typeof window.autosaveFan === "function") window.autosaveFan(); } catch (e) {}
   clearTimeout(fcSyncTimer);
 }
@@ -3951,6 +4109,7 @@ function fcSheetName(kind) {
 function fcSetKindStatus(kind, msg) {
   if (kind === "hydro") setNamedStatus("hydroSaveStatus", msg);
   else if (kind === "tank") setNamedStatus("tankSaveStatus", msg);
+  else if (kind === "flow") setNamedStatus("flowSaveStatus", msg);
   else setPumpStatus(msg);
 }
 function fcStartNewPump() {
@@ -3961,12 +4120,13 @@ function fcStartNewPump() {
 function fcBeginNewJob(kind) {
   if (kind === "hydro") newHydroJob();
   else if (kind === "tank") newTankJob();
+  else if (kind === "flow") newFlowJob();
   else fcStartNewPump();
   if (window.fcHoldSave) window.fcHoldSave[kind] = true;
 }
 async function fcSaveAndSync(kind) {
   const page = fcRememberPage();
-  if (kind !== "hydro" && kind !== "tank") kind = "pump";
+  if (kind !== "hydro" && kind !== "tank" && kind !== "flow") kind = "pump";
   if (window.fcHoldSave) window.fcHoldSave[kind] = false;
   const named = fcSheetName(kind);
   fcFlushDrafts();
@@ -4067,12 +4227,14 @@ const FC_LOCK_FREE = {
   newPumpJob: 1, newHydro: 1, newTank: 1, ftnew: 1,
   savePump: 1, emailPump: 1, saveHydro: 1, emailHydro: 1,
   saveTank: 1, emailTanks: 1, ftsaveReport: 1, ftemailReport: 1,
+  newFlowJob: 1, saveFlow: 1, emailFlow: 1, addFlowPoint: 1,
   expandPump: 1, ftchartOpen: 1, closePumpOverlay: 1, closeFtOverlay: 1
 };
 function fcLockPageId(kind) {
   if (kind === "pump") return "page-pump";
   if (kind === "hydro") return "page-hydro";
   if (kind === "tank") return "page-tanks";
+  if (kind === "flow") return "page-flow";
   if (kind === "fan") return "page-fantest";
   return "";
 }
@@ -4090,7 +4252,7 @@ function fcLockSaved(kind, id, name) {
   fcEditNext = null;
   const box = document.getElementById("editLock");
   if (box) box.hidden = true;
-  const ids = { pump: "pumpSaveStatus", hydro: "hydroSaveStatus", tank: "tankSaveStatus", fan: "fanSaveStatus" };
+  const ids = { pump: "pumpSaveStatus", hydro: "hydroSaveStatus", tank: "tankSaveStatus", flow: "flowSaveStatus", fan: "fanSaveStatus" };
   const el = document.getElementById(ids[kind] || "");
   if (el) el.textContent = "Opened " + fcLock.name + ". Locked until you agree to change it.";
 }
@@ -4377,6 +4539,560 @@ async function fcBoot() {
 function saveUnits() {
   try { localStorage.setItem("onlyfitters-pipe-units", metric ? "mm" : "in"); } catch (e) {}
 }
+/* ---------------------------------------------------------------- Flow test */
+let flowSystem = "hydrant";
+let flowPts = [{ name: "", mode: "pitot", d: "", pitot: "", q: "", residual: "", static: "" }];
+let flowSaveTimer = null;
+let applyingFlow = false;
+let activeFlowId = "";
+const FLOW_JOBS_KEY = "onlyfitters-flow-jobs";
+const FLOW_DRAFT_KEY = "onlyfitters-flow-draft";
+const FLOW_COLOR = "#1d4ed8";
+const FLOW_SYS = {
+  hydrant: { id: "hydrant", label: "Hydrants", sub: "Pitot flow per landing valve, residual recorded" },
+  sprinkler: { id: "sprinkler", label: "Sprinklers", sub: "Main drain / test valve flow, residual recorded" }
+};
+
+function hydrantFlowLpm(dMm, pitotKpa) {
+  if (!(dMm > 0) || !(pitotKpa > 0)) return null;
+  return 0.0666 * dMm * dMm * Math.sqrt(pitotKpa);
+}
+function flowSys() { return FLOW_SYS[flowSystem] || FLOW_SYS.hydrant; }
+function blankFlowRow() {
+  return { name: "", mode: flowSystem === "sprinkler" ? "meter" : "pitot", d: "", pitot: "", q: "", residual: "", static: "" };
+}
+function readFlowReq() {
+  const q = parseFloat(document.getElementById("flowReqQ").value);
+  const p = parseFloat(document.getElementById("flowReqP").value);
+  const note = document.getElementById("flowReqNote").value.trim();
+  if (!Number.isFinite(q) || !Number.isFinite(p)) return null;
+  return { q, p, note };
+}
+function readFlowPts() {
+  const rows = document.querySelectorAll("#flowRows .flowrow");
+  const out = [];
+  rows.forEach(rowEl => {
+    const nameEl = rowEl.querySelector(".flow-name");
+    const dEl = rowEl.querySelector(".flow-d");
+    const pitotEl = rowEl.querySelector(".flow-pitot");
+    const qEl = rowEl.querySelector(".flow-q");
+    const resEl = rowEl.querySelector(".flow-res");
+    const statEl = rowEl.querySelector(".flow-static");
+    const mode = flowSystem === "sprinkler" ? "meter" : (rowEl.getAttribute("data-mode") === "meter" ? "meter" : "pitot");
+    const d = parseFloat(dEl ? dEl.value : "");
+    const pitot = parseFloat(pitotEl ? pitotEl.value : "");
+    const qIn = parseFloat(qEl ? qEl.value : "");
+    const residual = parseFloat(resEl ? resEl.value : "");
+    const stat = parseFloat(statEl ? statEl.value : "");
+    const q = mode === "pitot" ? hydrantFlowLpm(d, pitot) : (Number.isFinite(qIn) ? qIn : null);
+    out.push({
+      name: (nameEl ? nameEl.value : "").trim(),
+      mode: mode,
+      d: Number.isFinite(d) ? d : "",
+      pitot: Number.isFinite(pitot) ? pitot : "",
+      q: q === null ? "" : q,
+      residual: Number.isFinite(residual) ? residual : "",
+      static: Number.isFinite(stat) ? stat : ""
+    });
+  });
+  return out;
+}
+function flowCurve() {
+  const pts = readFlowPts()
+    .filter(r => Number.isFinite(r.q) && Number.isFinite(r.residual))
+    .map(r => ({ q: r.q, p: r.residual }));
+  return dedupeCurve(pts);
+}
+function flowVerdict() {
+  const pts = flowCurve();
+  const req = readFlowReq();
+  if (!req || pts.length < 2) return null;
+  const at = curveAt(pts, req.q);
+  if (at === null) return null;
+  const margin = at - req.p;
+  if (at + 0.5 >= req.p) {
+    return { ok: true, tag: "PASS", detail: "Residual " + at.toFixed(0) + " kPa at " + req.q + " L/min (" + Math.abs(margin).toFixed(0) + " kPa above the " + req.p + " kPa required)." };
+  }
+  return { ok: false, tag: "FAIL", detail: "Residual " + at.toFixed(0) + " kPa at " + req.q + " L/min (" + Math.abs(margin).toFixed(0) + " kPa below the " + req.p + " kPa required)." };
+}
+function renderFlowVerdict() {
+  const el = document.getElementById("flowVerdict");
+  if (!el) return;
+  const pts = flowCurve();
+  const v = flowVerdict();
+  el.innerHTML = verdictHtml(v || {
+    ok: null,
+    tag: pts.length ? "ENTER REQUIREMENT" : "ENTER TEST READINGS",
+    detail: pts.length
+      ? "Add the required flow and residual to check the test."
+      : "Add at least two test points with flow and residual."
+  });
+}
+function updateFlowCalc(rowEl) {
+  if (!rowEl) return;
+  const d = parseFloat(rowEl.querySelector(".flow-d").value);
+  const p = parseFloat(rowEl.querySelector(".flow-pitot").value);
+  const out = rowEl.querySelector(".flow-calc-q");
+  if (!out) return;
+  const q = hydrantFlowLpm(d, p);
+  out.textContent = q === null ? "—" : q.toFixed(0);
+}
+function renderFlowRows() {
+  const host = document.getElementById("flowRows");
+  if (!host) return;
+  const rows = flowPts.length ? flowPts : [blankFlowRow()];
+  const sprinkler = flowSystem === "sprinkler";
+  host.innerHTML = rows.map(r => {
+    const mode = sprinkler ? "meter" : (r.mode === "meter" ? "meter" : "pitot");
+    const calc = hydrantFlowLpm(r.d, r.pitot);
+    return `
+    <div class="flowrow" data-mode="${mode}">
+      <div class="flow-row-top">
+        <input class="flow-name" type="text" placeholder="Outlet / test point" value="${escPump(r.name || "")}" />
+        <div class="chips${sprinkler ? " hidden" : ""}">
+          <button type="button" data-mode="pitot" class="${mode === "pitot" ? "on" : ""}">Pitot</button>
+          <button type="button" data-mode="meter" class="${mode === "meter" ? "on" : ""}">Meter</button>
+        </div>
+        <button type="button" class="flow-del" aria-label="Remove">×</button>
+      </div>
+      <div class="flow-grid three ${mode === "pitot" ? "" : "hidden"} flow-pitot-grid">
+        <div class="field" style="margin:0">
+          <label>Nozzle (mm)</label>
+          <input class="flow-d" type="number" inputmode="decimal" step="0.5" value="${r.d}" placeholder="e.g. 25" />
+        </div>
+        <div class="field" style="margin:0">
+          <label>Pitot (kPa)</label>
+          <input class="flow-pitot" type="number" inputmode="decimal" step="1" value="${r.pitot}" placeholder="e.g. 100" />
+        </div>
+        <div class="field" style="margin:0">
+          <label>Flow (L/min)</label>
+          <div class="flow-calc"><span class="flow-calc-q">${calc === null ? "—" : calc.toFixed(0)}</span><small>calc</small></div>
+        </div>
+      </div>
+      <div class="flow-grid ${mode === "meter" ? "" : "hidden"} flow-meter-grid">
+        <div class="field" style="margin:0">
+          <label>Flow (L/min)</label>
+          <input class="flow-q" type="number" inputmode="decimal" step="10" value="${r.q}" placeholder="e.g. 600" />
+        </div>
+      </div>
+      <div class="flow-grid">
+        <div class="field" style="margin:0">
+          <label>Residual (kPa)</label>
+          <input class="flow-res" type="number" inputmode="decimal" step="1" value="${r.residual}" placeholder="e.g. 200" />
+        </div>
+        <div class="field" style="margin:0">
+          <label>Static (kPa)</label>
+          <input class="flow-static" type="number" inputmode="decimal" step="1" value="${r.static}" placeholder="optional" />
+        </div>
+      </div>
+    </div>`;
+  }).join("");
+}
+function drawFlow() {
+  const canvas = document.getElementById("flowChart");
+  if (!canvas) return;
+  const pts = flowCurve();
+  const sys = flowSys();
+  drawCurveChart(canvas.getContext("2d"), {
+    w: canvas.width,
+    h: canvas.height,
+    series: pts.length ? [{ pts: pts, color: FLOW_COLOR, label: sys.label }] : [],
+    title: document.getElementById("flowSite").value.trim() || (sys.label + " flow test"),
+    subtitle: sys.label + " · flow L/min vs residual kPa",
+    axisX: "Flow (L/min)",
+    axisY: "Residual pressure (kPa)",
+    unitX: "L/min",
+    xStep: 100,
+    forExport: true,
+    req: readFlowReq(),
+    emptyText: "Add flow and residual readings"
+  });
+  renderFlowVerdict();
+}
+function currentFlowState() {
+  return {
+    id: activeFlowId,
+    site: document.getElementById("flowSite").value.trim(),
+    system: flowSystem,
+    req: readFlowReq(),
+    reqNote: document.getElementById("flowReqNote").value.trim(),
+    pts: readFlowPts(),
+    updated: Date.now()
+  };
+}
+function flowJobSummary() {
+  const pts = flowCurve();
+  const v = flowVerdict();
+  const last = pts[pts.length - 1];
+  return flowSys().label + " · " + (last ? last.q.toFixed(0) + " L/min" : "no readings") + (v ? " · " + v.tag : "");
+}
+function applyFlowState(s, id) {
+  applyingFlow = true;
+  activeFlowId = id || s.id || "";
+  document.getElementById("flowSite").value = s.site || "";
+  flowSystem = s.system === "sprinkler" ? "sprinkler" : "hydrant";
+  paintMenu("flowSysMenu");
+  const req = (s && s.req) || {};
+  document.getElementById("flowReqQ").value = Number.isFinite(req.q) ? req.q : (s.reqQ || "");
+  document.getElementById("flowReqP").value = Number.isFinite(req.p) ? req.p : (s.reqP || "");
+  document.getElementById("flowReqNote").value = req.note || s.reqNote || "";
+  const rows = Array.isArray(s.pts) && s.pts.length ? s.pts : [blankFlowRow()];
+  flowPts = rows.map(r => ({
+    name: r.name || "",
+    mode: r.mode === "meter" ? "meter" : "pitot",
+    d: r.d === 0 || r.d ? r.d : "",
+    pitot: r.pitot === 0 || r.pitot ? r.pitot : "",
+    q: r.q === 0 || r.q ? r.q : "",
+    residual: r.residual === 0 || r.residual ? r.residual : "",
+    static: r.static === 0 || r.static ? r.static : ""
+  }));
+  renderFlowRows();
+  drawFlow();
+  applyingFlow = false;
+  renderFlowJobs();
+}
+function autosaveFlow() {
+  if (applyingFlow || fcApplying || fcIsLockedKind("flow")) return;
+  if (window.fcHoldSave && window.fcHoldSave.flow) return;
+  const s = currentFlowState();
+  s.summary = flowJobSummary();
+  try { localStorage.setItem(FLOW_DRAFT_KEY, JSON.stringify(s)); } catch (e) {}
+  fcScheduleSync();
+  if (!s.site) {
+    setNamedStatus("flowSaveStatus", "Draft saved — name it to keep it");
+    renderFlowJobs();
+    return;
+  }
+  if (fcApplying) return;
+  const body = {
+    title: s.site,
+    site: s.site,
+    system: s.system,
+    req: s.req,
+    reqNote: s.reqNote,
+    pts: s.pts,
+    summary: s.summary,
+    updated: s.updated
+  };
+  const jobs = loadNamedJobs(FLOW_JOBS_KEY);
+  let rec = activeFlowId ? jobs.find(j => j.id === activeFlowId) : null;
+  if (!rec) rec = jobs.find(j => (j.site || "").trim().toLowerCase() === s.site.trim().toLowerCase());
+  if (rec && fcSameBody(rec, body)) return;
+  const saved = Object.assign({ id: rec ? rec.id : ("f" + Date.now()) }, body);
+  if (rec && rec.sharedBy) saved.sharedBy = rec.sharedBy;
+  activeFlowId = upsertNamedJob(FLOW_JOBS_KEY, rec ? rec.id : "", saved,
+    (a, b) => (a.site || "").trim().toLowerCase() === (b.site || "").trim().toLowerCase());
+  setNamedStatus("flowSaveStatus", "Autosaved " + timeAgo(s.updated));
+  renderFlowJobs();
+}
+function scheduleFlowSave() {
+  if (applyingFlow || fcApplying) return;
+  if (window.fcHoldSave) window.fcHoldSave.flow = false;
+  clearTimeout(flowSaveTimer);
+  flowSaveTimer = setTimeout(autosaveFlow, 400);
+}
+function fcBlankFlowSheet() {
+  applyingFlow = true;
+  activeFlowId = "";
+  document.getElementById("flowSite").value = "";
+  document.getElementById("flowReqQ").value = "";
+  document.getElementById("flowReqP").value = "";
+  document.getElementById("flowReqNote").value = "";
+  flowSystem = "hydrant";
+  paintMenu("flowSysMenu");
+  flowPts = [blankFlowRow()];
+  if (window.fcHoldSave) window.fcHoldSave.flow = true;
+  renderFlowRows();
+  applyingFlow = false;
+  drawFlow();
+  renderFlowJobs();
+}
+function newFlowJob() {
+  fcUnlockSaved();
+  fcBlankFlowSheet();
+  setNamedStatus("flowSaveStatus", "New calc started — type to autosave");
+}
+function flowDraftCard(jobs) {
+  if (activeFlowId) return null;
+  const s = currentFlowState();
+  const touched = s.site || s.pts.some(r => r.name || r.d || r.pitot || r.q || r.residual);
+  if (!touched) return null;
+  const site = (s.site || "").trim().toLowerCase();
+  if (site && jobs.some(j => (j.site || j.title || "").trim().toLowerCase() === site)) return null;
+  return { summary: flowJobSummary(), updated: s.updated };
+}
+function renderFlowJobs() {
+  const jobs = loadNamedJobs(FLOW_JOBS_KEY);
+  renderNamedJobs("flowJobs", jobs, activeFlowId,
+    "No saved tests yet. Type a site / job — the test autosaves as you edit.",
+    id => {
+      const rec = loadNamedJobs(FLOW_JOBS_KEY).find(j => j.id === id);
+      if (!rec) return;
+      applyFlowState(rec, rec.id);
+      fcLockSaved("flow", rec.id, rec.site);
+    },
+    id => {
+      fcForgetJob("flow", id);
+    },
+    flowDraftCard(jobs),
+    () => {
+      document.getElementById("flowSite").focus();
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    });
+}
+function flowChartCanvas() {
+  const c = document.createElement("canvas");
+  c.width = A4_W; c.height = 980;
+  const ctx = c.getContext("2d");
+  const pts = flowCurve();
+  const sys = flowSys();
+  const opt = {
+    w: c.width, h: c.height,
+    series: pts.length ? [{ pts: pts, color: FLOW_COLOR, label: sys.label }] : [],
+    title: document.getElementById("flowSite").value.trim() || (sys.label + " flow test"),
+    subtitle: sys.label + " · L/min vs residual kPa",
+    axisX: "Flow (L/min)",
+    axisY: "Residual pressure (kPa)",
+    unitX: "L/min",
+    xStep: 100,
+    forExport: true,
+    req: readFlowReq(),
+    emptyText: "No test readings"
+  };
+  skipBrandLogo = false;
+  try {
+    drawCurveChart(ctx, opt);
+    c.toDataURL("image/png");
+  } catch (err) {
+    skipBrandLogo = true;
+    drawCurveChart(ctx, opt);
+    skipBrandLogo = false;
+  }
+  return c;
+}
+function flowReportText() {
+  const pts = readFlowPts();
+  const curve = flowCurve();
+  const req = readFlowReq();
+  const v = flowVerdict();
+  const sys = flowSys();
+  const readingLines = pts.map((r, i) => {
+    const bits = ["Point " + (i + 1) + (r.name ? " — " + r.name : "")];
+    if (r.mode === "pitot" && Number.isFinite(r.d) && Number.isFinite(r.pitot)) {
+      bits.push("nozzle " + r.d + " mm");
+      bits.push("pitot " + r.pitot + " kPa");
+    }
+    if (Number.isFinite(r.q)) bits.push("flow " + Number(r.q).toFixed(0) + " L/min");
+    if (Number.isFinite(r.residual)) bits.push("residual " + r.residual + " kPa");
+    if (Number.isFinite(r.static)) bits.push("static " + r.static + " kPa");
+    return bits.join("  ·  ");
+  });
+  let finding;
+  if (!req) finding = "No required flow / residual was entered. This is a field record of measured points only.";
+  else if (!v) finding = "A requirement of " + req.q + " L/min at " + req.p + " kPa was entered. The readings could not be assessed at that flow.";
+  else if (v.ok) finding = "RESULT: PASS. " + v.detail;
+  else finding = "RESULT: FAIL. " + v.detail;
+  return emailLetter({
+    kind: sys.label.toUpperCase() + " FLOW TEST",
+    site: document.getElementById("flowSite").value.trim(),
+    verdict: v,
+    sections: [
+      { title: "1. INSTALLATION", lines: [
+        "Site / job: " + (document.getElementById("flowSite").value.trim() || "(not stated)"),
+        "System: " + sys.label,
+        "Test points: " + pts.length,
+        req && req.note ? "Note: " + req.note : "Note: (none)"
+      ]},
+      { title: "2. REQUIREMENT", lines: req
+        ? ["Required flow: " + req.q + " L/min", "Required residual: " + req.p + " kPa" + (req.note ? "  (" + req.note + ")" : "")]
+        : ["No required flow / residual was entered."]
+      },
+      { title: "3. READINGS", lines: readingLines.length ? readingLines : ["No readings entered."] },
+      { title: "4. FINDING", lines: [finding] },
+      { title: "5. STANDARDS", lines: [
+        "AS 2419.1:2021 Cl 4.2.7.1.2 — minimum design residual pressure at the hydrant duty.",
+        "AS 1851-2012 Sec 4 — fire hydrant systems, yearly flow test (Cl 4.4.3).",
+        "AS 2118.1:2017 — automatic fire sprinkler systems, design demand.",
+        "Field record only — confirm against the current Standard and the project design."
+      ]}
+    ]
+  });
+}
+function composeFlowReportPng() {
+  const chart = flowChartCanvas();
+  const w = A4_W, h = A4_H, m = A4_M;
+  const inner = w - 2 * m;
+  const c = document.createElement("canvas");
+  c.width = w; c.height = h;
+  const ctx = c.getContext("2d");
+  ctx.fillStyle = "#ffffff";
+  ctx.fillRect(0, 0, w, h);
+  ctx.drawImage(chart, 0, 0, w, chart.height);
+  const req = readFlowReq();
+  const v = flowVerdict();
+  const pts = readFlowPts();
+  let y = chart.height + 28;
+  ctx.textAlign = "left";
+  if (v) {
+    y = drawVerdictBanner(ctx, v, m, y, inner);
+    y += 18;
+  } else {
+    ctx.fillStyle = "#3a322c";
+    ctx.fillRect(m, y, inner, 72);
+    ctx.fillStyle = "#fff";
+    ctx.font = "800 26px sans-serif";
+    ctx.fillText("Finding", m + 18, y + 28);
+    ctx.font = "700 20px sans-serif";
+    ctx.fillText(req ? ("Requirement  ·  " + req.q + " L/min @ " + req.p + " kPa") : "Field record — no requirement entered", m + 18, y + 56);
+    y += 90;
+  }
+  const rows = [
+    { k: "Site / job", v: document.getElementById("flowSite").value.trim() || "(not stated)" },
+    { k: "System", v: flowSys().label }
+  ];
+  if (req) rows.push({ k: "Requirement", v: req.q + " L/min @ " + req.p + " kPa" });
+  y = drawKvRows(ctx, rows, m, y, inner, 38);
+  y += 12;
+  ctx.fillStyle = "#6a5d50";
+  ctx.font = "600 18px sans-serif";
+  ctx.fillText("Test points", m + 8, y);
+  y += 26;
+  ctx.fillStyle = "#1a1613";
+  ctx.font = "700 20px sans-serif";
+  pts.forEach((r, i) => {
+    const bits = [(i + 1) + ". " + (r.name || "Point " + (i + 1))];
+    if (Number.isFinite(r.q)) bits.push(Number(r.q).toFixed(0) + " L/min");
+    if (Number.isFinite(r.residual)) bits.push(r.residual + " kPa");
+    if (r.mode === "pitot" && Number.isFinite(r.d)) bits.push("nozzle " + r.d + " mm");
+    if (r.mode === "pitot" && Number.isFinite(r.pitot)) bits.push("pitot " + r.pitot + " kPa");
+    wrapReport(ctx, bits.join("  ·  "), inner).forEach(ln => { ctx.fillText(ln, m + 8, y); y += 24; });
+  });
+  y += 16;
+  ctx.fillStyle = "#1a1613";
+  ctx.font = "800 22px sans-serif";
+  ctx.fillText("Australian Standards referenced", m, y);
+  y += 28;
+  ctx.fillStyle = "#3a322c";
+  ctx.font = "600 18px sans-serif";
+  [
+    "AS 2419.1:2021 Cl 4.2.7.1.2 — minimum design residual pressure.",
+    "AS 1851-2012 Sec 4 — fire hydrant systems, yearly flow test (Cl 4.4.3).",
+    "AS 2118.1:2017 — automatic fire sprinkler systems, design demand.",
+    "Field record only — confirm before sign-off."
+  ].forEach(line => {
+    wrapReport(ctx, "•  " + line, inner).forEach(ln => { ctx.fillText(ln, m, y); y += 24; });
+  });
+  drawA4Footer(ctx, w, h);
+  return c.toDataURL("image/png");
+}
+function exportFlow(mode) {
+  try {
+    if (flowCurve().length < 2) {
+      nativeToast("Add at least two test points");
+      return;
+    }
+    const site = document.getElementById("flowSite").value.trim();
+    const dataUrl = mode === "email" ? composeFlowReportPng() : flowChartCanvas().toDataURL("image/png");
+    const fname = reportFile("flow", site);
+    const subject = subjectWithResult(flowSys().label + " flow test", site, flowVerdict());
+    const body = flowReportText();
+    if (window.OnlyFitters) {
+      sendChartToApp(mode, dataUrl, fname, subject, body);
+      return;
+    }
+    const a = document.createElement("a");
+    a.href = dataUrl; a.download = fname; a.click();
+  } catch (e) {
+    nativeToast("Export failed: " + (e && e.message ? e.message : e));
+  }
+}
+function setupFlow() {
+  try {
+    const draft = JSON.parse(localStorage.getItem(FLOW_DRAFT_KEY) || "null");
+    if (draft && Array.isArray(draft.pts)) applyFlowState(draft, draft.id || "");
+  } catch (e) {}
+  bindMenu("flowSysMenu", () => [
+    { value: "hydrant", label: "Hydrants" },
+    { value: "sprinkler", label: "Sprinklers" }
+  ], () => flowSystem, (v) => {
+    flowSystem = v === "sprinkler" ? "sprinkler" : "hydrant";
+    flowPts = readFlowPts();
+    renderFlowRows();
+    drawFlow();
+    scheduleFlowSave();
+  });
+  paintMenu("flowSysMenu");
+  renderFlowRows();
+  renderFlowJobs();
+
+  const host = document.getElementById("flowRows");
+  if (host) {
+    host.addEventListener("input", (ev) => {
+      flowPts = readFlowPts();
+      if (ev.target.matches(".flow-d, .flow-pitot")) updateFlowCalc(ev.target.closest(".flowrow"));
+      drawFlow();
+      scheduleFlowSave();
+    });
+    host.addEventListener("click", (ev) => {
+      const modeBtn = ev.target.closest(".flow-row-top .chips button[data-mode]");
+      if (modeBtn) {
+        const rowEl = modeBtn.closest(".flowrow");
+        const mode = modeBtn.getAttribute("data-mode") === "meter" ? "meter" : "pitot";
+        rowEl.setAttribute("data-mode", mode);
+        rowEl.querySelectorAll(".flow-row-top .chips button").forEach(b => b.classList.toggle("on", b === modeBtn));
+        const pg = rowEl.querySelector(".flow-pitot-grid");
+        const mg = rowEl.querySelector(".flow-meter-grid");
+        if (pg) pg.classList.toggle("hidden", mode !== "pitot");
+        if (mg) mg.classList.toggle("hidden", mode !== "meter");
+        flowPts = readFlowPts();
+        updateFlowCalc(rowEl);
+        drawFlow();
+        scheduleFlowSave();
+        return;
+      }
+      const del = ev.target.closest(".flow-del");
+      if (del) {
+        const rowEl = del.closest(".flowrow");
+        const all = Array.from(document.querySelectorAll("#flowRows .flowrow"));
+        const idx = all.indexOf(rowEl);
+        flowPts = readFlowPts();
+        flowPts.splice(idx, 1);
+        if (!flowPts.length) flowPts = [blankFlowRow()];
+        renderFlowRows();
+        drawFlow();
+        scheduleFlowSave();
+      }
+    });
+  }
+  const add = document.getElementById("addFlowPoint");
+  if (add) add.onclick = () => {
+    flowPts = readFlowPts();
+    flowPts.push(blankFlowRow());
+    renderFlowRows();
+    drawFlow();
+    scheduleFlowSave();
+  };
+  ["flowSite", "flowReqQ", "flowReqP", "flowReqNote"].forEach(id => {
+    document.getElementById(id).addEventListener("input", () => {
+      drawFlow();
+      scheduleFlowSave();
+    });
+  });
+  document.getElementById("newFlowJob").onclick = () => fcSaveAndSync("flow");
+  document.getElementById("saveFlow").onclick = () => {
+    autosaveFlow();
+    exportFlow("save");
+  };
+  document.getElementById("emailFlow").onclick = () => {
+    autosaveFlow();
+    exportFlow("email");
+  };
+  document.addEventListener("visibilitychange", () => {
+    if (document.hidden) autosaveFlow();
+  });
+  drawFlow();
+}
+
 function setup() {
   bindMenu("pipeTypeMenu", () => ORDER.map(key => ({ value: key, label: DATA[key].label })),
     () => schedule, (v) => { schedule = v; render(); });
@@ -4417,6 +5133,7 @@ function setup() {
   setupAnnu();
   setupFlange();
   setupPump();
+  setupFlow();
   setupHydro();
   setupTanks();
   setupAS1851();
@@ -5004,12 +5721,20 @@ function setupFlange() {
   });
 }
 
-let pumpPts = [
-  { q: 0, p: 800 },
-  { q: 10, p: 720 },
-  { q: 20, p: 580 },
-  { q: 30, p: 380 }
+let pumpCurves = [
+  {
+    id: "p1",
+    driver: "electric",
+    pts: [
+      { q: 0, p: 800 },
+      { q: 10, p: 720 },
+      { q: 20, p: 580 },
+      { q: 30, p: 380 }
+    ]
+  }
 ];
+const PUMP_SERIES_COLORS = ["#c2410c", "#1d4ed8"];
+function driverLabel(d) { return d === "diesel" ? "Diesel" : "Electric"; }
 const JOBS_KEY = "onlyfitters-pump-jobs";
 const DRAFT_KEY = "onlyfitters-pump-draft";
 let pumpSaveTimer = null;
@@ -5043,14 +5768,34 @@ function readReq() {
   if (!Number.isFinite(q) || !Number.isFinite(p)) return null;
   return { q, p, note };
 }
+function normalisePumpCurves(s) {
+  let curves = [];
+  if (s && Array.isArray(s.curves) && s.curves.length) {
+    curves = s.curves.slice(0, 2).map((c, i) => ({
+      id: String(c.id || ("p" + (i + 1))),
+      driver: c.driver === "diesel" ? "diesel" : "electric",
+      pts: (Array.isArray(c.pts) ? c.pts : []).map(pt => ({ q: pt.q, p: pt.p }))
+    }));
+  } else if (s && Array.isArray(s.pts) && s.pts.length) {
+    curves = [{ id: "p1", driver: "electric", pts: s.pts.map(pt => ({ q: pt.q, p: pt.p })) }];
+  }
+  if (!curves.length) curves = [{ id: "p1", driver: "electric", pts: [] }];
+  curves.forEach((c, i) => {
+    c.id = c.id || ("p" + (i + 1));
+    if (!c.pts.length) c.pts = [{ q: "", p: "" }];
+  });
+  return curves;
+}
 function currentPumpState() {
+  const curves = readPumpCurves();
   return {
     jobName: document.getElementById("jobName").value.trim(),
     year: document.getElementById("testYear").value.trim(),
     pumpId: document.getElementById("pumpId").value.trim(),
     req: readReq(),
     reqNote: document.getElementById("reqNote").value.trim(),
-    pts: readPumpPts(),
+    curves: curves,
+    pts: (curves[0] && curves[0].pts) || [],
     updated: Date.now()
   };
 }
@@ -5066,9 +5811,9 @@ function applyPumpState(s, id) {
   document.getElementById("reqQ").value = s.req && Number.isFinite(s.req.q) ? s.req.q : (s.reqQ || "");
   document.getElementById("reqP").value = s.req && Number.isFinite(s.req.p) ? s.req.p : (s.reqP || "");
   document.getElementById("reqNote").value = (s.req && s.req.note) || s.reqNote || "";
-  pumpPts = (s.pts && s.pts.length) ? s.pts.map(p => ({ q: p.q, p: p.p })) : [{ q: 0, p: 0 }];
+  pumpCurves = normalisePumpCurves(s);
   activeJobId = id || s.id || "";
-  renderPumpRows();
+  renderPumpCards();
   drawPump();
   applyingPump = false;
   renderJobList();
@@ -5091,6 +5836,7 @@ function autosavePump() {
     pumpId: s.pumpId,
     req: s.req,
     reqNote: s.reqNote,
+    curves: s.curves,
     pts: s.pts,
     updated: s.updated
   };
@@ -5128,7 +5874,7 @@ function renderJobList() {
   host.innerHTML = jobs.map(j => `
     <div class="jobcard${j.id === activeJobId ? " on" : ""}">
       <h3>${escPump(j.jobName)}</h3>
-      <div class="meta">${j.sharedBy ? "From " + escPump(j.sharedBy) + " · " : ""}${escPump(j.year || "")}${j.pumpId ? " · " + escPump(j.pumpId) : ""} · ${j.pts ? j.pts.length : 0} pts · ${timeAgo(j.updated || 0)}</div>
+      <div class="meta">${j.sharedBy ? "From " + escPump(j.sharedBy) + " · " : ""}${escPump(j.year || "")}${j.pumpId ? " · " + escPump(j.pumpId) : ""} · ${(j.curves && j.curves.length > 1) ? j.curves.length + " pumps · " : ""}${j.pts ? j.pts.length : 0} pts · ${timeAgo(j.updated || 0)}</div>
       <div class="rowbtns">
         <button type="button" data-open="${escPump(j.id)}">Open</button>
         <button type="button" class="ghost" data-share="${escPump(j.id)}">Share</button>
@@ -5281,85 +6027,124 @@ function drawBrandHeader(ctx, w, hBar, tagText) {
   ctx.restore();
 }
 
-function readPumpPts() {
-  const rows = document.querySelectorAll("#pumpPts .ptrow");
-  const pts = [];
-  rows.forEach(row => {
-    const q = parseFloat(row.querySelector(".q").value);
-    const p = parseFloat(row.querySelector(".p").value);
-    if (Number.isFinite(q) && Number.isFinite(p)) pts.push({ q, p });
-  });
-  pts.sort((a, b) => a.q - b.q);
+function dedupeCurve(pts) {
+  const clean = pts.filter(pt => Number.isFinite(pt.q) && Number.isFinite(pt.p)).slice();
+  clean.sort((a, b) => a.q - b.q);
   const uniq = [];
-  pts.forEach(pt => {
+  clean.forEach(pt => {
     if (!uniq.length || Math.abs(uniq[uniq.length - 1].q - pt.q) > 1e-9) uniq.push(pt);
     else uniq[uniq.length - 1] = pt;
   });
   return uniq;
 }
-
-function renderPumpRows() {
-  const host = document.getElementById("pumpPts");
-  host.innerHTML = pumpPts.map((pt, i) => `
-    <div class="ptrow">
-      <input class="q" type="number" inputmode="decimal" step="10" value="${pt.q}" placeholder="L/s" aria-label="L/s"/>
-      <input class="p" type="number" inputmode="decimal" step="1" value="${pt.p}" placeholder="kPa" aria-label="kPa"/>
-      <button type="button" class="delpt" data-i="${i}" aria-label="Remove">×</button>
-    </div>`).join("");
-  host.querySelectorAll("input").forEach(inp => inp.addEventListener("input", () => {
-    pumpPts = readPumpPts();
-    drawPump();
-    schedulePumpSave();
-  }));
-  host.querySelectorAll(".delpt").forEach(btn => btn.onclick = () => {
-    const i = +btn.getAttribute("data-i");
-    pumpPts.splice(i, 1);
-    if (!pumpPts.length) pumpPts = [{ q: 0, p: 0 }];
-    renderPumpRows();
-    drawPump();
-    schedulePumpSave();
+function readPumpCurves() {
+  const cards = document.querySelectorAll("#pumpCards .pump-card");
+  const out = [];
+  cards.forEach(card => {
+    const pts = [];
+    card.querySelectorAll(".ptrow").forEach(row => {
+      const qEl = row.querySelector(".q");
+      const pEl = row.querySelector(".p");
+      const q = parseFloat(qEl ? qEl.value : "");
+      const p = parseFloat(pEl ? pEl.value : "");
+      if (Number.isFinite(q) && Number.isFinite(p)) pts.push({ q: q, p: p });
+    });
+    out.push({
+      id: card.getAttribute("data-id") || ("p" + (out.length + 1)),
+      driver: card.getAttribute("data-driver") === "diesel" ? "diesel" : "electric",
+      pts: dedupeCurve(pts)
+    });
   });
+  return out.length ? out : [{ id: "p1", driver: "electric", pts: [] }];
 }
-
-function drawPumpOn(ctx, w, h, pts, job, year, pump, forExport, req) {
+function readPumpPts() {
+  const curves = readPumpCurves();
+  return curves.length ? curves[0].pts : [];
+}
+function curveAt(pts, q) {
+  if (!pts || !pts.length) return null;
+  if (pts.length === 1) return Math.abs(pts[0].q - q) < 1e-9 ? pts[0].p : null;
+  const v = monotoneSpline(pts)(q);
+  return Number.isFinite(v) ? v : null;
+}
+function renderPumpCards() {
+  const host = document.getElementById("pumpCards");
+  if (!host) return;
+  host.innerHTML = pumpCurves.map((c, i) => {
+    const rows = (c.pts.length ? c.pts : [{ q: "", p: "" }]).map((pt, j) => `
+      <div class="ptrow">
+        <input class="q" type="number" inputmode="decimal" step="10" value="${pt.q === null || pt.q === undefined ? "" : pt.q}" placeholder="L/s" aria-label="L/s"/>
+        <input class="p" type="number" inputmode="decimal" step="1" value="${pt.p === null || pt.p === undefined ? "" : pt.p}" placeholder="kPa" aria-label="kPa"/>
+        <button type="button" class="delpt" data-i="${j}" aria-label="Remove point">×</button>
+      </div>`).join("");
+    return `
+      <div class="pump-card" data-id="${escPump(c.id)}" data-driver="${c.driver === "diesel" ? "diesel" : "electric"}">
+        <div class="pump-head">
+          <b>Pump ${i + 1}</b>
+          <div class="chips">
+            <button type="button" data-driver="electric" class="${c.driver === "electric" ? "on" : ""}">Electric</button>
+            <button type="button" data-driver="diesel" class="${c.driver === "diesel" ? "on" : ""}">Diesel</button>
+          </div>
+          ${i > 0 ? '<button type="button" class="pump-remove">Remove</button>' : ""}
+        </div>
+        ${rows}
+        <button type="button" class="addpt pump-add-point">+ Add point</button>
+      </div>`;
+  }).join("");
+  const add = document.getElementById("addPump");
+  if (add) add.classList.toggle("hidden", pumpCurves.length >= 2);
+}
+function drawCurveChart(ctx, opt) {
+  const w = opt.w, h = opt.h;
+  const req = opt.req;
   const hasReq = req && Number.isFinite(req.q) && Number.isFinite(req.p);
+  const forExport = !!opt.forExport;
+  const axisX = opt.axisX || "Flow (L/s)";
+  const axisY = opt.axisY || "Pressure (kPa)";
+  const unitX = opt.unitX || "L/s";
+  const xStep = Math.max(1e-9, opt.xStep || 10);
+  const series = (opt.series || []).filter(sr => sr && sr.pts && sr.pts.length);
+  const legendPad = series.length > 1 ? 26 : 0;
   const hBar = forExport ? 110 : 0;
   const padL = 88, padR = 32, padB = 72;
-  const padT = forExport ? hBar + (hasReq ? 84 : 60) : 36;
+  const padT = (forExport ? hBar + (hasReq ? 84 : 60) : 36) + legendPad;
+
   ctx.fillStyle = forExport ? "#f7f1ea" : "#f4ede4";
   ctx.fillRect(0, 0, w, h);
+
   if (forExport) {
     drawBrandHeader(ctx, w, hBar);
     ctx.textAlign = "left";
     ctx.textBaseline = "alphabetic";
     ctx.fillStyle = "#14110f";
     ctx.font = "800 22px sans-serif";
-    ctx.fillText(job || "Pump test curve", padL, hBar + 28);
+    ctx.fillText(opt.title || "Test curve", padL, hBar + 28);
     ctx.font = "700 16px sans-serif";
-    ctx.fillText("Year of test: " + (year || "") + (pump ? "    Pump: " + pump : "") + "    kPa vs L/s", padL, hBar + 50);
+    ctx.fillText(opt.subtitle || "", padL, hBar + 50);
     if (hasReq) {
       ctx.fillStyle = "#6a4208";
       ctx.font = "800 16px sans-serif";
-      const reqLine = "System req: " + req.q + " L/s @ " + req.p + " kPa" + (req.note ? "    " + req.note : "");
+      const reqLine = "Requirement: " + req.q + " " + unitX + " @ " + req.p + " kPa" + (req.note ? "    " + req.note : "");
       ctx.fillText(reqLine, padL, hBar + 72);
     }
   }
-  if (pts.length < 1 && !hasReq) {
+
+  const all = series.reduce((acc, sr) => acc.concat(sr.pts), []);
+  if (!all.length && !hasReq) {
     ctx.fillStyle = "#14110f";
     ctx.font = "700 20px sans-serif";
-    ctx.fillText("Add flow and pressure points", padL, h / 2);
+    ctx.fillText(opt.emptyText || "Add flow and pressure points", padL, h / 2);
     return;
   }
-  const qs = pts.map(p => p.q), ps = pts.map(p => p.p);
-  const lsStep = 10;
-  let maxQ = Math.max(0, ...(qs.length ? qs : [0]));
-  let maxP = Math.max(0, ...(ps.length ? ps : [100]));
+
+  let maxQ = 0, maxP = 0;
+  all.forEach(pt => { maxQ = Math.max(maxQ, pt.q); maxP = Math.max(maxP, pt.p); });
   if (hasReq) {
     if (Number.isFinite(req.q)) maxQ = Math.max(maxQ, req.q);
     if (Number.isFinite(req.p)) maxP = Math.max(maxP, req.p);
   }
   const xmin = 0;
-  const xmax = Math.max(lsStep, Math.ceil(maxQ / lsStep) * lsStep);
+  const xmax = Math.max(xStep, Math.ceil(maxQ / xStep) * xStep);
   const ymin = 0;
   const yNice = (function (max, target) {
     const m = Math.max(max, 1);
@@ -5370,20 +6155,21 @@ function drawPumpOn(ctx, w, h, pts, job, year, pump, forExport, req) {
     return { step: step, max: Math.ceil(m / step) * step };
   })(maxP, 6);
   const ymax = yNice.max;
-  const yStep = yNice.step;
+  const yTick = yNice.step;
   const xOf = q => padL + (q - xmin) / (xmax - xmin) * (w - padL - padR);
   const yOf = p => padT + (1 - (p - ymin) / (ymax - ymin)) * (h - padT - padB);
+
   ctx.strokeStyle = "#d7cbbd";
   ctx.lineWidth = 1;
   ctx.fillStyle = "#14110f";
   ctx.font = "800 16px sans-serif";
-  for (let q = xmin; q <= xmax + 1e-9; q += lsStep) {
+  for (let q = xmin; q <= xmax + 1e-9; q += xStep) {
     const x = xOf(q);
     ctx.beginPath(); ctx.moveTo(x, padT); ctx.lineTo(x, h - padB); ctx.stroke();
     ctx.textAlign = "center";
     ctx.fillText(String(Math.round(q)), x, h - padB + 22);
   }
-  for (let p = ymin; p <= ymax + 1e-9; p += yStep) {
+  for (let p = ymin; p <= ymax + 1e-9; p += yTick) {
     const y = yOf(p);
     ctx.beginPath(); ctx.moveTo(padL, y); ctx.lineTo(w - padR, y); ctx.stroke();
     ctx.textAlign = "right";
@@ -5396,35 +6182,58 @@ function drawPumpOn(ctx, w, h, pts, job, year, pump, forExport, req) {
   ctx.fillStyle = "#14110f";
   ctx.font = "800 18px sans-serif";
   ctx.textAlign = "center";
-  ctx.fillText("Flow (L/s)", w / 2, h - 16);
+  ctx.fillText(axisX, w / 2, h - 16);
   ctx.translate(18, (padT + h - padB) / 2);
   ctx.rotate(-Math.PI / 2);
-  ctx.fillText("Pressure (kPa)", 0, 0);
+  ctx.fillText(axisY, 0, 0);
   ctx.restore();
-  if (pts.length >= 2) {
-    const f = monotoneSpline(pts);
-    ctx.strokeStyle = "#d1243a";
-    ctx.lineWidth = 3;
-    ctx.beginPath();
-    const steps = 80;
-    for (let i = 0; i <= steps; i++) {
-      const q = pts[0].q + (pts[pts.length - 1].q - pts[0].q) * i / steps;
-      const p = f(q);
-      const X = xOf(q), Y = yOf(p);
-      if (i === 0) ctx.moveTo(X, Y); else ctx.lineTo(X, Y);
-    }
-    ctx.stroke();
+
+  if (series.length > 1) {
+    let lx = padL + 8;
+    const ly = padT - 15;
+    ctx.font = "700 15px sans-serif";
+    ctx.textAlign = "left";
+    ctx.textBaseline = "middle";
+    series.forEach(sr => {
+      const label = sr.label || "";
+      ctx.fillStyle = sr.color || "#14110f";
+      ctx.fillRect(lx, ly - 3, 16, 4);
+      ctx.fillStyle = "#14110f";
+      ctx.fillText(label, lx + 22, ly);
+      lx += 22 + ctx.measureText(label).width + 24;
+    });
+    ctx.textBaseline = "alphabetic";
   }
-  pts.forEach(pt => {
-    ctx.fillStyle = "#14110f";
-    ctx.beginPath();
-    ctx.arc(xOf(pt.q), yOf(pt.p), 5, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.fillStyle = "#d1243a";
-    ctx.beginPath();
-    ctx.arc(xOf(pt.q), yOf(pt.p), 3, 0, Math.PI * 2);
-    ctx.fill();
+
+  series.forEach(sr => {
+    const color = sr.color || "#14110f";
+    const pts = sr.pts;
+    if (pts.length >= 2) {
+      const f = monotoneSpline(pts);
+      ctx.strokeStyle = color;
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      const steps = 80;
+      for (let i = 0; i <= steps; i++) {
+        const q = pts[0].q + (pts[pts.length - 1].q - pts[0].q) * i / steps;
+        const p = f(q);
+        const X = xOf(q), Y = yOf(p);
+        if (i === 0) ctx.moveTo(X, Y); else ctx.lineTo(X, Y);
+      }
+      ctx.stroke();
+    }
+    pts.forEach(pt => {
+      ctx.fillStyle = color;
+      ctx.beginPath();
+      ctx.arc(xOf(pt.q), yOf(pt.p), 5, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = "#14110f";
+      ctx.beginPath();
+      ctx.arc(xOf(pt.q), yOf(pt.p), 2.5, 0, Math.PI * 2);
+      ctx.fill();
+    });
   });
+
   if (hasReq) {
     const X = xOf(req.q), Y = yOf(req.p);
     ctx.save();
@@ -5440,9 +6249,9 @@ function drawPumpOn(ctx, w, h, pts, job, year, pump, forExport, req) {
     ctx.setLineDash([]);
     const s = 7;
     let meets = null;
-    if (pts.length >= 2) {
-      const at = monotoneSpline(pts)(req.q);
-      if (Number.isFinite(at)) meets = at + 0.5 >= req.p;
+    if (series.length) {
+      const ats = series.map(sr => curveAt(sr.pts, req.q)).filter(v => v !== null);
+      if (ats.length) meets = ats.every(v => v + 0.5 >= req.p);
     }
     ctx.fillStyle = meets === null ? "#e8b86d" : (meets ? PASS_COL : FAIL_COL);
     ctx.strokeStyle = "#14110f";
@@ -5459,24 +6268,58 @@ function drawPumpOn(ctx, w, h, pts, job, year, pump, forExport, req) {
     ctx.font = "800 16px sans-serif";
     ctx.textAlign = X > (padL + w - padR) / 2 ? "right" : "left";
     ctx.textBaseline = "bottom";
-    let tag = "Req " + req.q + " L/s @ " + req.p + " kPa";
+    let tag = "Req " + req.q + " " + unitX + " @ " + req.p + " kPa";
     if (meets !== null) tag += meets ? "  PASS" : "  FAIL";
     ctx.fillText(tag, X + (ctx.textAlign === "left" ? 10 : -10), Y - 10);
     ctx.restore();
   }
 }
 
+function drawPumpOn(ctx, w, h, pts, job, year, pump, forExport, req) {
+  drawCurveChart(ctx, {
+    w: w, h: h,
+    series: [{ pts: pts, color: PUMP_SERIES_COLORS[0], label: "" }],
+    title: job || "Pump test curve",
+    subtitle: "Year of test: " + (year || "") + (pump ? "    Pump: " + pump : "") + "    kPa vs L/s",
+    axisX: "Flow (L/s)",
+    axisY: "Pressure (kPa)",
+    unitX: "L/s",
+    xStep: 10,
+    forExport: forExport,
+    req: req
+  });
+}
+
+function pumpSeries() {
+  return pumpCurves.map((c, i) => ({
+    pts: c.pts,
+    color: PUMP_SERIES_COLORS[i % PUMP_SERIES_COLORS.length],
+    label: driverLabel(c.driver)
+  }));
+}
 function drawPump() {
   const canvas = document.getElementById("pumpChart");
+  if (!canvas) return;
   const ctx = canvas.getContext("2d");
   const job = document.getElementById("jobName").value.trim();
   const year = document.getElementById("testYear").value.trim();
   const pump = document.getElementById("pumpId").value.trim();
-  drawPumpOn(ctx, canvas.width, canvas.height, readPumpPts(), job, year, pump, true, readReq());
+  drawCurveChart(ctx, {
+    w: canvas.width,
+    h: canvas.height,
+    series: pumpSeries(),
+    title: job || "Pump test curve",
+    subtitle: "Year of test: " + (year || "") + (pump ? "    Pump: " + pump : "") + "    kPa vs L/s",
+    axisX: "Flow (L/s)",
+    axisY: "Pressure (kPa)",
+    unitX: "L/s",
+    xStep: 10,
+    forExport: true,
+    req: readReq()
+  });
   drawPumpBig();
   renderPumpVerdict();
 }
-
 let pumpOverlayOpen = false;
 let pumpOverlayPushed = false;
 
@@ -5501,12 +6344,20 @@ function drawPumpBig() {
   if (!canvas) return;
   sizePumpBig();
   const ctx = canvas.getContext("2d");
-  const job = document.getElementById("jobName").value.trim();
-  const year = document.getElementById("testYear").value.trim();
-  const pump = document.getElementById("pumpId").value.trim();
-  drawPumpOn(ctx, canvas.width, canvas.height, readPumpPts(), job, year, pump, true, readReq());
+  drawCurveChart(ctx, {
+    w: canvas.width,
+    h: canvas.height,
+    series: pumpSeries(),
+    title: document.getElementById("jobName").value.trim() || "Pump test curve",
+    subtitle: "Year of test: " + document.getElementById("testYear").value.trim() + "    kPa vs L/s",
+    axisX: "Flow (L/s)",
+    axisY: "Pressure (kPa)",
+    unitX: "L/s",
+    xStep: 10,
+    forExport: true,
+    req: readReq()
+  });
 }
-
 function pcFullscreen(on) {
   if (!window.FitterCalcsPC || !window.OnlyFitters) return;
   try { OnlyFitters.fullscreen(!!on); } catch (e) {}
@@ -6392,64 +7243,120 @@ function pumpVerdict(pts, req) {
   }
   return { ok: false, tag: "FAIL", detail: "Curve " + duty.at.toFixed(0) + " kPa at " + req.q + " L/s  (" + Math.abs(duty.margin).toFixed(0) + " kPa below the " + req.p + " kPa duty)." };
 }
+function pumpSetVerdict(curves, req) {
+  if (!req || !curves.length) return null;
+  const rows = curves.map(c => pumpVerdict(c.pts, req));
+  if (rows.some(v => !v)) return null;
+  if (curves.length === 1) return rows[0];
+  const bad = rows.filter(v => !v.ok);
+  if (!bad.length) {
+    return { ok: true, tag: "PASS", detail: "All " + rows.length + " pumps meet the " + req.p + " kPa duty at " + req.q + " L/s." };
+  }
+  return { ok: false, tag: "FAIL", detail: bad.length + " of " + rows.length + " pumps below the " + req.p + " kPa duty at " + req.q + " L/s." };
+}
 function renderPumpVerdict() {
   const el = document.getElementById("pumpVerdict");
   if (!el) return;
-  el.innerHTML = verdictHtml(pumpVerdict(readPumpPts(), readReq()));
+  const req = readReq();
+  const curves = readPumpCurves();
+  const parts = curves.map(c => {
+    const v = pumpVerdict(c.pts, req);
+    const fallback = req
+      ? { ok: null, tag: "ENTER CURVE", detail: "Add at least two flow / pressure points." }
+      : { ok: null, tag: "ENTER DUTY", detail: "Add the required flow and pressure to check this curve." };
+    return verdictHtml(v || fallback, curves.length > 1 ? driverLabel(c.driver) : "Result", curves.length > 1);
+  });
+  if (curves.length > 1) {
+    parts.push(verdictHtml(pumpSetVerdict(curves, req) || { ok: null, tag: "SET INCOMPLETE", detail: "Both pumps need a curve and a duty." }, "Set"));
+  }
+  el.innerHTML = parts.join("");
 }
-function pumpChartCanvas(pts, job, year, pump, req) {
+function seriesOfCurves(curves) {
+  return curves.map((c, i) => ({
+    pts: c.pts,
+    color: PUMP_SERIES_COLORS[i % PUMP_SERIES_COLORS.length],
+    label: driverLabel(c.driver)
+  }));
+}
+function pumpChartCanvas(curves, job, year, pump, req) {
   const c = document.createElement("canvas");
   c.width = A4_W; c.height = 980;
   const ctx = c.getContext("2d");
+  const opt = {
+    w: c.width, h: c.height,
+    series: seriesOfCurves(curves),
+    title: job || "Pump test curve",
+    subtitle: "Year of test: " + (year || "") + (pump ? "    Pump: " + pump : "") + "    kPa vs L/s",
+    axisX: "Flow (L/s)",
+    axisY: "Pressure (kPa)",
+    unitX: "L/s",
+    xStep: 10,
+    forExport: true,
+    req: req
+  };
   skipBrandLogo = false;
   try {
-    drawPumpOn(ctx, c.width, c.height, pts, job, year, pump, true, req);
+    drawCurveChart(ctx, opt);
     c.toDataURL("image/png");
   } catch (err) {
     skipBrandLogo = true;
-    drawPumpOn(ctx, c.width, c.height, pts, job, year, pump, true, req);
+    drawCurveChart(ctx, opt);
     skipBrandLogo = false;
   }
   return c;
 }
-function pumpReportText(pts, job, year, pump, req) {
-  const duty = pumpDuty(pts, req);
-  const verdict = pumpVerdict(pts, req);
-  const shut = pts.find(p => Math.abs(p.q) < 1e-6) || pts[0];
-  const last = pts[pts.length - 1];
+function pumpReportText(curves, job, year, pump, req) {
+  const rows = curves.map(c => ({
+    label: driverLabel(c.driver),
+    pts: c.pts,
+    duty: pumpDuty(c.pts, req),
+    verdict: pumpVerdict(c.pts, req)
+  }));
+  const setVerdict = pumpSetVerdict(curves, req);
+
+  const curveLines = [];
+  rows.forEach((r, i) => {
+    curveLines.push("Pump " + (i + 1) + " — " + r.label);
+    const shut = r.pts.find(pt => Math.abs(pt.q) < 1e-6) || r.pts[0];
+    const last = r.pts[r.pts.length - 1];
+    if (shut) curveLines.push("  Shutoff / first point: " + shut.q + " L/s at " + shut.p + " kPa");
+    if (last) curveLines.push("  Last point: " + last.q + " L/s at " + last.p + " kPa");
+    curveLines.push("  Points: " + r.pts.map(pt => pt.q + " L/s @ " + pt.p).join("    "));
+    if (!req) curveLines.push("  No system duty entered.");
+    else if (!r.verdict) curveLines.push("  Curve could not be interpolated at " + req.q + " L/s.");
+    else if (r.verdict.ok) curveLines.push("  RESULT: PASS. At " + req.q + " L/s the curve is " + r.duty.at.toFixed(0) + " kPa (" + Math.abs(r.duty.margin).toFixed(0) + " kPa above " + req.p + " kPa).");
+    else curveLines.push("  RESULT: FAIL. At " + req.q + " L/s the curve is " + r.duty.at.toFixed(0) + " kPa (" + Math.abs(r.duty.margin).toFixed(0) + " kPa below " + req.p + " kPa).");
+    curveLines.push("");
+  });
+
   let finding;
   if (!req) {
     finding = "No system duty was entered. This is a field record of measured points only.";
-  } else if (!duty) {
-    finding = "A system duty of " + req.q + " L/s at " + req.p + " kPa was nominated. The curve could not be interpolated at that flow.";
-  } else if (duty.meets) {
-    finding = "RESULT: PASS. The recorded curve meets the nominated system duty. At " + req.q + " L/s the curve is "
-      + duty.at.toFixed(0) + " kPa (" + Math.abs(duty.margin).toFixed(0) + " kPa above " + req.p + " kPa).";
+  } else if (!setVerdict) {
+    finding = "A system duty of " + req.q + " L/s at " + req.p + " kPa was nominated. One or more curves could not be interpolated at that flow.";
+  } else if (setVerdict.ok) {
+    finding = "RESULT: PASS. Every recorded pump meets the nominated system duty at " + req.q + " L/s.";
   } else {
-    finding = "RESULT: FAIL. The recorded curve is below the nominated system duty. At " + req.q + " L/s the curve is "
-      + duty.at.toFixed(0) + " kPa (" + Math.abs(duty.margin).toFixed(0) + " kPa below " + req.p + " kPa).";
+    finding = "RESULT: FAIL. " + setVerdict.detail;
   }
+
   return emailLetter({
     kind: "FIRE PUMP PERFORMANCE ESTIMATE",
     site: job,
-    verdict: verdict,
+    verdict: setVerdict,
     sections: [
       { title: "1. INSTALLATION", lines: [
         "Site / job: " + (job || "(not stated)"),
         "Year of test: " + (year || "(not stated)"),
         "Pump / set: " + (pump || "(not stated)"),
+        "Pumps recorded: " + rows.length,
         req && req.note ? "Duty note: " + req.note : "Duty note: (none)"
       ]},
       { title: "2. NOMINATED SYSTEM DUTY", lines: req
         ? ["Required flow: " + req.q + " L/s", "Required pressure: " + req.p + " kPa" + (req.note ? "  (" + req.note + ")" : "")]
         : ["No required flow / pressure was entered."]
       },
-      { title: "3. RECORDED CURVE", lines: [
-        "Shutoff / first point: " + shut.q + " L/s at " + shut.p + " kPa",
-        "Last point: " + last.q + " L/s at " + last.p + " kPa",
-        "Test points:",
-        ...pts.map(p => "  " + p.q + " L/s  @  " + p.p + " kPa")
-      ]},
+      { title: "3. RECORDED CURVES", lines: curveLines },
       { title: "4. FINDING", lines: [finding] },
       { title: "5. STANDARDS", lines: [
         "AS 2941-2013 Cl 10.3 — shop performance tests of the pumpset; duty point on the nameplate (Cl 3.13.2).",
@@ -6460,8 +7367,8 @@ function pumpReportText(pts, job, year, pump, req) {
     ]
   });
 }
-function composePumpReportPng(pts, job, year, pump, req) {
-  const chart = pumpChartCanvas(pts, job, year, pump, req);
+function composePumpReportPng(curves, job, year, pump, req) {
+  const chart = pumpChartCanvas(curves, job, year, pump, req);
   const w = A4_W, h = A4_H, m = A4_M;
   const inner = w - 2 * m;
   const c = document.createElement("canvas");
@@ -6470,8 +7377,7 @@ function composePumpReportPng(pts, job, year, pump, req) {
   ctx.fillStyle = "#ffffff";
   ctx.fillRect(0, 0, w, h);
   ctx.drawImage(chart, 0, 0, w, chart.height);
-  const duty = pumpDuty(pts, req);
-  const verdict = pumpVerdict(pts, req);
+  const verdict = pumpSetVerdict(curves, req);
   let y = chart.height + 28;
   ctx.textAlign = "left";
   if (verdict) {
@@ -6495,21 +7401,29 @@ function composePumpReportPng(pts, job, year, pump, req) {
   if (req) {
     rows.push({ k: "Nominated duty", v: req.q + " L/s @ " + req.p + " kPa" });
     if (req.note) rows.push({ k: "Duty note", v: req.note });
-    if (duty) rows.push({ k: "Curve at duty flow", v: duty.at.toFixed(0) + " kPa" });
-    if (verdict) rows.push({ k: "Result", v: verdictLabel(verdict.ok) });
   }
+  curves.forEach((c2, i) => {
+    const v = pumpVerdict(c2.pts, req);
+    rows.push({
+      k: "Pump " + (i + 1) + " (" + driverLabel(c2.driver) + ")",
+      v: v ? verdictLabel(v.ok) : "—"
+    });
+  });
   y = drawKvRows(ctx, rows, m, y, inner, 38);
   y += 12;
   ctx.fillStyle = "#6a5d50";
   ctx.font = "600 18px sans-serif";
   ctx.textAlign = "left";
-  ctx.fillText("Test points (L/s @ kPa)", m + 8, y);
+  ctx.fillText("Test points", m + 8, y);
   y += 26;
   ctx.fillStyle = "#1a1613";
   ctx.font = "700 20px sans-serif";
-  wrapReport(ctx, pts.map(p => p.q + " L/s @ " + p.p).join("    "), inner).forEach(ln => {
-    ctx.fillText(ln, m + 8, y);
-    y += 24;
+  curves.forEach((c2, i) => {
+    const line = "Pump " + (i + 1) + " (" + driverLabel(c2.driver) + "): " + c2.pts.map(pt => pt.q + " L/s @ " + pt.p).join("    ");
+    wrapReport(ctx, line, inner).forEach(ln => {
+      ctx.fillText(ln, m + 8, y);
+      y += 24;
+    });
   });
   y += 16;
   ctx.fillStyle = "#1a1613";
@@ -6531,8 +7445,9 @@ function composePumpReportPng(pts, job, year, pump, req) {
 }
 function exportPump(mode) {
   try {
-    const pts = readPumpPts();
-    if (pts.length < 2) {
+    const curves = readPumpCurves();
+    const usable = curves.filter(c => c.pts.length >= 2);
+    if (!usable.length) {
       nativeToast("Add at least two points");
       return;
     }
@@ -6542,13 +7457,13 @@ function exportPump(mode) {
     const req = readReq();
     let dataUrl;
     if (mode === "email") {
-      dataUrl = composePumpReportPng(pts, job, year, pump, req);
+      dataUrl = composePumpReportPng(usable, job, year, pump, req);
     } else {
-      dataUrl = pumpChartCanvas(pts, job, year, pump, req).toDataURL("image/png");
+      dataUrl = pumpChartCanvas(usable, job, year, pump, req).toDataURL("image/png");
     }
     const fname = pumpFileName();
-    const subject = subjectWithResult("Fire pump performance estimate", job, pumpVerdict(pts, req)) + (year ? " (" + year + ")" : "");
-    const body = pumpReportText(pts, job, year, pump, req);
+    const subject = subjectWithResult("Fire pump performance estimate", job, pumpSetVerdict(usable, req)) + (year ? " (" + year + ")" : "");
+    const body = pumpReportText(usable, job, year, pump, req);
     if (window.OnlyFitters) {
       sendChartToApp(mode, dataUrl, fname, subject, body);
       return;
@@ -6559,22 +7474,83 @@ function exportPump(mode) {
     nativeToast("Export failed: " + (e && e.message ? e.message : e));
   }
 }
-
 function setupPump() {
   document.getElementById("testYear").value = new Date().getFullYear();
   try {
     const draft = JSON.parse(localStorage.getItem(DRAFT_KEY) || "null");
-    if (draft && draft.pts && draft.pts.length) {
+    if (draft && (draft.curves || draft.pts)) {
       applyPumpState(draft, draft.id || "");
     }
   } catch (e) {}
-  renderPumpRows();
+  renderPumpCards();
   renderJobList();
-  document.getElementById("addPt").onclick = () => {
-    const pts = readPumpPts();
-    const last = pts[pts.length - 1] || { q: 0, p: 600 };
-    pumpPts = pts.concat([{ q: Math.floor((last.q + 1e-9) / 10) * 10 + 10, p: Math.max(0, last.p - 80) }]);
-    renderPumpRows();
+
+  const host = document.getElementById("pumpCards");
+  if (host) {
+    host.addEventListener("input", () => {
+      pumpCurves = readPumpCurves();
+      drawPump();
+      schedulePumpSave();
+    });
+    host.addEventListener("click", (ev) => {
+      const driverBtn = ev.target.closest(".pump-head .chips button[data-driver]");
+      if (driverBtn) {
+        const card = driverBtn.closest(".pump-card");
+        const driver = driverBtn.getAttribute("data-driver") === "diesel" ? "diesel" : "electric";
+        card.setAttribute("data-driver", driver);
+        card.querySelectorAll(".pump-head .chips button[data-driver]").forEach(b => b.classList.toggle("on", b === driverBtn));
+        pumpCurves = readPumpCurves();
+        drawPump();
+        schedulePumpSave();
+        return;
+      }
+      const addBtn = ev.target.closest(".pump-add-point");
+      if (addBtn) {
+        pumpCurves = readPumpCurves();
+        const id = addBtn.closest(".pump-card").getAttribute("data-id");
+        const curve = pumpCurves.find(c => c.id === id);
+        if (curve) {
+          const last = curve.pts[curve.pts.length - 1] || { q: 0, p: 600 };
+          const q = Number.isFinite(last.q) ? Math.floor((last.q + 1e-9) / 10) * 10 + 10 : "";
+          const p = Number.isFinite(last.p) ? Math.max(0, last.p - 80) : "";
+          curve.pts.push({ q: q, p: p });
+        }
+        renderPumpCards();
+        drawPump();
+        schedulePumpSave();
+        return;
+      }
+      const del = ev.target.closest(".delpt");
+      if (del) {
+        pumpCurves = readPumpCurves();
+        const id = del.closest(".pump-card").getAttribute("data-id");
+        const curve = pumpCurves.find(c => c.id === id);
+        if (curve) {
+          curve.pts.splice(+del.getAttribute("data-i"), 1);
+          if (!curve.pts.length) curve.pts.push({ q: "", p: "" });
+        }
+        renderPumpCards();
+        drawPump();
+        schedulePumpSave();
+        return;
+      }
+      const rem = ev.target.closest(".pump-remove");
+      if (rem) {
+        pumpCurves = readPumpCurves();
+        const id = rem.closest(".pump-card").getAttribute("data-id");
+        pumpCurves = pumpCurves.filter(c => c.id !== id);
+        renderPumpCards();
+        drawPump();
+        schedulePumpSave();
+      }
+    });
+  }
+  const addPump = document.getElementById("addPump");
+  if (addPump) addPump.onclick = () => {
+    pumpCurves = readPumpCurves();
+    if (pumpCurves.length >= 2) return;
+    pumpCurves.push({ id: "p" + Date.now(), driver: "diesel", pts: [{ q: "", p: "" }] });
+    renderPumpCards();
     drawPump();
     schedulePumpSave();
   };

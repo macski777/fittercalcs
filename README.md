@@ -12,7 +12,7 @@
 </p>
 
 <p align="center">
-  <strong>Current version: 3.2.2</strong><br>
+  <strong>Current version: 3.3.0</strong><br>
   <a href="https://github.com/macski777/fittercalcs/releases/latest">Download FitterCalcs.apk</a>
   ·
   <a href="https://github.com/macski777/fittercalcs/releases/tag/v2.46">Windows</a>
@@ -32,7 +32,7 @@ The launcher icon and the **FITTER / CALCS** wordmark use **Delta Corps Priest 1
 
 ## Install on Android
 
-1. Download [FitterCalcs.apk](https://github.com/macski777/fittercalcs/releases/download/v3.2.2/FitterCalcs.apk).
+1. Download [FitterCalcs.apk](https://github.com/macski777/fittercalcs/releases/download/v3.3.0/FitterCalcs.apk).
 2. If this phone already has FitterCalcs and Android refuses the new file, uninstall the old app once, then install this one.
 3. Open the file on the phone.
 4. Allow install from this source if Android asks.
@@ -86,9 +86,10 @@ Phones on **2.17 or older** need a one-time install of 2.18 or later (USB or thi
 | **Pipe** | OD, wall, ID for AS 1074-1989 (R2018) Cl 2.3 Tables 2.1 / 2.2 / 2.3 Light / Medium / Heavy, SS 10S, SS 40S, CPVC. mm or inch. |
 | **Annubar** | Type L/min or inHg for 3/8", 20T, and 21T. Table is 0.5–30 inHg in 0.5 steps; highlights the next 0.5 inHg up. Medium-steel card K; other walls interpolate by ID. |
 | **Flange** | AS 2129-2000 Tables D/E/F/H, ANSI 150/300, PN16 — OD, PCD, bolts, holes. |
-| **Pump** | kPa vs L/s curve, autosave by job. Green **PASS** / red **FAIL** vs nominated duty, neutral until a duty is entered. Email cites AS 2941-2013 Cl 10.3, AS 2419.1:2021 Cl 4.2.7.1.2, AS 2118.1:2017 Cl 14.9, AS 1851-2012 Table 3.4.3. |
-| **Hydro-Calcs** | Hazen-Williams friction + static rise. Green **PASS** / red **FAIL** on typical 5 m/s (AS 2118.1-1999 Cl 12.14 is 10 m/s pipe / 6 m/s valves), neutral until flow and length are entered. Autosave by site / job. **Save to device** writes the A4 PNG. Email cites AS 1074 Cl 2.3, AS 2118.1:2017 Cl 14.10, AS 2419.1:2021 Cl 4.2.7.1.2. |
+| **Pump** | One or two pumps on the same chart, each marked **Electric** or **Diesel** and checked against the same duty. kPa vs L/s curve, autosave by job. Green **PASS** / red **FAIL** per pump plus a set result, neutral until a duty is entered. Email cites AS 2941-2013 Cl 10.3, AS 2419.1:2021 Cl 4.2.7.1.2, AS 2118.1:2017 Cl 14.9, AS 1851-2012 Table 3.4.3. |
+| **Pipe Loss** | Hazen-Williams friction + static rise. Green **PASS** / red **FAIL** on typical 5 m/s (AS 2118.1-1999 Cl 12.14 is 10 m/s pipe / 6 m/s valves), neutral until flow and length are entered. Autosave by site / job. **Save to device** writes the A4 PNG. Email cites AS 1074 Cl 2.3, AS 2118.1:2017 Cl 14.10, AS 2419.1:2021 Cl 4.2.7.1.2. |
 | **Tanks** | 1–4 tanks, combined effective kL. Hydrants 4 h (AS 2419.1:2021 Cl 4.2.1 / Cl 4.2.6.3). Sprinklers 30/60/90 min (AS 2118.1:2017 Cl 9.3 / Cl 10.3 / Sec 11). 20 mm overflow (AS/NZS 3500.1:2021 Cl 8.3.2). Stays neutral until every tank has a size and a demand is entered. Autosave by site / job. **Save to device** writes the A4 PNG. |
+| **Flow** | Hydrant and sprinkler flow tests. Pitot mode (nozzle mm + pitot kPa → L/min) or a metered L/min. Required flow in L/min and residual in kPa, plotted as residual vs flow with **PASS** / **FAIL** at the requirement. Autosave by site / job, A4 report. |
 | **AS-1851** | Field lookup for AS 1851-2012 routine service. System and frequency are dropdowns. Not a substitute for the Standard. |
 
 ### Pipe
@@ -111,11 +112,11 @@ AS 2129-2000 Tables D, E, F and H, ANSI, and PN16 — OD, PCD, bolts, hole size.
 
 ### Pump
 
-kPa vs L/s curve, job autosave, large chart. Enter a system duty and the tab shows green **PASS** or red **FAIL**. **Email report** is an A4 PNG plus a PASS/FAIL letter citing AS 2941-2013 Cl 10.3, AS 2419.1:2021 Cl 4.2.7.1.2, AS 2118.1:2017 Cl 14.9 and AS 1851-2012 Table 3.4.3.
+kPa vs L/s curve, job autosave, large chart. **+ Add second pump** puts a standby beside the duty pump. Each pump is marked **Electric** or **Diesel**, gets its own points, and both are checked against the one system duty — the tab shows a result per pump and a set result that passes only when they all pass. The chart draws each pump in its own colour with a legend. **Email report** is an A4 PNG plus a PASS/FAIL letter citing AS 2941-2013 Cl 10.3, AS 2419.1:2021 Cl 4.2.7.1.2, AS 2118.1:2017 Cl 14.9 and AS 1851-2012 Table 3.4.3.
 
 <p align="center"><img src="docs/pump.png" width="320" alt="Pump tab — PASS against nominated duty"></p>
 
-### Hydro-Calcs
+### Pipe Loss (Hydro-Calcs)
 
 Hazen-Williams friction plus static rise. Velocity within 5 m/s is green **PASS**; above is red **FAIL** (typical field limit — AS 2118.1-1999 Cl 12.14 allows 10 m/s in pipe, 6 m/s at valves). Calcs **autosave by site / job**. **Save to device** writes the A4 report PNG (same sheet as email). **Email report** cites AS 1074-1989 Cl 2.3 Tables 2.1–2.3, AS 2118.1:2017 Cl 14.10 and AS 2419.1:2021 Cl 4.2.7.1.2.
 
@@ -136,6 +137,17 @@ A result only turns green **PASS** or red **FAIL** when it has real site data. W
 Red is used only for **FAIL** and destructive actions; menus, tabs and buttons are gold. A partly sized tank set stays neutral too — it will not read **PASS** until every tank has a size.
 
 Saved reports open **locked**. Tapping a field to read it, or scrolling past one, changes nothing and asks nothing; the **Change this saved report?** prompt appears only when you type into a field or press a control. Work that has no site name yet is kept in **History** as a **Draft — not saved** row, with **Continue** to return to it.
+
+### Flow
+
+Hydrant and sprinkler flow tests. Pick **Hydrants** or **Sprinklers**, enter the requirement (flow in **L/min**, residual in **kPa**), then one row per outlet or test point.
+
+- **Pitot** — nozzle size in mm and pitot pressure in kPa. The app works out the flow with `Q = 0.0666 × d² × √P` and shows it live.
+- **Meter** — type the measured L/min from a flow meter or Annubar.
+
+The chart plots residual pressure against flow, with the requirement marked. The result is read from the curve at the required flow, so it passes only when the residual at that flow meets the requirement. Tests autosave by site, appear in History, and produce the same A4 report as the pump tab.
+
+<p align="center"><img src="docs/flow.png" width="320" alt="Flow tab — hydrant test against a 600 L/min requirement"></p>
 
 ### Annubar K
 
