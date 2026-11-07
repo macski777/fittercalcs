@@ -1,7 +1,7 @@
 {
-  "versionCode": 57,
-  "versionName": "2.46",
-  "apkUrl": "https://github.com/macski777/fittercalcs/releases/download/v2.46/FitterCalcs.apk",
-  "winUrl": "https://github.com/macski777/fittercalcs/releases/download/v2.46/FitterCalcs-Setup.exe",
-  "notes": "Each person creates their own account. Pump, hydro, and tank jobs stay with that name. On Android, uninstall the old FitterCalcs once if the update will not install, then install this one."
+  "versionCode": 63,
+  "versionName": "3.2.0",
+  "apkUrl": "https://github.com/macski777/fittercalcs/releases/download/v3.2.0/FitterCalcs.apk",
+  "winUrl": "https://github.com/macski777/fittercalcs/releases/download/v3.2.0/FitterCalcs-Setup.exe",
+  "notes": "Tanks and Hydro no longer show PASS until real site data is entered. Red now means FAIL only, and unsaved work appears in History as a draft."
 }
