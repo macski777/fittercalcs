@@ -1765,7 +1765,7 @@
 <script src="fan-calc.js"></script>
 <script src="fan-ui.js"></script>
 <script>
-const APP_VERSION = "3.3.0";
+const APP_VERSION = "3.3.1";
 const APP_BUILD = 56;
 const FAN_KEY = "fittercalcs-ft";
 function fanOn() {
@@ -4607,6 +4607,8 @@ function flowVerdict() {
   const pts = flowCurve();
   const req = readFlowReq();
   if (!req || pts.length < 2) return null;
+  const gap = outOfRange(pts, req.q, "L/min");
+  if (gap) return { ok: null, tag: "OUT OF RANGE", detail: gap };
   const at = curveAt(pts, req.q);
   if (at === null) return null;
   const margin = at - req.p;
@@ -6067,6 +6069,20 @@ function curveAt(pts, q) {
   const v = monotoneSpline(pts)(q);
   return Number.isFinite(v) ? v : null;
 }
+function curveRange(pts) {
+  if (!pts || !pts.length) return null;
+  return { min: pts[0].q, max: pts[pts.length - 1].q };
+}
+function outOfRange(pts, q, unit) {
+  const rng = curveRange(pts);
+  if (!rng || !Number.isFinite(q)) return null;
+  if (q < rng.min || q > rng.max) {
+    const fmt = v => String(Math.round(v * 10) / 10);
+    return "The " + fmt(q) + " " + unit + " requirement is outside the measured range (" +
+      fmt(rng.min) + "–" + fmt(rng.max) + " " + unit + "). Add a point at or beyond the duty.";
+  }
+  return null;
+}
 function renderPumpCards() {
   const host = document.getElementById("pumpCards");
   if (!host) return;
@@ -6250,8 +6266,15 @@ function drawCurveChart(ctx, opt) {
     const s = 7;
     let meets = null;
     if (series.length) {
-      const ats = series.map(sr => curveAt(sr.pts, req.q)).filter(v => v !== null);
-      if (ats.length) meets = ats.every(v => v + 0.5 >= req.p);
+      const ats = [];
+      let covered = true;
+      series.forEach(sr => {
+        const rng = curveRange(sr.pts);
+        if (!rng || req.q < rng.min || req.q > rng.max) { covered = false; return; }
+        const v = curveAt(sr.pts, req.q);
+        if (v === null) covered = false; else ats.push(v);
+      });
+      if (covered && ats.length) meets = ats.every(v => v + 0.5 >= req.p);
     }
     ctx.fillStyle = meets === null ? "#e8b86d" : (meets ? PASS_COL : FAIL_COL);
     ctx.strokeStyle = "#14110f";
@@ -7236,8 +7259,11 @@ function pumpDuty(pts, req) {
   return { at, meets: at + 0.5 >= req.p, margin: at - req.p };
 }
 function pumpVerdict(pts, req) {
+  if (!req) return null;
+  const gap = outOfRange(pts, req.q, "L/s");
+  if (gap) return { ok: null, tag: "OUT OF RANGE", detail: gap };
   const duty = pumpDuty(pts, req);
-  if (!duty || !req) return null;
+  if (!duty) return null;
   if (duty.meets) {
     return { ok: true, tag: "PASS", detail: "Curve " + duty.at.toFixed(0) + " kPa at " + req.q + " L/s  (" + Math.abs(duty.margin).toFixed(0) + " kPa above the " + req.p + " kPa duty)." };
   }
@@ -7247,6 +7273,8 @@ function pumpSetVerdict(curves, req) {
   if (!req || !curves.length) return null;
   const rows = curves.map(c => pumpVerdict(c.pts, req));
   if (rows.some(v => !v)) return null;
+  const neutral = rows.find(v => v.ok === null || v.ok === undefined);
+  if (neutral) return { ok: null, tag: "CHECK RANGE", detail: neutral.detail };
   if (curves.length === 1) return rows[0];
   const bad = rows.filter(v => !v.ok);
   if (!bad.length) {

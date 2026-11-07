@@ -1,7 +1,7 @@
 {
-  "versionCode": 66,
-  "versionName": "3.3.0",
-  "apkUrl": "https://github.com/macski777/fittercalcs/releases/download/v3.3.0/FitterCalcs.apk",
+  "versionCode": 65,
+  "versionName": "3.2.2",
+  "apkUrl": "https://github.com/macski777/fittercalcs/releases/download/v3.2.2/FitterCalcs.apk",
   "winUrl": "",
-  "notes": "Two pumps can now share the pump chart, each marked Electric or Diesel and checked against the same duty. New Flow tab tests hydrants and sprinklers in L/min and kPa, by pitot or meter."
+  "notes": "The change-or-leave-it prompt now only appears when you actually edit a saved report. Tapping a field, reading it, or scrolling past it no longer triggers it."
 }
