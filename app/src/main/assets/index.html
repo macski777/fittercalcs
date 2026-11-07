@@ -1630,7 +1630,7 @@
 <script src="fan-calc.js"></script>
 <script src="fan-ui.js"></script>
 <script>
-const APP_VERSION = "3.2.1";
+const APP_VERSION = "3.2.2";
 const APP_BUILD = 56;
 const FAN_KEY = "fittercalcs-ft";
 function fanOn() {
@@ -4135,9 +4135,17 @@ function fcAgreeEdit() {
 function fcBlockLockedEdit(ev) {
   const control = fcLockControl(ev.target);
   if (!control) return;
+  if (control.tagName !== "INPUT" && control.tagName !== "TEXTAREA") return;
   ev.preventDefault();
   ev.stopPropagation();
   if (control.blur) control.blur();
+  fcAskEdit(control);
+}
+function fcBlockLockedButton(ev) {
+  const control = fcLockControl(ev.target);
+  if (!control || control.tagName !== "BUTTON") return;
+  ev.preventDefault();
+  ev.stopPropagation();
   fcAskEdit(control);
 }
 function fcInstallEditLock() {
@@ -4145,15 +4153,11 @@ function fcInstallEditLock() {
   const no = document.getElementById("editLockNo");
   if (yes) yes.onclick = () => fcAgreeEdit();
   if (no) no.onclick = () => fcLeaveEdit();
-  document.addEventListener("pointerdown", fcBlockLockedEdit, true);
-  document.addEventListener("touchstart", fcBlockLockedEdit, { capture: true, passive: false });
+  // Ask only when the user actually changes the saved report: typing or
+  // pasting into a field, or pressing a control. Tapping a field to read it,
+  // or starting a scroll on one, must not pop the dialog.
   document.addEventListener("beforeinput", fcBlockLockedEdit, true);
-  document.addEventListener("focusin", (ev) => {
-    const control = fcLockControl(ev.target);
-    if (!control) return;
-    if (control.blur) control.blur();
-    fcAskEdit(control);
-  }, true);
+  document.addEventListener("click", fcBlockLockedButton, true);
   document.addEventListener("keydown", (ev) => {
     if (ev.key === "Escape") {
       fcLeaveEdit();
