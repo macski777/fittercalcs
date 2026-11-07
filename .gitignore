@@ -24,3 +24,7 @@ knowledge.db
 *.env
 FitterDocs/
 .trash/
+
+# Signing key — never commit
+keystore.jks
+*.jks

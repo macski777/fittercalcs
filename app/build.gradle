@@ -2,6 +2,23 @@ plugins {
     id 'com.android.application'
 }
 
+// Signing key is pinned so the certificate cannot drift with the shell
+// environment. Without this, AGP picks up whichever debug.keystore it finds
+// first ($XDG_CONFIG_HOME/.android vs ~/.android) and Android then refuses
+// to install the update as a different app.
+def localProps = new Properties()
+def localFile = rootProject.file("local.properties")
+if (localFile.exists()) {
+    localFile.withInputStream { localProps.load(it) }
+}
+def keystoreName = localProps.getProperty("fittercalcs.storeFile", "keystore.jks")
+def keystoreFile = rootProject.file(keystoreName)
+if (!keystoreFile.exists()) {
+    throw new GradleException(
+        "Missing signing keystore ${keystoreFile}. Restore it from " +
+        "~/.local/share/fittercalcs/android-debug.keystore so updates install over existing phones.")
+}
+
 android {
     namespace 'com.sprinkler.pipechart'
     compileSdk 34
@@ -10,13 +27,26 @@ android {
         applicationId 'com.sprinkler.pipechart'
         minSdk 24
         targetSdk 34
-        versionCode 63
-        versionName '3.2.0'
+        versionCode 64
+        versionName '3.2.1'
+    }
+
+    signingConfigs {
+        stable {
+            storeFile keystoreFile
+            storePassword localProps.getProperty("fittercalcs.storePassword", "android")
+            keyAlias localProps.getProperty("fittercalcs.keyAlias", "androiddebugkey")
+            keyPassword localProps.getProperty("fittercalcs.keyPassword", "android")
+        }
     }
 
     buildTypes {
+        debug {
+            signingConfig signingConfigs.stable
+        }
         release {
             minifyEnabled false
+            signingConfig signingConfigs.stable
         }
     }
 

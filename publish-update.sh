@@ -27,7 +27,7 @@ cat > "$ROOT/update.json" <<EOF
   "versionCode": $CODE,
   "versionName": "$NAME",
   "apkUrl": "https://github.com/macski777/fittercalcs/releases/download/v$NAME/FitterCalcs.apk",
-  "winUrl": "https://github.com/macski777/fittercalcs/releases/download/v$NAME/FitterCalcs-Setup.exe",
+  "winUrl": "${FITTERCALCS_WIN_URL:-}",
   "notes": $(python3 -c "import json,sys; print(json.dumps(sys.argv[1]))" "$NOTES")
 }
 EOF
