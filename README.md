@@ -12,7 +12,7 @@
 </p>
 
 <p align="center">
-  <strong>Current version: 3.4.0</strong><br>
+  <strong>Current version: 3.4.1</strong><br>
   <a href="https://github.com/macski777/fittercalcs/releases/latest">Download FitterCalcs.apk</a>
   ·
   <a href="https://github.com/macski777/fittercalcs/releases/tag/v2.46">Windows</a>
@@ -32,7 +32,7 @@ The launcher icon and the **FITTER / CALCS** wordmark use **Delta Corps Priest 1
 
 ## Install on Android
 
-1. Download [FitterCalcs.apk](https://github.com/macski777/fittercalcs/releases/download/v3.4.0/FitterCalcs.apk).
+1. Download [FitterCalcs.apk](https://github.com/macski777/fittercalcs/releases/download/v3.4.1/FitterCalcs.apk).
 2. If this phone already has FitterCalcs and Android refuses the new file, uninstall the old app once, then install this one.
 3. Open the file on the phone.
 4. Allow install from this source if Android asks.
@@ -89,7 +89,7 @@ Phones on **2.17 or older** need a one-time install of 2.18 or later (USB or thi
 | **Pump** | One or two pumps on the same chart, each marked **Electric** or **Diesel** and checked against the same duty. kPa vs L/s curve, autosave by job. Green **PASS** / red **FAIL** per pump plus a set result, neutral until a duty is entered. Email cites AS 2941-2013 Cl 10.3, AS 2419.1:2021 Cl 4.2.7.1.2, AS 2118.1:2017 Cl 14.9, AS 1851-2012 Table 3.4.3. |
 | **Pipe Loss** | Hazen-Williams friction + static rise. Green **PASS** / red **FAIL** on typical 5 m/s (AS 2118.1-1999 Cl 12.14 is 10 m/s pipe / 6 m/s valves), neutral until flow and length are entered. Autosave by site / job. **Save to device** writes the A4 PNG. Email cites AS 1074 Cl 2.3, AS 2118.1:2017 Cl 14.10, AS 2419.1:2021 Cl 4.2.7.1.2. |
 | **Tanks** | 1–4 tanks, combined effective kL. Hydrants 4 h (AS 2419.1:2021 Cl 4.2.1 / Cl 4.2.6.3). Sprinklers 30/60/90 min (AS 2118.1:2017 Cl 9.3 / Cl 10.3 / Sec 11). 20 mm overflow (AS/NZS 3500.1:2021 Cl 8.3.2). Stays neutral until every tank has a size and a demand is entered. Autosave by site / job. **Save to device** writes the A4 PNG. |
-| **Flow** | Hydrant and sprinkler flow tests. Hydrants in **L/s**, sprinklers in **L/min**. Pitot mode (nozzle mm + pitot kPa) or a metered flow. One bar per outlet against the required flow, residual shown under each bar. Every point must meet the requirement. Autosave by site / job, A4 report. |
+| **Flow** | Hydrant and sprinkler flow tests. Hydrants in **L/s**, sprinklers in **L/min**. Pitot mode (nozzle mm + pitot kPa) or a metered flow. Two bars per outlet — flow on the left axis, residual on the right — each green/red against the requirement. Every point must meet it. Autosave by site / job, A4 report. |
 | **AS-1851** | Field lookup for AS 1851-2012 routine service. System and frequency are dropdowns. Not a substitute for the Standard. |
 
 ### Pipe
@@ -146,7 +146,7 @@ Hydrant and sprinkler flow tests. Pick **Hydrants** or **Sprinklers**, enter the
 - **Pitot** — nozzle size in mm and pitot pressure in kPa. The app works out the flow with `Q = 0.0666 × d² × √P` and shows it live, converted to the selected unit.
 - **Meter** — type the measured flow from a flow meter or Annubar.
 
-The chart is one bar per outlet, against the required flow shown as a dashed line. Each bar is labelled with its flow and the residual pressure underneath, and turns green or red against the requirement. Every tested point must meet the required flow and residual for the test to pass. Tests autosave by site, appear in History, and produce the same A4 report as the pump tab.
+The chart shows two bars per outlet: **flow** on the left axis and **residual pressure** on the right, with dashed lines at the required flow and required residual. Each bar turns green or red against its own requirement, and the flow and pressure are printed under the outlet name. Every tested point must meet the required flow and residual for the test to pass. Tests autosave by site, appear in History, and produce the same A4 report as the pump tab.
 
 <p align="center"><img src="docs/flow.png" width="320" alt="Flow tab — hydrant test against a 600 L/min requirement"></p>
 
