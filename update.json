@@ -1,7 +1,7 @@
 {
-  "versionCode": 67,
-  "versionName": "3.3.1",
-  "apkUrl": "https://github.com/macski777/fittercalcs/releases/download/v3.3.1/FitterCalcs.apk",
+  "versionCode": 68,
+  "versionName": "3.4.0",
+  "apkUrl": "https://github.com/macski777/fittercalcs/releases/download/v3.4.0/FitterCalcs.apk",
   "winUrl": "",
-  "notes": "3.3.1: pump and flow tests no longer pass when the required flow is beyond the points you actually measured. Two-pump chart and the new Flow tab are included."
+  "notes": "Flow tab now uses bars: one per outlet against the required flow, with residual under each bar. Hydrants read in L/s, sprinklers in L/min, and every point must meet the requirement."
 }
