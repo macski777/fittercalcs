@@ -12,7 +12,7 @@
 </p>
 
 <p align="center">
-  <strong>Current version: 4.3.0</strong><br>
+  <strong>Current version: 4.4.0</strong><br>
   <a href="https://github.com/macski777/fittercalcs/releases/latest">Download FitterCalcs.apk</a>
   ·
   <a href="https://github.com/macski777/fittercalcs/releases/tag/v2.46">Windows</a>
@@ -51,7 +51,7 @@ The app opens on a dashboard. Each tile opens a group, and each tool sits one ta
 
 ## Install on Android
 
-1. Download [FitterCalcs.apk](https://github.com/macski777/fittercalcs/releases/download/v4.3.0/FitterCalcs.apk).
+1. Download [FitterCalcs.apk](https://github.com/macski777/fittercalcs/releases/download/v4.4.0/FitterCalcs.apk).
 2. If this phone already has FitterCalcs and Android refuses the new file, uninstall the old app once, then install this one.
 3. Open the file on the phone.
 4. Allow install from this source if Android asks.
@@ -183,6 +183,7 @@ A floating **Ask Stillo** button opens a chat panel that answers questions from 
 - The DeepSeek key lives in `~/.config/fittercalcs/assistant.env` (mode 600). Never commit it.
 - Admins get a gear button in the panel to upload, rescan, or remove documents. PDFs, Word, Excel, PowerPoint, text, Markdown, CSV, HTML, email and scanned images are supported.
 - Answers cite the document, clause or table, and page. If the answer is not in the library, the assistant says so instead of guessing.
+- If the answer is not in the library, Stillo offers to **search the web** with DeepSeek Search. Nothing is searched until you agree. Web answers are labelled, cite the pages, and are not a substitute for the Standard.
 - Click a source chip or a `[n]` citation to read the exact clause/table passage in the panel. **Open PDF at page** opens the original page; **Copy text** copies the passage.
 - On a phone, swipe right on the source reader to go back to the answer.
 - Android back (the system gesture/button or an inward edge swipe) closes the source reader first, then Ask Stillo.

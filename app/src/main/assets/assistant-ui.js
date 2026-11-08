@@ -932,6 +932,17 @@
       var chip = document.createElement("button");
       chip.type = "button";
       chip.className = "fca-src";
+      if (source.kind === "web") {
+        chip.className = "fca-src fca-src-web";
+        chip.setAttribute("data-web", "1");
+        chip.setAttribute("data-url", source.url || "");
+        chip.title = source.url || "Open the web page";
+        chip.innerHTML = "<b>W" + source.n + "</b><span>" +
+          escapeHtml(source.title || source.site_name || source.url) +
+          (source.site_name ? " · " + escapeHtml(source.site_name) : "") + "</span>";
+        wrap.appendChild(chip);
+        return;
+      }
       chip.setAttribute("data-n", String(source.n));
       chip.setAttribute("data-source-id", source.id == null ? "" : String(source.id));
       chip.setAttribute("data-title", source.title || source.filename || "Document");
@@ -1139,9 +1150,21 @@
         state.streamText = text;
       }
       bubble.appendChild(text);
+      if (message.web && message.streaming && !message.content) {
+        var looking = document.createElement("div");
+        looking.className = "fca-searching";
+        looking.textContent = "Searching the web…";
+        bubble.appendChild(looking);
+      }
+      if (message.web) {
+        var webWarn = document.createElement("div");
+        webWarn.className = "fca-warn fca-warn-web";
+        webWarn.textContent = "From the web, not your document library — verify against the Standard.";
+        bubble.appendChild(webWarn);
+      }
       var sources = buildSources(message);
       if (sources) bubble.appendChild(sources);
-      if (message.uncited && !message.refused) {
+      if (message.uncited && !message.refused && !message.web) {
         var warn = document.createElement("div");
         warn.className = "fca-warn";
         warn.textContent = "No source was cited in this answer — check it against the documents.";
@@ -1152,6 +1175,33 @@
         bad.className = "fca-warn";
         bad.textContent = "The answer referred to a source that was not supplied. Treat it with caution.";
         bubble.appendChild(bad);
+      }
+      if (message.refused && !message.webOffered && !message.streaming) {
+        var offer = document.createElement("div");
+        offer.className = "fca-web-offer";
+        var ask = document.createElement("p");
+        ask.textContent = "Not in your library. Search the web for this question?";
+        var actions = document.createElement("div");
+        actions.className = "fca-web-actions";
+        var yes = document.createElement("button");
+        yes.type = "button";
+        yes.className = "fca-btn primary";
+        yes.textContent = "Search the web";
+        var no = document.createElement("button");
+        no.type = "button";
+        no.className = "fca-btn";
+        no.textContent = "No thanks";
+        yes.onclick = function () { sendWeb(message.question || "", message); };
+        no.onclick = function () {
+          message.webOffered = true;
+          saveChat();
+          renderMessages();
+        };
+        actions.appendChild(yes);
+        actions.appendChild(no);
+        offer.appendChild(ask);
+        offer.appendChild(actions);
+        bubble.appendChild(offer);
       }
       if (message.stopped) {
         var stopped = document.createElement("div");
@@ -1282,12 +1332,23 @@
     scrollToBottom();
   }
 
+  function openUrl(url) {
+    if (!/^https?:\/\//i.test(url || "")) return;
+    if (window.OnlyFitters && typeof OnlyFitters.openUrl === "function") {
+      try { OnlyFitters.openUrl(url); return; } catch (error) {}
+    }
+    try { window.open(url, "_blank", "noopener"); } catch (error) {}
+  }
+
   function scrollToBottom() {
     messagesEl.scrollTop = messagesEl.scrollHeight;
   }
 
   function updateStream(text) {
     if (!state.streamText) return;
+    var row = messagesEl.lastElementChild;
+    var looking = row && row.querySelector(".fca-searching");
+    if (looking) looking.remove();
     var cursor = state.streamText.querySelector(".fca-cursor");
     state.streamText.textContent = text;
     if (cursor) state.streamText.appendChild(cursor);
@@ -1308,6 +1369,9 @@
           refused: !!message.refused,
           uncited: !!message.uncited,
           bad_citations: !!message.bad_citations,
+          web: !!message.web,
+          webOffered: !!message.webOffered,
+          question: message.question || "",
           stopped: !!message.stopped
         };
       });
@@ -1361,6 +1425,14 @@
     inputEl.focus();
   }
 
+  function sendWeb(question, message) {
+    if (state.busy) return;
+    if (message) message.webOffered = true;
+    saveChat();
+    renderMessages();
+    send(question, { allowWeb: true });
+  }
+
   function addLocalError(message) {
     state.messages.push({ role: "assistant", content: message, error: true });
     renderMessages();
@@ -1378,6 +1450,8 @@
     message.refused = !!result.refused;
     message.uncited = !!result.uncited;
     message.bad_citations = !!result.bad_citations;
+    message.web = !!result.web;
+    message.searching = false;
     message.streaming = false;
     message.stopped = false;
     if (state.autoRead && state.open && !state.busy && ttsAvailable() && message.content) {
@@ -1417,7 +1491,8 @@
     return pump();
   }
 
-  function send(question) {
+  function send(question, options) {
+    options = options || {};
     question = String(question || "").trim();
     if (!question || state.busy) return;
     stopSpeaking();
@@ -1430,7 +1505,7 @@
       addLocalError("DeepSeek is not configured yet. Add DEEPSEEK_API_KEY on the server.");
       return;
     }
-    rememberQuestion(question);
+    if (!options.allowWeb) rememberQuestion(question);
     var history = state.messages
       .filter(function (message) { return !message.error && !message.streaming && message.content; })
       .slice(-8)
@@ -1440,9 +1515,12 @@
     var userMessage = { role: "user", content: question };
     var botMessage = {
       role: "assistant", content: "", streaming: true,
-      sources: [], refused: false, uncited: false, bad_citations: false
+      sources: [], refused: false, uncited: false, bad_citations: false,
+      web: !!options.allowWeb, searching: !!options.allowWeb,
+      question: question
     };
-    state.messages.push(userMessage, botMessage);
+    if (options.allowWeb) state.messages.push(botMessage);
+    else state.messages.push(userMessage, botMessage);
     state.busy = true;
     state.controller = new AbortController();
     inputEl.value = "";
@@ -1465,7 +1543,8 @@
       body: JSON.stringify({
         question: question,
         history: history,
-        thinking: state.thinking
+        thinking: state.thinking,
+        allow_web: !!options.allowWeb
       })
     }).then(function (response) {
       var type = response.headers.get("Content-Type") || "";
@@ -1484,6 +1563,7 @@
       return readEventStream(response, function (event) {
         if (event.sources) {
           botMessage.sources = event.sources;
+          if (event.web) botMessage.web = true;
           var row = messagesEl.lastElementChild;
           if (row) {
             var bubble = row.querySelector(".fca-bubble");
@@ -1494,6 +1574,7 @@
           }
         }
         if (typeof event.text === "string") {
+          botMessage.searching = false;
           botMessage.content += event.text;
           updateStream(botMessage.content);
         }
@@ -1541,6 +1622,10 @@
   messagesEl.addEventListener("click", function (event) {
     var chip = event.target.closest ? event.target.closest(".fca-src") : null;
     if (chip) {
+      if (chip.getAttribute("data-web") === "1") {
+        openUrl(chip.getAttribute("data-url"));
+        return;
+      }
       openSource(sourceFromData(chip.dataset));
       return;
     }

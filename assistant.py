@@ -495,7 +495,13 @@ def _error_message(code: int, raw: str) -> str:
     return f"DeepSeek returned an error ({code})."
 
 
-def _request(question: str, history: list[dict], sources: list[dict], thinking: bool) -> urllib.request.Request:
+def _request(
+    question: str,
+    history: list[dict],
+    sources: list[dict],
+    thinking: bool,
+    messages: list[dict] | None = None,
+) -> urllib.request.Request:
     config = load_config()
     key = api_key()
     if not key:
@@ -505,7 +511,7 @@ def _request(question: str, history: list[dict], sources: list[dict], thinking: 
         )
     payload = {
         "model": config.get("model", "deepseek-flash"),
-        "messages": build_messages(question, history, sources),
+        "messages": messages if messages is not None else build_messages(question, history, sources),
         "max_tokens": int(config.get("max_output_tokens", 1500)),
         "thinking": {"type": "enabled" if thinking else "disabled"},
         "user_id": hashlib.sha256(b"fittercalcs").hexdigest()[:24],
@@ -528,8 +534,14 @@ def _request(question: str, history: list[dict], sources: list[dict], thinking: 
     )
 
 
-def call_sync(question: str, history: list[dict], sources: list[dict], thinking: bool) -> tuple[str, dict]:
-    request = _request(question, history, sources, thinking)
+def call_sync(
+    question: str,
+    history: list[dict],
+    sources: list[dict],
+    thinking: bool,
+    messages: list[dict] | None = None,
+) -> tuple[str, dict]:
+    request = _request(question, history, sources, thinking, messages)
     try:
         with urllib.request.urlopen(request, timeout=150) as response:
             payload = json.loads(response.read().decode("utf-8"))
@@ -556,8 +568,9 @@ def call_stream(
     sources: list[dict],
     thinking: bool,
     on_delta,
+    messages: list[dict] | None = None,
 ) -> tuple[str, dict]:
-    request = _request(question, history, sources, thinking)
+    request = _request(question, history, sources, thinking, messages)
     request.add_header("Accept", "text/event-stream")
     payload = json.loads(request.data.decode("utf-8"))
     payload["stream"] = True
@@ -653,15 +666,180 @@ def answer_sync(
     question: str,
     history: list[dict] | None = None,
     thinking: bool = False,
+    allow_web: bool = False,
 ) -> dict:
     config = load_config()
     question = _clean_question(question)
     history = _clean_history(history or [])
+    if allow_web:
+        return web_answer_sync(question, thinking)
     sources = retrieve(question, history)
     if not sources:
         return refusal_result()
     answer, usage = call_sync(question, history, sources, thinking)
     return _finish(answer, sources, usage)
+
+
+
+# ---------------------------------------------------------------------------
+# Web search fallback (DeepSeek Search API)
+# ---------------------------------------------------------------------------
+
+WEB_CACHE: dict[str, tuple[float, list[dict]]] = {}
+WEB_CACHE_LOCK = threading.Lock()
+WEB_CACHE_TTL = 600
+WEB_CACHE_MAX = 100
+WEB_HITS: dict[str, list[float]] = {}
+WEB_HITS_LOCK = threading.Lock()
+WEB_LIMIT = 10
+WEB_WINDOW = 3600
+
+WEB_SYSTEM = """You are answering from live web search results, not the user's document library.
+Rules:
+1. Use only the results below. Do not add facts from prior knowledge.
+2. Cite every factual claim with its result number, like [1] or [2].
+3. If the results do not answer the question, say so plainly and stop.
+4. You have summaries only, not the Standards themselves. Never claim to quote a clause you cannot see.
+5. Be concise and practical for a fire protection fitter.
+6. Say that the answer came from the web and must be checked against the current Standard."""
+
+
+def web_enabled() -> bool:
+    if (os.environ.get("ASSISTANT_WEB_SEARCH") or "").strip() == "0":
+        return False
+    config = load_config()
+    return bool(config.get("web_search", True))
+
+
+def web_rate_ok(username: str) -> bool:
+    now = time.time()
+    with WEB_HITS_LOCK:
+        hits = [stamp for stamp in WEB_HITS.get(username, []) if now - stamp < WEB_WINDOW]
+        if len(hits) >= WEB_LIMIT:
+            WEB_HITS[username] = hits
+            return False
+        hits.append(now)
+        WEB_HITS[username] = hits
+    return True
+
+
+def deepseek_search(query: str, count: int = 5) -> list[dict]:
+    if not web_enabled():
+        raise AssistantError("Web search is turned off on this server.")
+    query = re.sub(r"\s+", " ", str(query or "")).strip()[:128]
+    if not query:
+        return []
+    now = time.time()
+    with WEB_CACHE_LOCK:
+        cached = WEB_CACHE.get(query)
+        if cached and now - cached[0] < WEB_CACHE_TTL:
+            return [dict(item) for item in cached[1]]
+    key = api_key()
+    if not key:
+        raise AssistantError(
+            "DeepSeek is not configured yet. Add DEEPSEEK_API_KEY to "
+            "~/.config/fittercalcs/assistant.env."
+        )
+    config = load_config()
+    base = str(config.get("base_url", "https://api.deepseek.com")).rstrip("/")
+    if base.endswith("/v1"):
+        base = base[:-3]
+    endpoint = str(config.get("search_url") or (base + "/v1/tools/search"))
+    payload = {
+        "query": query,
+        "count": max(1, min(10, int(count))),
+        "ori_question": query,
+        "need_content": False,
+    }
+    request = urllib.request.Request(
+        endpoint,
+        data=json.dumps(payload).encode("utf-8"),
+        headers={
+            "Content-Type": "application/json",
+            "Authorization": "Bearer " + key,
+            "Accept": "application/json",
+        },
+        method="POST",
+    )
+    try:
+        with urllib.request.urlopen(request, timeout=25) as response:
+            data = json.loads(response.read().decode("utf-8"))
+    except urllib.error.HTTPError as exc:
+        raw = exc.read().decode("utf-8", "replace")
+        raise AssistantError(_error_message(exc.code, raw)) from exc
+    except urllib.error.URLError as exc:
+        raise AssistantError("Could not reach DeepSeek Search. Check the PC's internet connection.") from exc
+    except TimeoutError as exc:
+        raise AssistantError("The web search took too long.") from exc
+
+    results: list[dict] = []
+    for item in (data.get("results") or [])[:count]:
+        if not isinstance(item, dict):
+            continue
+        link = str(item.get("url") or "").strip()
+        if not re.match(r"^https?://", link, re.I):
+            continue
+        summary = str(item.get("summary") or item.get("snippet") or "").strip()
+        if not summary:
+            continue
+        results.append({
+            "kind": "web",
+            "title": str(item.get("title") or item.get("site_name") or link).strip(),
+            "url": link,
+            "site_name": str(item.get("site_name") or "").strip(),
+            "snippet": str(item.get("snippet") or "").strip(),
+            "summary": summary,
+            "date": str(item.get("date") or "").strip(),
+            "authority": item.get("authority"),
+            "score": float(item.get("rerank_score") or 0),
+        })
+    results.sort(key=lambda row: -(row.get("score") or 0))
+    results = results[:count]
+    for index, row in enumerate(results, 1):
+        row["n"] = index
+    with WEB_CACHE_LOCK:
+        if len(WEB_CACHE) >= WEB_CACHE_MAX:
+            WEB_CACHE.clear()
+        WEB_CACHE[query] = (now, [dict(row) for row in results])
+    return results
+
+
+def _web_messages(question: str, results: list[dict]) -> list[dict]:
+    lines = ["Question: " + question, "", "Web results:"]
+    for row in results:
+        head = "[%d] %s" % (row["n"], row.get("title") or row.get("url"))
+        meta = " — ".join(part for part in (row.get("site_name"), row.get("date")) if part)
+        if meta:
+            head += " (" + meta + ")"
+        lines.append(head)
+        lines.append(row.get("summary") or row.get("snippet") or "")
+        lines.append("URL: " + row["url"])
+        lines.append("")
+    return [
+        {"role": "system", "content": WEB_SYSTEM},
+        {"role": "user", "content": "\n".join(lines)},
+    ]
+
+
+def web_answer_sync(question: str, thinking: bool) -> dict:
+    try:
+        results = deepseek_search(question, 5)
+    except AssistantError as exc:
+        result = refusal_result()
+        result["web_error"] = str(exc)
+        return result
+    if not results:
+        result = refusal_result()
+        result["web_empty"] = True
+        return result
+    answer, usage = call_sync(
+        question, [], results, thinking,
+        messages=_web_messages(question, results),
+    )
+    result = _finish(answer, results, usage)
+    result["web"] = True
+    result["web_query"] = question
+    return result
 
 
 # ---------------------------------------------------------------------------
@@ -1012,12 +1190,78 @@ def _sse_send(handler, event: str, body: dict) -> bool:
         return False
 
 
-def _stream_answer(handler, question: str, history: list[dict], thinking: bool, user: dict) -> None:
+def _stream_answer(handler, question: str, history: list[dict], thinking: bool, user: dict, allow_web: bool = False) -> None:
     config = load_config()
     started = time.time()
+    request_id = uuid.uuid4().hex[:12]
+
+    if allow_web:
+        _sse_start(handler)
+        try:
+            results = deepseek_search(question, 5)
+        except AssistantError as exc:
+            result = refusal_result()
+            result["web_error"] = str(exc)
+            _sse_send(handler, "meta", {"sources": [], "web": True, "model": config.get("model"), "request_id": request_id})
+            _sse_send(handler, "delta", {"text": result["answer"]})
+            _sse_send(handler, "done", result)
+            record_usage(user["username"], 0, 0, config.get("model"), "web_error", 0)
+            return
+        if not results:
+            result = refusal_result()
+            result["web_empty"] = True
+            _sse_send(handler, "meta", {"sources": [], "web": True, "model": config.get("model"), "request_id": request_id})
+            _sse_send(handler, "delta", {"text": result["answer"]})
+            _sse_send(handler, "done", result)
+            record_usage(user["username"], 0, 0, config.get("model"), "web_empty", 0)
+            return
+        _sse_send(
+            handler,
+            "meta",
+            {
+                "sources": results,
+                "web": True,
+                "model": config.get("model"),
+                "request_id": request_id,
+            },
+        )
+        answer_parts = []
+        usage: dict = {}
+
+        def on_web_delta(text: str) -> None:
+            answer_parts.append(text)
+            _sse_send(handler, "delta", {"text": text})
+
+        try:
+            answer, usage = call_stream(
+                question, [], results, thinking, on_web_delta,
+                messages=_web_messages(question, results),
+            )
+            result = _finish(answer, results, usage)
+            result["web"] = True
+            result["web_query"] = question
+            _sse_send(handler, "done", result)
+            record_usage(
+                user["username"],
+                result["usage"]["input_tokens"],
+                result["usage"]["output_tokens"],
+                config.get("model"),
+                "web",
+                len(results),
+            )
+            _log_chat(user, question, results, result, started, request_id)
+        except AssistantError as exc:
+            _sse_send(handler, "error", {"message": str(exc)})
+            record_usage(user["username"], 0, 0, config.get("model"), "web_error", len(results))
+            _log_error(user, request_id, str(exc))
+        except Exception as exc:  # noqa: BLE001
+            _sse_send(handler, "error", {"message": "The web answer could not be finished."})
+            record_usage(user["username"], 0, 0, config.get("model"), "web_error", len(results))
+            _log_error(user, request_id, str(exc))
+        return
+
     sources = retrieve(question, history)
     _sse_start(handler)
-    request_id = uuid.uuid4().hex[:12]
     if not sources:
         result = refusal_result()
         _sse_send(handler, "meta", {"sources": [], "model": config.get("model"), "request_id": request_id})
@@ -1138,6 +1382,13 @@ def handle_http(handler, method: str) -> None:
             question = _clean_question(data.get("question"))
             history = _clean_history(data.get("history") or [])
             thinking = bool(data.get("thinking"))
+            allow_web = bool(data.get("allow_web"))
+            if allow_web and not web_enabled():
+                _json(handler, 400, {"error": "Web search is turned off on this server."})
+                return
+            if allow_web and not web_rate_ok(user["username"]):
+                _json(handler, 429, {"error": "Too many web searches. Try again later."})
+                return
             try:
                 rate_check(user, config)
             except RateLimit as exc:
@@ -1149,10 +1400,10 @@ def handle_http(handler, method: str) -> None:
                 return
             wants_stream = "text/event-stream" in (handler.headers.get("Accept") or "")
             if wants_stream:
-                _stream_answer(handler, question, history, thinking, user)
+                _stream_answer(handler, question, history, thinking, user, allow_web)
                 return
             try:
-                result = answer_sync(question, history, thinking)
+                result = answer_sync(question, history, thinking, allow_web)
             except AssistantError as exc:
                 _json(handler, 400, {"error": str(exc)})
                 return

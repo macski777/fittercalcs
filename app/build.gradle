@@ -27,8 +27,8 @@ android {
         applicationId 'com.sprinkler.pipechart'
         minSdk 24
         targetSdk 34
-        versionCode 77
-        versionName '4.3.0'
+        versionCode 78
+        versionName '4.4.0'
     }
 
     signingConfigs {

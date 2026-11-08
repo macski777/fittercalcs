@@ -477,6 +477,35 @@
   font-size: 0.78rem;
   line-height: 1.45;
 }
+
+.fca-web-offer {
+  margin-top: 9px;
+  padding: 10px;
+  border: 1px solid #4a4038;
+  border-radius: 10px;
+  background: #1a1613;
+}
+.fca-web-offer p {
+  margin: 0 0 8px;
+  color: var(--text, #f4ede4);
+  font-size: 0.78rem;
+  line-height: 1.35;
+}
+.fca-web-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+.fca-warn-web {
+  border-color: #b8862a;
+  color: #e8b86d;
+}
+.fca-searching {
+  color: var(--muted, #a89b8c);
+  font-size: 0.8rem;
+  font-style: italic;
+}
+.fca-src-web b {
+  background: #b8862a;
+  color: #14110f;
+}
+
 .fca-suggest-wrap {
   display: flex;
   flex-direction: column;

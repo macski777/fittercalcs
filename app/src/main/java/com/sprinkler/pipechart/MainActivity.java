@@ -437,6 +437,19 @@ public class MainActivity extends Activity {
         }
 
         @JavascriptInterface
+        public void openUrl(String url) {
+            if (url == null) return;
+            String value = url.trim();
+            if (!(value.startsWith("http://") || value.startsWith("https://"))) return;
+            try {
+                Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(value));
+                intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                startActivity(intent);
+            } catch (Exception ignored) {
+            }
+        }
+
+        @JavascriptInterface
         public void setOverlay(boolean open) {
             assistantOverlayOpen = open;
         }
