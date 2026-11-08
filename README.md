@@ -12,7 +12,7 @@
 </p>
 
 <p align="center">
-  <strong>Current version: 3.7.0</strong><br>
+  <strong>Current version: 3.7.1</strong><br>
   <a href="https://github.com/macski777/fittercalcs/releases/latest">Download FitterCalcs.apk</a>
   ·
   <a href="https://github.com/macski777/fittercalcs/releases/tag/v2.46">Windows</a>
@@ -32,7 +32,7 @@ The launcher icon and the **FITTER / CALCS** wordmark use **Delta Corps Priest 1
 
 ## Install on Android
 
-1. Download [FitterCalcs.apk](https://github.com/macski777/fittercalcs/releases/download/v3.7.0/FitterCalcs.apk).
+1. Download [FitterCalcs.apk](https://github.com/macski777/fittercalcs/releases/download/v3.7.1/FitterCalcs.apk).
 2. If this phone already has FitterCalcs and Android refuses the new file, uninstall the old app once, then install this one.
 3. Open the file on the phone.
 4. Allow install from this source if Android asks.
@@ -146,7 +146,7 @@ Hydrant and sprinkler flow tests. Pick **Hydrants** or **Sprinklers**, enter the
 - The chart starts with a **required vs result** pair of bars for flow and another pair for residual, so the comparison is on the chart. They use the lowest reading across the tested points and turn green or red against the requirement.
 - The chart shows two horizontal bars per outlet: **flow** (lower) against the bottom axis in L/s or L/min, and **residual pressure** (upper) against the top axis in kPa. Dashed lines mark the required flow and required residual.
 
-Every tested point must meet both the required flow and the required residual for the test to pass. The A4 report repeats the requirement as a bar beside the result, for flow and for residual. Tests autosave by site, appear in History, and open in Fitter-Hub alongside the pump, hydro and tank reports.
+Every tested point must meet both the required flow and the required residual for the test to pass. The A4 report uses the same chart, comparison bars included. Tests autosave by site, appear in History, and open in Fitter-Hub alongside the pump, hydro and tank reports.
 
 <p align="center"><img src="docs/flow.png" width="320" alt="Flow tab — hydrant test against an 8 L/s requirement"></p>
 

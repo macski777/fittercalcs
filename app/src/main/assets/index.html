@@ -1765,7 +1765,7 @@
 <script src="fan-calc.js"></script>
 <script src="fan-ui.js"></script>
 <script>
-const APP_VERSION = "3.7.0";
+const APP_VERSION = "3.7.1";
 const APP_BUILD = 56;
 const FAN_KEY = "fittercalcs-ft";
 function fanOn() {
@@ -5067,7 +5067,6 @@ function flowChartCanvas() {
     subtitle: sys.label + " · lower bar flow · upper bar residual",
     unit: flowUnit(),
     forExport: true,
-    compare: false,
     req: readFlowReq()
   };
   skipBrandLogo = false;
@@ -5126,50 +5125,6 @@ function flowReportText() {
     ]
   });
 }
-function drawFlowReqBars(ctx, req, worst, unit, x, y, w) {
-  if (!req || !worst) return y;
-  ctx.textAlign = "left";
-  ctx.textBaseline = "alphabetic";
-  ctx.fillStyle = "#1a1613";
-  ctx.font = "800 22px sans-serif";
-  ctx.fillText("Requirement and result", x, y);
-  y += 16;
-
-  const items = [
-    { label: "Flow", need: req.q, got: worst.q, unit: unit, fmt: fmtFlow },
-    { label: "Residual", need: req.p, got: worst.p, unit: "kPa", fmt: v => String(Math.round(v)) }
-  ];
-  const colW = (w - 24) / 2;
-  items.forEach(item => {
-    const maxV = Math.max(item.need, item.got, 1e-9);
-    const ok = item.got + (item.unit === "kPa" ? 0.5 : 1e-9) >= item.need;
-    ctx.fillStyle = "#3a322c";
-    ctx.font = "800 18px sans-serif";
-    ctx.fillText(item.label, x, y + 18);
-
-    // requirement bar (left)
-    ctx.fillStyle = "#6a5d50";
-    ctx.font = "600 15px sans-serif";
-    ctx.fillText("Required " + item.fmt(item.need) + " " + item.unit, x, y + 42);
-    const needW = Math.max(6, (item.need / maxV) * (colW - 20));
-    ctx.fillStyle = "#d7cbbd";
-    ctx.fillRect(x, y + 50, needW, 16);
-
-    // result bar (right)
-    const rx = x + colW + 24;
-    ctx.fillStyle = "#6a5d50";
-    ctx.fillText("Result " + item.fmt(item.got) + " " + item.unit, rx, y + 42);
-    const gotW = Math.max(6, (item.got / maxV) * (colW - 20));
-    ctx.fillStyle = ok ? PASS_COL : FAIL_COL;
-    ctx.fillRect(rx, y + 50, gotW, 16);
-
-    y += 84;
-  });
-  ctx.fillStyle = "#6a5d50";
-  ctx.font = "600 14px sans-serif";
-  ctx.fillText("Lowest of " + worst.n + " tested point" + (worst.n === 1 ? "" : "s") + " against the requirement.", x, y);
-  return y + 18;
-}
 function composeFlowReportPng() {
   const chart = flowChartCanvas();
   const w = A4_W, h = A4_H, m = A4_M;
@@ -5205,9 +5160,7 @@ function composeFlowReportPng() {
   ];
   if (req) rows.push({ k: "Requirement", v: fmtFlow(req.q) + " " + unit + " @ " + req.p + " kPa" });
   y = drawKvRows(ctx, rows, m, y, inner, 38);
-  y += 10;
-  y = drawFlowReqBars(ctx, req, flowWorst(), unit, m, y, inner);
-  y += 8;
+  y += 12;
   ctx.fillStyle = "#6a5d50";
   ctx.font = "600 18px sans-serif";
   ctx.textAlign = "left";
