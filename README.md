@@ -12,7 +12,7 @@
 </p>
 
 <p align="center">
-  <strong>Current version: 3.7.1</strong><br>
+  <strong>Current version: 4.0.0</strong><br>
   <a href="https://github.com/macski777/fittercalcs/releases/latest">Download FitterCalcs.apk</a>
   ·
   <a href="https://github.com/macski777/fittercalcs/releases/tag/v2.46">Windows</a>
@@ -30,9 +30,27 @@ The launcher icon and the **FITTER / CALCS** wordmark use **Delta Corps Priest 1
   <img src="docs/wordmark.png" width="240" alt="FITTER CALCS wordmark">
 </p>
 
+## Home dashboard
+
+The app opens on a dashboard. Each tile opens a group, and each tool sits one tap inside it.
+
+| Group | Tools |
+| --- | --- |
+| **Sizes** | Pipe, Flange |
+| **Calculators** | Pipe Loss, Annubar, Tanks, Fan Test |
+| **Flow testing** | Pump, Hydrant flow, Sprinkler flow |
+| **AS-1851** | Routine service lookup |
+
+<p align="center"><img src="docs/home.png" width="320" alt="FitterCalcs home dashboard"></p>
+
+- The back arrow returns one level; Android back does the same, then exits from the dashboard.
+- The app reopens the last tool you used.
+- **Swipe left or right** to move between tools in the same group (Pipe ↔ Flange, Pump → Hydrant flow → Sprinkler flow) and between groups. Swipes stop at the ends.
+- Tap a chart to enlarge it; back closes the chart before leaving the page.
+
 ## Install on Android
 
-1. Download [FitterCalcs.apk](https://github.com/macski777/fittercalcs/releases/download/v3.7.1/FitterCalcs.apk).
+1. Download [FitterCalcs.apk](https://github.com/macski777/fittercalcs/releases/download/v4.0.0/FitterCalcs.apk).
 2. If this phone already has FitterCalcs and Android refuses the new file, uninstall the old app once, then install this one.
 3. Open the file on the phone.
 4. Allow install from this source if Android asks.
@@ -81,7 +99,7 @@ Phones on **2.17 or older** need a one-time install of 2.18 or later (USB or thi
 
 ## What’s in the app
 
-| Tab | What it does |
+| Tool | What it does |
 | --- | --- |
 | **Pipe** | OD, wall, ID for AS 1074-1989 (R2018) Cl 2.3 Tables 2.1 / 2.2 / 2.3 Light / Medium / Heavy, SS 10S, SS 40S, CPVC. mm or inch. |
 | **Annubar** | Type L/min or inHg for 3/8", 20T, and 21T. Table is 0.5–30 inHg in 0.5 steps; highlights the next 0.5 inHg up. Medium-steel card K; other walls interpolate by ID. |
