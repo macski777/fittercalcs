@@ -1,7 +1,7 @@
 {
-  "versionCode": 69,
-  "versionName": "3.4.1",
-  "apkUrl": "https://github.com/macski777/fittercalcs/releases/download/v3.4.1/FitterCalcs.apk",
+  "versionCode": 70,
+  "versionName": "3.5.0",
+  "apkUrl": "https://github.com/macski777/fittercalcs/releases/download/v3.5.0/FitterCalcs.apk",
   "winUrl": "",
-  "notes": "Flow chart now shows two bars per outlet, flow and residual pressure, on their own axes. Save on the Flow tab now reports correctly and keeps the test."
+  "notes": "Flow saving is fixed on the server, so tests stay saved. Pitot buttons are gone: enter flow directly. New bars above the result show each requirement against your lowest reading."
 }
