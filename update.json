@@ -1,7 +1,7 @@
 {
-  "versionCode": 68,
-  "versionName": "3.4.0",
-  "apkUrl": "https://github.com/macski777/fittercalcs/releases/download/v3.4.0/FitterCalcs.apk",
+  "versionCode": 69,
+  "versionName": "3.4.1",
+  "apkUrl": "https://github.com/macski777/fittercalcs/releases/download/v3.4.1/FitterCalcs.apk",
   "winUrl": "",
-  "notes": "Flow tab now uses bars: one per outlet against the required flow, with residual under each bar. Hydrants read in L/s, sprinklers in L/min, and every point must meet the requirement."
+  "notes": "Flow chart now shows two bars per outlet, flow and residual pressure, on their own axes. Save on the Flow tab now reports correctly and keeps the test."
 }
