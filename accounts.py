@@ -11,7 +11,7 @@ from pathlib import Path
 from urllib.parse import urlsplit
 
 DB = Path(os.environ.get("FITTERCALCS_DB") or (Path.home() / ".local/share/fittercalcs/accounts.db"))
-KINDS = ("pump", "hydro", "tank", "fan")
+KINDS = ("pump", "hydro", "tank", "fan", "flow")
 MAX_BODY = 1_000_000
 ROUNDS = 210_000
 SESSION_SECONDS = 60 * 24 * 3600
@@ -377,7 +377,7 @@ def _report_key(kind, rec):
         pump = str(rec.get("pumpId") or "").strip().lower()
         key = "%s|%s|%s" % (name, year, pump)
         return "" if key == "||" else key
-    if kind in ("hydro", "tank"):
+    if kind in ("hydro", "tank", "flow"):
         return str(rec.get("site") or rec.get("title") or "").strip().lower()
     if kind == "fan":
         parts = [str(rec.get(field) or "").strip().lower() for field in ("client", "enclosure", "jobNo")]
