@@ -34,7 +34,8 @@
       padding: calc(12px + env(safe-area-inset-top)) 14px calc(24px + env(safe-area-inset-bottom));
       max-width: 720px;
       margin: 0 auto;
-      overflow-anchor: none;
+      background: radial-gradient(120% 55% at 50% -12%, #241e18 0%, var(--bg) 60%) no-repeat;
+      background-attachment: fixed;
     }
     header {
       display: flex;
@@ -390,6 +391,10 @@
       letter-spacing: 0.06em;
       text-transform: uppercase;
     }
+    .acc-sizes { --acc: #8fb3d9; }
+    .acc-calc { --acc: #e8b86d; }
+    .acc-flows { --acc: #e08a4a; }
+    .acc-ref { --acc: #cbb79a; }
     .home-grid {
       display: grid;
       grid-template-columns: 1fr;
@@ -398,44 +403,96 @@
     @media (min-width: 620px) {
       .home-grid { grid-template-columns: 1fr 1fr; }
     }
-    .home-tile {
+    .tool-list { display: grid; gap: 10px; }
+    .home-tile, .tool-tile { width: 100%; }
+    .home-tile, .tool-tile {
       appearance: none;
       text-align: left;
-      background: var(--card);
-      border: 1px solid var(--line);
-      border-radius: 16px;
-      padding: 18px;
-      color: var(--text);
       font: inherit;
-      min-height: 116px;
+      color: var(--text);
+      display: grid;
+      gap: 12px;
+      align-items: center;
+      background: linear-gradient(160deg, #2b2520, #221d19);
+      border: 1px solid #4a4038;
+      border-left: 3px solid var(--acc, var(--gold));
+      border-radius: 14px;
+      box-shadow: 0 6px 18px rgba(0, 0, 0, 0.38);
+      padding: 10px 12px;
     }
-    .home-tile:active { border-color: var(--action); }
-    .home-tile b { display: block; font-size: 1.12rem; margin-bottom: 6px; }
-    .home-tile span { display: block; color: var(--muted); font-size: 0.82rem; line-height: 1.35; }
-    .home-tile small {
+    .home-tile { grid-template-columns: 72px 1fr auto; min-height: 80px; }
+    .tool-tile { grid-template-columns: 44px 1fr; min-height: 64px; }
+    .home-tile:active, .tool-tile:active {
+      transform: scale(0.985);
+      border-color: #6a5a4a;
+      border-left-color: var(--acc, var(--gold));
+    }
+    .home-tile:focus-visible, .tool-tile:focus-visible {
+      outline: 2px solid var(--acc, var(--gold));
+      outline-offset: 2px;
+    }
+    .thumb {
+      width: 72px;
+      height: 56px;
       display: block;
-      margin-top: 12px;
-      color: var(--action);
+      overflow: hidden;
+      border-radius: 10px;
+      border: 1px solid #d7cbbd;
+      background: #efe6da;
+    }
+    .thumb svg, .thumb canvas, .thumb img {
+      display: block;
+      width: 100%;
+      height: 100%;
+    }
+    .thumb-split { display: flex; width: 100%; height: 100%; }
+    .thumb-split > * { flex: 1 1 0; min-width: 0; height: 100%; }
+    .chip {
+      width: 44px;
+      height: 44px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 12px;
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      color: var(--acc, var(--gold));
+    }
+    .chip svg { width: 24px; height: 24px; }
+    .tile-text { min-width: 0; }
+    .tile-text b { display: block; font-size: 1rem; margin-bottom: 2px; color: #f7f1e8; }
+    .tile-text > span { display: block; color: #c9bcab; font-size: 0.78rem; line-height: 1.35; }
+    .pill {
+      justify-self: end;
+      white-space: nowrap;
+      color: var(--acc, var(--gold));
+      background: rgba(232, 184, 109, 0.12);
+      border: 1px solid rgba(232, 184, 109, 0.28);
+      border-radius: 99px;
+      padding: 4px 9px;
+      font-size: 0.66rem;
       font-weight: 800;
-      font-size: 0.7rem;
-      letter-spacing: 0.08em;
+      letter-spacing: 0.04em;
       text-transform: uppercase;
     }
-    .tool-list { display: grid; gap: 10px; }
-    .tool-tile {
-      appearance: none;
-      text-align: left;
-      background: var(--card);
-      border: 1px solid var(--line);
-      border-radius: 14px;
-      padding: 14px 16px;
-      color: var(--text);
-      font: inherit;
-      min-height: 64px;
+    @keyframes tileIn {
+      from { opacity: 0; transform: translateY(6px); }
+      to { opacity: 1; transform: none; }
     }
-    .tool-tile:active { border-color: var(--action); }
-    .tool-tile b { display: block; font-size: 1rem; margin-bottom: 2px; }
-    .tool-tile span { color: var(--muted); font-size: 0.8rem; line-height: 1.3; }
+    .home-tile { animation: tileIn 0.28s ease both; }
+    .home-tile:nth-child(2) { animation-delay: 0.04s; }
+    .home-tile:nth-child(3) { animation-delay: 0.08s; }
+    .home-tile:nth-child(4) { animation-delay: 0.12s; }
+    header { position: relative; padding-bottom: 10px; }
+    header::after {
+      content: "";
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: 2px;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, #4a4038 18%, #4a4038 82%, transparent);
+    }
     .page { transition: transform 0.16s ease; }
     .page { display: none; }
     .page.on { display: block; }
@@ -1177,76 +1234,88 @@
 
   <div id="page-home" class="page on">
     <div class="home-grid">
-      <button type="button" class="home-tile" data-section="sizes">
-        <b>Sizes</b>
-        <span>Pipe OD, wall and ID · flange tables</span>
-        <small>2 tools</small>
+      <button type="button" class="home-tile acc-sizes" data-section="sizes">
+        <span class="thumb" id="thumb-sizes" aria-hidden="true"></span>
+        <span class="tile-text">
+          <b>Sizes</b>
+          <span>Pipe OD, wall and ID · flange tables</span>
+        </span>
+        <span class="pill">2 tools</span>
       </button>
-      <button type="button" class="home-tile" data-section="calc">
-        <b>Calculators</b>
-        <span>Pipe loss, Annubar, tanks, fan test</span>
-        <small>4 tools</small>
+      <button type="button" class="home-tile acc-calc" data-section="calc">
+        <span class="thumb" id="thumb-calc" aria-hidden="true"></span>
+        <span class="tile-text">
+          <b>Calculators</b>
+          <span>Pipe loss, Annubar, tanks, fan test</span>
+        </span>
+        <span class="pill">4 tools</span>
       </button>
-      <button type="button" class="home-tile" data-section="flows">
-        <b>Flow testing</b>
-        <span>Pump curves · hydrant and sprinkler flows</span>
-        <small>3 tools</small>
+      <button type="button" class="home-tile acc-flows" data-section="flows">
+        <span class="thumb" id="thumb-flows" aria-hidden="true"></span>
+        <span class="tile-text">
+          <b>Flow testing</b>
+          <span>Pump curves · hydrant and sprinkler flows</span>
+        </span>
+        <span class="pill">3 tools</span>
       </button>
-      <button type="button" class="home-tile" data-page="as1851">
-        <b>AS-1851</b>
-        <span>Routine service lookup</span>
-        <small>Reference</small>
+      <button type="button" class="home-tile acc-ref" data-page="as1851">
+        <span class="thumb" id="thumb-as1851" aria-hidden="true"></span>
+        <span class="tile-text">
+          <b>AS-1851</b>
+          <span>Routine service lookup</span>
+        </span>
+        <span class="pill">Reference</span>
       </button>
     </div>
   </div>
 
   <div id="page-sizes" class="page">
     <div class="tool-list">
-      <button type="button" class="tool-tile" data-page="pipe">
-        <b>Pipe</b>
-        <span>OD, wall, ID · AS 1074 Light / Medium / Heavy · SS · CPVC</span>
+      <button type="button" class="tool-tile acc-sizes" data-page="pipe">
+        <span class="chip" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4.5"/></svg></span>
+        <span class="tile-text"><b>Pipe</b><span>OD, wall, ID · AS 1074 Light / Medium / Heavy · SS · CPVC</span></span>
       </button>
-      <button type="button" class="tool-tile" data-page="flange">
-        <b>Flange</b>
-        <span>AS 2129 Tables D / E / F / H · ANSI · PN16</span>
+      <button type="button" class="tool-tile acc-sizes" data-page="flange">
+        <span class="chip" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4.5"/></svg></span>
+        <span class="tile-text"><b>Flange</b><span>AS 2129 Tables D / E / F / H · ANSI · PN16</span></span>
       </button>
     </div>
   </div>
 
   <div id="page-calc" class="page">
     <div class="tool-list">
-      <button type="button" class="tool-tile" data-page="hydro">
-        <b>Pipe Loss</b>
-        <span>Hazen-Williams friction + static rise</span>
+      <button type="button" class="tool-tile acc-calc" data-page="hydro">
+        <span class="chip" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M3 19h18"/><path d="M4 16l5-5 4 3 6-8"/></svg></span>
+        <span class="tile-text"><b>Pipe Loss</b><span>Hazen-Williams friction + static rise</span></span>
       </button>
-      <button type="button" class="tool-tile" data-page="annubar">
-        <b>Annubar</b>
-        <span>Probe flow · L/s from inHg · probe K</span>
+      <button type="button" class="tool-tile acc-calc" data-page="annubar">
+        <span class="chip" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M3 19h18"/><path d="M4 16l5-5 4 3 6-8"/></svg></span>
+        <span class="tile-text"><b>Annubar</b><span>Probe flow · L/s from inHg · probe K</span></span>
       </button>
-      <button type="button" class="tool-tile" data-page="tanks">
-        <b>Tanks</b>
-        <span>1–4 tanks · infill hours · AS 2419.1 / AS 2118.1</span>
+      <button type="button" class="tool-tile acc-calc" data-page="tanks">
+        <span class="chip" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M3 19h18"/><path d="M4 16l5-5 4 3 6-8"/></svg></span>
+        <span class="tile-text"><b>Tanks</b><span>1–4 tanks · infill hours · AS 2419.1 / AS 2118.1</span></span>
       </button>
-      <button type="button" class="tool-tile hidden" id="fanTool" data-page="fantest">
-        <b>Fan Test</b>
-        <span>Room integrity · door fan · gaseous suppression</span>
+      <button type="button" class="tool-tile acc-calc hidden" id="fanTool" data-page="fantest">
+        <span class="chip" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M3 19h18"/><path d="M4 16l5-5 4 3 6-8"/></svg></span>
+        <span class="tile-text"><b>Fan Test</b><span>Room integrity · door fan · gaseous suppression</span></span>
       </button>
     </div>
   </div>
 
   <div id="page-flows" class="page">
     <div class="tool-list">
-      <button type="button" class="tool-tile" data-page="pump">
-        <b>Pump</b>
-        <span>kPa vs L/s curve · electric and diesel · duty check</span>
+      <button type="button" class="tool-tile acc-flows" data-page="pump">
+        <span class="chip" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M4 20V10"/><path d="M10 20V5"/><path d="M16 20V13"/><path d="M22 20V8"/></svg></span>
+        <span class="tile-text"><b>Pump</b><span>kPa vs L/s curve · electric and diesel · duty check</span></span>
       </button>
-      <button type="button" class="tool-tile" data-page="flow" data-system="hydrant">
-        <b>Hydrant flow</b>
-        <span>Flow in L/s · residual kPa · requirement check</span>
+      <button type="button" class="tool-tile acc-flows" data-page="flow" data-system="hydrant">
+        <span class="chip" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M4 20V10"/><path d="M10 20V5"/><path d="M16 20V13"/><path d="M22 20V8"/></svg></span>
+        <span class="tile-text"><b>Hydrant flow</b><span>Flow in L/s · residual kPa · requirement check</span></span>
       </button>
-      <button type="button" class="tool-tile" data-page="flow" data-system="sprinkler">
-        <b>Sprinkler flow</b>
-        <span>Flow in L/min · residual kPa · requirement check</span>
+      <button type="button" class="tool-tile acc-flows" data-page="flow" data-system="sprinkler">
+        <span class="chip" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M4 20V10"/><path d="M10 20V5"/><path d="M16 20V13"/><path d="M22 20V8"/></svg></span>
+        <span class="tile-text"><b>Sprinkler flow</b><span>Flow in L/min · residual kPa · requirement check</span></span>
       </button>
     </div>
   </div>
@@ -1913,7 +1982,7 @@
 <script src="fan-calc.js"></script>
 <script src="fan-ui.js"></script>
 <script>
-const APP_VERSION = "4.0.0";
+const APP_VERSION = "4.1.0";
 const APP_BUILD = 56;
 const FAN_KEY = "fittercalcs-ft";
 function fanOn() {
@@ -3508,6 +3577,181 @@ const SWIPE_SECTIONS = {
 const ALL_PAGES = ["home", "sizes", "calc", "flows", "pipe", "annubar", "flange",
   "pump", "hydro", "tanks", "flow", "as1851", "fantest"];
 
+function fcSvgClone(id) {
+  const src = document.getElementById(id);
+  if (!src) return null;
+  if (!src.querySelector("path, circle, rect, line, polyline, polygon, text")) return null;
+  const clone = src.cloneNode(true);
+  clone.removeAttribute("id");
+  clone.querySelectorAll("[id]").forEach(n => n.removeAttribute("id"));
+  clone.setAttribute("preserveAspectRatio", "xMidYMid meet");
+  clone.style.width = "100%";
+  clone.style.height = "100%";
+  clone.style.display = "block";
+  return clone;
+}
+
+function fcChartThumb(canvas, sx, sy, sw, sh) {
+  if (!canvas || !canvas.width || !canvas.height) return null;
+  sw = Math.max(1, Math.min(sw, canvas.width - sx));
+  sh = Math.max(1, Math.min(sh, canvas.height - sy));
+  const c = document.createElement("canvas");
+  c.width = 144;
+  c.height = 112;
+  const ctx = c.getContext("2d");
+  ctx.fillStyle = "#f7f1ea";
+  ctx.fillRect(0, 0, c.width, c.height);
+  try {
+    ctx.drawImage(canvas, sx, sy, sw, sh, 0, 0, c.width, c.height);
+  } catch (e) {
+    return null;
+  }
+  return c;
+}
+
+function fcTankThumb() {
+  const c = document.createElement("canvas");
+  c.width = 144;
+  c.height = 112;
+  const ctx = c.getContext("2d");
+  ctx.fillStyle = "#f7f1ea";
+  ctx.fillRect(0, 0, 144, 112);
+  let shape = "cyl";
+  let level = 0.62;
+  try {
+    const st = tankState();
+    if (st && st.tanks && st.tanks[0] && st.tanks[0].ok) {
+      const t = st.tanks[0];
+      shape = t.shape === "rect" ? "rect" : "cyl";
+      if (t.H > 0) level = Math.max(0.1, Math.min(1, t.Heff / t.H));
+    }
+  } catch (e) {}
+  const top = 18, bottom = 96, left = 34, right = 110;
+  const waterTop = bottom - (bottom - top) * level;
+  ctx.lineWidth = 2;
+  ctx.strokeStyle = "#4a5a68";
+  if (shape === "cyl") {
+    ctx.fillStyle = "rgba(143,179,217,0.55)";
+    ctx.fillRect(left, waterTop, right - left, bottom - waterTop);
+    ctx.beginPath();
+    ctx.ellipse((left + right) / 2, waterTop, (right - left) / 2, 7, 0, 0, Math.PI * 2);
+    ctx.fillStyle = "rgba(143,179,217,0.55)";
+    ctx.fill();
+    ctx.beginPath();
+    ctx.ellipse((left + right) / 2, top, (right - left) / 2, 7, 0, 0, Math.PI * 2);
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.ellipse((left + right) / 2, bottom, (right - left) / 2, 7, 0, 0, Math.PI * 2);
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.moveTo(left, top);
+    ctx.lineTo(left, bottom);
+    ctx.moveTo(right, top);
+    ctx.lineTo(right, bottom);
+    ctx.stroke();
+  } else {
+    ctx.fillStyle = "rgba(143,179,217,0.55)";
+    ctx.fillRect(left, waterTop, right - left, bottom - waterTop);
+    ctx.strokeRect(left, top, right - left, bottom - top);
+    ctx.strokeRect(left, waterTop, right - left, bottom - waterTop);
+  }
+  return c;
+}
+
+function fcBookThumb() {
+  const wrap = document.createElement("div");
+  wrap.style.cssText = "display:flex;align-items:center;justify-content:center;height:100%;width:100%;color:#7a6a58";
+  wrap.innerHTML = '<svg viewBox="0 0 64 48" width="64" height="48" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true">' +
+    '<path d="M32 12v30"/><path d="M6 10c6-3 14-2 20 2v30c-6-4-14-5-20-2z"/>' +
+    '<path d="M58 10c-6-3-14-2-20 2v30c6-4 14-5 20-2z"/></svg>';
+  return wrap;
+}
+
+function fcPumpThumb() {
+  const curves = (typeof pumpCurves !== "undefined" && Array.isArray(pumpCurves)) ? pumpCurves : [];
+  const pts = (curves[0] && Array.isArray(curves[0].pts) ? curves[0].pts : [])
+    .filter(pt => Number.isFinite(pt.q) && Number.isFinite(pt.p));
+  if (pts.length < 2) return null;
+  const c = document.createElement("canvas");
+  c.width = 144;
+  c.height = 112;
+  const ctx = c.getContext("2d");
+  ctx.fillStyle = "#f7f1ea";
+  ctx.fillRect(0, 0, 144, 112);
+  ctx.strokeStyle = "#c9bcab";
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  ctx.moveTo(14, 96);
+  ctx.lineTo(132, 96);
+  ctx.moveTo(14, 12);
+  ctx.lineTo(14, 96);
+  ctx.stroke();
+  const maxQ = Math.max.apply(null, pts.map(pt => pt.q)) || 1;
+  const maxP = Math.max.apply(null, pts.map(pt => pt.p)) || 1;
+  const xOf = q => 14 + (q / maxQ) * 112;
+  const yOf = p => 96 - (p / maxP) * 80;
+  ctx.strokeStyle = "#d1243a";
+  ctx.lineWidth = 2.5;
+  ctx.beginPath();
+  pts.forEach((pt, i) => {
+    const X = xOf(pt.q), Y = yOf(pt.p);
+    if (i) ctx.lineTo(X, Y); else ctx.moveTo(X, Y);
+  });
+  ctx.stroke();
+  ctx.fillStyle = "#d1243a";
+  pts.forEach(pt => {
+    ctx.beginPath();
+    ctx.arc(xOf(pt.q), yOf(pt.p), 2, 0, Math.PI * 2);
+    ctx.fill();
+  });
+  return c;
+}
+
+function fcRenderHomeThumbs() {
+  const sizes = document.getElementById("thumb-sizes");
+  if (!sizes) return;
+
+  try { if (typeof render === "function") render(); } catch (e) {}
+  try { if (typeof renderFlange === "function") renderFlange(); } catch (e) {}
+  const split = document.createElement("div");
+  split.className = "thumb-split";
+  const pipe = fcSvgClone("pipe");
+  const flange = fcSvgClone("flSvg");
+  if (pipe) split.appendChild(pipe);
+  if (flange) split.appendChild(flange);
+  sizes.innerHTML = "";
+  sizes.appendChild(split.children.length ? split : fcBookThumb());
+
+  const calc = document.getElementById("thumb-calc");
+  if (calc) {
+    calc.innerHTML = "";
+    calc.appendChild(fcTankThumb());
+  }
+
+  const flows = document.getElementById("thumb-flows");
+  if (flows) {
+    const row = document.createElement("div");
+    row.className = "thumb-split";
+    const flowCanvas = document.getElementById("flowChart");
+    const pump = fcPumpThumb();
+    const hasFlow = typeof flowChartRows === "function" &&
+      flowChartRows().some(r => Number.isFinite(r.q) && Number.isFinite(r.residual));
+    const flow = (hasFlow && flowCanvas)
+      ? fcChartThumb(flowCanvas, 210, 222, flowCanvas.width - 294, flowCanvas.height - 286)
+      : null;
+    if (pump) row.appendChild(pump);
+    if (flow) row.appendChild(flow);
+    flows.innerHTML = "";
+    flows.appendChild(row.children.length ? row : fcBookThumb());
+  }
+
+  const ref = document.getElementById("thumb-as1851");
+  if (ref) {
+    ref.innerHTML = "";
+    ref.appendChild(fcBookThumb());
+  }
+}
+
 function updatePageBar(page) {
   const bar = document.getElementById("pageBar");
   const back = document.getElementById("pageBack");
@@ -3562,6 +3806,7 @@ function showPage(page) {
     document.getElementById("appSub").innerHTML = "Room integrity • door fan • gaseous suppression<br>ISO 14520-1 Annex E • AS ISO 14520 • AS 1851-2012";
   } else if (page === "home") {
     document.getElementById("appSub").innerHTML = "Fire protection field tools<br>Choose a group to start";
+    fcRenderHomeThumbs();
   } else if (page === "sizes") {
     document.getElementById("appSub").innerHTML = "Pipe and flange reference<br>Pick a tool";
   } else if (page === "calc") {
