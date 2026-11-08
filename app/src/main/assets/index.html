@@ -1795,7 +1795,7 @@
 <script src="fan-calc.js"></script>
 <script src="fan-ui.js"></script>
 <script>
-const APP_VERSION = "3.5.0";
+const APP_VERSION = "3.6.0";
 const APP_BUILD = 56;
 const FAN_KEY = "fittercalcs-ft";
 function fanOn() {
@@ -4768,8 +4768,10 @@ function drawFlowChart(ctx, opt) {
   const req = opt.req;
   const unit = opt.unit || "L/s";
   const hBar = forExport ? 110 : 0;
-  const padL = 88, padR = 92, padB = 96;
-  const padT = forExport ? hBar + 60 : 36;
+  const padL = forExport ? 210 : 150;
+  const padR = 84;
+  const padT = hBar + 88;
+  const padB = 64;
 
   ctx.fillStyle = forExport ? "#f7f1ea" : "#f4ede4";
   ctx.fillRect(0, 0, w, h);
@@ -4788,9 +4790,6 @@ function drawFlowChart(ctx, opt) {
       ctx.font = "800 16px sans-serif";
       ctx.fillText("Requirement: " + fmtFlow(req.q) + " " + unit + " @ " + req.p + " kPa" + (req.note ? "    " + req.note : ""), 88, hBar + 74);
     }
-    ctx.fillStyle = "#6a5d50";
-    ctx.font = "600 14px sans-serif";
-    ctx.fillText("Left bar flow · right bar residual", 88, hBar + 96);
   }
 
   if (!rows.length && !req) {
@@ -4812,129 +4811,104 @@ function drawFlowChart(ctx, opt) {
   }
   if (!(maxQ > 0)) maxQ = unit === "L/s" ? 10 : 600;
   if (!(maxP > 0)) maxP = 250;
-  const sq = niceScale(maxQ, 5);
-  const sp = niceScale(maxP, 5);
-  const yOfQ = v => padT + (1 - v / sq.max) * (h - padT - padB);
-  const yOfP = v => padT + (1 - v / sp.max) * (h - padT - padB);
+  const sq = niceScale(maxQ, 4);
+  const sp = niceScale(maxP, 4);
+  const plotW = w - padL - padR;
+  const plotH = h - padT - padB;
+  const xOfQ = v => padL + (v / sq.max) * plotW;
+  const xOfP = v => padL + (v / sp.max) * plotW;
 
-  // flow gridlines and left-axis ticks
+  // vertical gridlines from the flow scale
   ctx.strokeStyle = "#d7cbbd";
   ctx.lineWidth = 1;
   ctx.fillStyle = "#14110f";
-  ctx.font = "800 15px sans-serif";
+  ctx.font = "800 14px sans-serif";
   for (let v = 0; v <= sq.max + 1e-9; v += sq.step) {
-    const y = yOfQ(v);
+    const x = xOfQ(v);
     ctx.beginPath();
-    ctx.moveTo(padL, y);
-    ctx.lineTo(w - padR, y);
+    ctx.moveTo(x, padT);
+    ctx.lineTo(x, h - padB);
     ctx.stroke();
-    ctx.textAlign = "right";
-    ctx.fillText(String(Math.round(v)), padL - 10, y + 5);
+    ctx.textAlign = "center";
+    ctx.fillText(String(Math.round(v)), x, h - padB + 20);
   }
-  // residual ticks on the right axis
+  // top axis ticks for residual
   ctx.fillStyle = "#4a5a68";
-  ctx.font = "700 14px sans-serif";
+  ctx.font = "700 13px sans-serif";
   for (let v = 0; v <= sp.max + 1e-9; v += sp.step) {
-    const y = yOfP(v);
+    const x = xOfP(v);
     ctx.beginPath();
-    ctx.moveTo(w - padR, y);
-    ctx.lineTo(w - padR + 6, y);
+    ctx.moveTo(x, padT - 5);
+    ctx.lineTo(x, padT);
     ctx.stroke();
-    ctx.textAlign = "left";
-    ctx.fillText(String(Math.round(v)), w - padR + 10, y + 5);
+    ctx.textAlign = "center";
+    ctx.fillText(String(Math.round(v)), x, padT - 10);
   }
 
-  // axes
-  ctx.strokeStyle = "#14110f";
-  ctx.lineWidth = 2;
-  ctx.beginPath();
-  ctx.moveTo(padL, padT);
-  ctx.lineTo(padL, h - padB);
-  ctx.lineTo(w - padR, h - padB);
-  ctx.stroke();
-  ctx.beginPath();
-  ctx.moveTo(w - padR, padT);
-  ctx.lineTo(w - padR, h - padB);
-  ctx.stroke();
-
-  // axis labels
-  ctx.save();
+  // axis titles
   ctx.fillStyle = "#14110f";
-  ctx.font = "800 16px sans-serif";
+  ctx.font = "800 15px sans-serif";
   ctx.textAlign = "center";
-  ctx.fillText("Test point", w / 2, h - 12);
-  ctx.translate(18, (padT + h - padB) / 2);
-  ctx.rotate(-Math.PI / 2);
-  ctx.fillText("Flow (" + unit + ")", 0, 0);
-  ctx.restore();
-  ctx.save();
+  ctx.fillText("Flow (" + unit + ")", padL + plotW / 2, h - 12);
   ctx.fillStyle = "#4a5a68";
-  ctx.font = "800 16px sans-serif";
-  ctx.textAlign = "center";
-  ctx.translate(w - 20, (padT + h - padB) / 2);
-  ctx.rotate(Math.PI / 2);
-  ctx.fillText("Residual (kPa)", 0, 0);
-  ctx.restore();
+  ctx.fillText("Residual (kPa)", padL + plotW / 2, padT - 28);
 
+  // bars
   const n = Math.max(rows.length, 1);
-  const slot = (w - padL - padR) / n;
-  const bw = Math.min(40, slot * 0.32);
-  const gap = 8;
-
+  const rowH = plotH / n;
+  const barH = Math.max(8, Math.min(16, rowH * 0.26));
   rows.forEach((r, i) => {
-    const cx = padL + slot * (i + 0.5);
+    const top = padT + rowH * i;
+    const mid = top + rowH / 2;
     const okFlow = (req && Number.isFinite(r.q)) ? r.q + 1e-9 >= req.q : null;
     const okRes = (req && Number.isFinite(r.residual)) ? r.residual + 0.5 >= req.p : null;
 
-    if (Number.isFinite(r.q)) {
-      const x = cx - bw - gap / 2;
-      const y = yOfQ(r.q);
-      ctx.fillStyle = okFlow === null ? "#9aa8b5" : (okFlow ? PASS_COL : FAIL_COL);
-      if (h - padB - y > 0) ctx.fillRect(x, y, bw, h - padB - y);
-    }
-    if (Number.isFinite(r.residual)) {
-      const x = cx + gap / 2;
-      const y = yOfP(r.residual);
-      ctx.fillStyle = okRes === null ? "#c3ccd4" : (okRes ? "#7dcea0" : "#e87787");
-      if (h - padB - y > 0) ctx.fillRect(x, y, bw, h - padB - y);
-    }
-
     ctx.fillStyle = "#14110f";
-    ctx.font = "700 12px sans-serif";
-    ctx.textAlign = "center";
-    ctx.fillText(fitText(ctx, r.name || ("Point " + (i + 1)), slot - 6), cx, h - padB + 20);
-    ctx.fillStyle = "#4a5a68";
-    ctx.font = "600 12px sans-serif";
-    const cap = (Number.isFinite(r.q) ? fmtFlow(r.q) + " " + unit : "—") +
-      " · " + (Number.isFinite(r.residual) ? Math.round(r.residual) + " kPa" : "—");
-    ctx.fillText(cap, cx, h - padB + 38);
+    ctx.font = "700 13px sans-serif";
+    ctx.textAlign = "right";
+    ctx.textBaseline = "middle";
+    ctx.fillText(fitText(ctx, r.name || ("Point " + (i + 1)), padL - 12), padL - 12, mid);
+
+    if (Number.isFinite(r.residual)) {
+      const y = top + rowH * 0.18;
+      const len = Math.max(0, xOfP(r.residual) - padL);
+      ctx.fillStyle = okRes === null ? "#c3ccd4" : (okRes ? "#7dcea0" : "#e87787");
+      ctx.fillRect(padL, y, len, barH);
+      ctx.fillStyle = "#4a5a68";
+      ctx.font = "700 12px sans-serif";
+      ctx.textAlign = "left";
+      ctx.fillText(Math.round(r.residual) + " kPa", padL + len + 8, y + barH / 2);
+    }
+    if (Number.isFinite(r.q)) {
+      const y = top + rowH * 0.55;
+      const len = Math.max(0, xOfQ(r.q) - padL);
+      ctx.fillStyle = okFlow === null ? "#9aa8b5" : (okFlow ? PASS_COL : FAIL_COL);
+      ctx.fillRect(padL, y, len, barH);
+      ctx.fillStyle = "#14110f";
+      ctx.font = "700 12px sans-serif";
+      ctx.textAlign = "left";
+      ctx.fillText(fmtFlow(r.q) + " " + unit, padL + len + 8, y + barH / 2);
+    }
   });
+  ctx.textBaseline = "alphabetic";
 
   if (req) {
-    // required flow on the left scale
-    const yq = yOfQ(req.q);
+    const xq = xOfQ(req.q);
+    const xp = xOfP(req.p);
     ctx.save();
     ctx.setLineDash([6, 5]);
     ctx.strokeStyle = "#b8862a";
     ctx.lineWidth = 1.6;
     ctx.beginPath();
-    ctx.moveTo(padL, yq);
-    ctx.lineTo(w - padR, yq);
+    ctx.moveTo(xq, padT);
+    ctx.lineTo(xq, h - padB);
     ctx.stroke();
-    ctx.setLineDash([]);
-    ctx.restore();
-
-    // required residual on the right scale
-    const yp = yOfP(req.p);
-    ctx.save();
     ctx.setLineDash([2, 4]);
     ctx.strokeStyle = "#4a5a68";
-    ctx.lineWidth = 1.6;
     ctx.beginPath();
-    ctx.moveTo(padL, yp);
-    ctx.lineTo(w - padR, yp);
+    ctx.moveTo(xp, padT);
+    ctx.lineTo(xp, h - padB);
     ctx.stroke();
-    ctx.setLineDash([]);
     ctx.restore();
   }
 }
@@ -4948,7 +4922,7 @@ function drawFlow() {
     h: canvas.height,
     rows: flowChartRows(),
     title: document.getElementById("flowSite").value.trim() || (sys.label + " flow test"),
-    subtitle: sys.label + " · flow " + flowUnit() + " · residual kPa",
+    subtitle: sys.label + " · lower bar flow · upper bar residual",
     unit: flowUnit(),
     forExport: true,
     req: readFlowReq()
@@ -5094,7 +5068,7 @@ function flowChartCanvas() {
     h: c.height,
     rows: flowChartRows(),
     title: document.getElementById("flowSite").value.trim() || (sys.label + " flow test"),
-    subtitle: sys.label + " · flow " + flowUnit() + " · residual kPa",
+    subtitle: sys.label + " · lower bar flow · upper bar residual",
     unit: flowUnit(),
     forExport: true,
     req: readFlowReq()
@@ -5155,6 +5129,50 @@ function flowReportText() {
     ]
   });
 }
+function drawFlowReqBars(ctx, req, worst, unit, x, y, w) {
+  if (!req || !worst) return y;
+  ctx.textAlign = "left";
+  ctx.textBaseline = "alphabetic";
+  ctx.fillStyle = "#1a1613";
+  ctx.font = "800 22px sans-serif";
+  ctx.fillText("Requirement and result", x, y);
+  y += 16;
+
+  const items = [
+    { label: "Flow", need: req.q, got: worst.q, unit: unit, fmt: fmtFlow },
+    { label: "Residual", need: req.p, got: worst.p, unit: "kPa", fmt: v => String(Math.round(v)) }
+  ];
+  const colW = (w - 24) / 2;
+  items.forEach(item => {
+    const maxV = Math.max(item.need, item.got, 1e-9);
+    const ok = item.got + (item.unit === "kPa" ? 0.5 : 1e-9) >= item.need;
+    ctx.fillStyle = "#3a322c";
+    ctx.font = "800 18px sans-serif";
+    ctx.fillText(item.label, x, y + 18);
+
+    // requirement bar (left)
+    ctx.fillStyle = "#6a5d50";
+    ctx.font = "600 15px sans-serif";
+    ctx.fillText("Required " + item.fmt(item.need) + " " + item.unit, x, y + 42);
+    const needW = Math.max(6, (item.need / maxV) * (colW - 20));
+    ctx.fillStyle = "#d7cbbd";
+    ctx.fillRect(x, y + 50, needW, 16);
+
+    // result bar (right)
+    const rx = x + colW + 24;
+    ctx.fillStyle = "#6a5d50";
+    ctx.fillText("Result " + item.fmt(item.got) + " " + item.unit, rx, y + 42);
+    const gotW = Math.max(6, (item.got / maxV) * (colW - 20));
+    ctx.fillStyle = ok ? PASS_COL : FAIL_COL;
+    ctx.fillRect(rx, y + 50, gotW, 16);
+
+    y += 84;
+  });
+  ctx.fillStyle = "#6a5d50";
+  ctx.font = "600 14px sans-serif";
+  ctx.fillText("Lowest of " + worst.n + " tested point" + (worst.n === 1 ? "" : "s") + " against the requirement.", x, y);
+  return y + 18;
+}
 function composeFlowReportPng() {
   const chart = flowChartCanvas();
   const w = A4_W, h = A4_H, m = A4_M;
@@ -5190,9 +5208,12 @@ function composeFlowReportPng() {
   ];
   if (req) rows.push({ k: "Requirement", v: fmtFlow(req.q) + " " + unit + " @ " + req.p + " kPa" });
   y = drawKvRows(ctx, rows, m, y, inner, 38);
-  y += 12;
+  y += 10;
+  y = drawFlowReqBars(ctx, req, flowWorst(), unit, m, y, inner);
+  y += 8;
   ctx.fillStyle = "#6a5d50";
   ctx.font = "600 18px sans-serif";
+  ctx.textAlign = "left";
   ctx.fillText("Test points", m + 8, y);
   y += 26;
   ctx.fillStyle = "#1a1613";

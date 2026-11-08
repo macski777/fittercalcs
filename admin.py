@@ -198,10 +198,21 @@ window.__fcAdminReport = function(kind, state) {
     state = state || {};
     if (kind === "pump") {
       applyPumpState(state, state.id || "");
-      var pts = (state.pts || []).map(function(p) {
-        return { q: Number(p.q), p: Number(p.p) };
-      }).filter(function(p) { return isFinite(p.q) && isFinite(p.p); });
-      if (pts.length < 2) return packError("Add at least two curve points before a report can be drawn.");
+      var curves = [];
+      if (Array.isArray(state.curves) && state.curves.length) {
+        curves = state.curves;
+      } else if (Array.isArray(state.pts)) {
+        curves = [{ driver: "electric", pts: state.pts }];
+      }
+      curves = curves.map(function(c) {
+        return {
+          driver: c.driver === "diesel" ? "diesel" : "electric",
+          pts: (c.pts || []).map(function(p) {
+            return { q: Number(p.q), p: Number(p.p) };
+          }).filter(function(p) { return isFinite(p.q) && isFinite(p.p); })
+        };
+      }).filter(function(c) { return c.pts.length >= 2; });
+      if (!curves.length) return packError("Add at least two curve points before a report can be drawn.");
       var job = state.jobName || "";
       var year = String(state.year || "");
       var pump = state.pumpId || "";
@@ -209,15 +220,30 @@ window.__fcAdminReport = function(kind, state) {
       if (state.req && isFinite(Number(state.req.q)) && isFinite(Number(state.req.p))) {
         req = { q: Number(state.req.q), p: Number(state.req.p), note: state.req.note || state.reqNote || "" };
       }
-      var verdict = pumpVerdict(pts, req);
+      var verdict = pumpSetVerdict(curves, req);
       var subject = subjectWithResult("Fire pump performance estimate", job, verdict);
       if (year) subject += " (" + year + ")";
       var safe = (job || "pump").replace(/[^A-Za-z0-9-_]+/g, "_").replace(/^_+|_+$/g, "") || "pump";
       return JSON.stringify({
-        png: composePumpReportPng(pts, job, year, pump, req),
+        png: composePumpReportPng(curves, job, year, pump, req),
         subject: subject,
-        body: pumpReportText(pts, job, year, pump, req),
+        body: pumpReportText(curves, job, year, pump, req),
         fname: "FitterCalcs-" + safe + "-" + (year || "report") + ".png"
+      });
+    }
+    if (kind === "flow") {
+      if (typeof applyFlowState !== "function" || typeof composeFlowReportPng !== "function") {
+        return packError("This flow test could not be opened.");
+      }
+      applyFlowState(state, state.id || "");
+      var flowSite = state.site || "";
+      var flowVerdictNow = flowVerdict();
+      var flowSubject = subjectWithResult(flowSys().label + " flow test", flowSite, flowVerdictNow);
+      return JSON.stringify({
+        png: composeFlowReportPng(),
+        subject: flowSubject,
+        body: flowReportText(),
+        fname: reportFile("flow", flowSite)
       });
     }
     if (kind === "hydro") {
@@ -254,13 +280,14 @@ return "ok";
 })()
 """
 
-KINDS = (("pump", "Pump"), ("hydro", "Hydro"), ("tank", "Tank"), ("fan", "Fan"))
+KINDS = (("pump", "Pump"), ("hydro", "Hydro"), ("tank", "Tank"), ("fan", "Fan"), ("flow", "Flow"))
 KIND_LABEL = dict(KINDS)
 CALC_FIELDS = (
     ("pump", "onlyfitters-pump-jobs", "onlyfitters-pump-draft"),
     ("hydro", "onlyfitters-hydro-jobs", "onlyfitters-hydro-draft"),
     ("tank", "onlyfitters-tank-jobs", "onlyfitters-tank-draft"),
     ("fan", "onlyfitters-fan-jobs", "onlyfitters-fan-draft"),
+    ("flow", "onlyfitters-flow-jobs", "onlyfitters-flow-draft"),
 )
 CALC_BRIDGE_JS = r"""
 window.FitterCalcsPC = true;
@@ -724,6 +751,26 @@ def job_lines(kind, data):
         add_line(lines, "Elbows", data.get("elb"))
         add_line(lines, "Rise", data.get("rise"))
         add_line(lines, "C", data.get("C"))
+        add_line(lines, "Result", data.get("summary"))
+    elif kind == "flow":
+        add_line(lines, "Site", data.get("site"))
+        add_line(lines, "System", data.get("system"))
+        req = data.get("req")
+        if isinstance(req, dict):
+            add_line(lines, "Required flow", req.get("q"))
+            add_line(lines, "Required residual", req.get("p"))
+        points = data.get("pts") if isinstance(data.get("pts"), list) else []
+        for point in points[:40]:
+            if isinstance(point, dict):
+                bits = []
+                if point.get("name"):
+                    bits.append(str(point.get("name")))
+                if point.get("q") not in (None, ""):
+                    bits.append("%s L/s" % point.get("q"))
+                if point.get("residual") not in (None, ""):
+                    bits.append("%s kPa" % point.get("residual"))
+                if bits:
+                    lines.append("  " + ", ".join(bits))
         add_line(lines, "Result", data.get("summary"))
     elif kind == "fan":
         add_line(lines, "Client", data.get("client"))
@@ -1869,7 +1916,7 @@ class AdminWindow(Gtk.Window):
             text="Remove %s?" % person["username"],
         ))
         dialog.format_secondary_text(
-            "Their saved pump, hydro, tank, and fan jobs will be deleted from this server."
+            "Their saved pump, hydro, tank, fan, and flow jobs will be deleted from this server."
         )
         dialog.add_button("Cancel", Gtk.ResponseType.CANCEL)
         dialog.add_button("Remove", Gtk.ResponseType.OK)

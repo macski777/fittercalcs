@@ -12,7 +12,7 @@
 </p>
 
 <p align="center">
-  <strong>Current version: 3.5.0</strong><br>
+  <strong>Current version: 3.6.0</strong><br>
   <a href="https://github.com/macski777/fittercalcs/releases/latest">Download FitterCalcs.apk</a>
   ·
   <a href="https://github.com/macski777/fittercalcs/releases/tag/v2.46">Windows</a>
@@ -32,7 +32,7 @@ The launcher icon and the **FITTER / CALCS** wordmark use **Delta Corps Priest 1
 
 ## Install on Android
 
-1. Download [FitterCalcs.apk](https://github.com/macski777/fittercalcs/releases/download/v3.5.0/FitterCalcs.apk).
+1. Download [FitterCalcs.apk](https://github.com/macski777/fittercalcs/releases/download/v3.6.0/FitterCalcs.apk).
 2. If this phone already has FitterCalcs and Android refuses the new file, uninstall the old app once, then install this one.
 3. Open the file on the phone.
 4. Allow install from this source if Android asks.
@@ -89,7 +89,7 @@ Phones on **2.17 or older** need a one-time install of 2.18 or later (USB or thi
 | **Pump** | One or two pumps on the same chart, each marked **Electric** or **Diesel** and checked against the same duty. kPa vs L/s curve, autosave by job. Green **PASS** / red **FAIL** per pump plus a set result, neutral until a duty is entered. Email cites AS 2941-2013 Cl 10.3, AS 2419.1:2021 Cl 4.2.7.1.2, AS 2118.1:2017 Cl 14.9, AS 1851-2012 Table 3.4.3. |
 | **Pipe Loss** | Hazen-Williams friction + static rise. Green **PASS** / red **FAIL** on typical 5 m/s (AS 2118.1-1999 Cl 12.14 is 10 m/s pipe / 6 m/s valves), neutral until flow and length are entered. Autosave by site / job. **Save to device** writes the A4 PNG. Email cites AS 1074 Cl 2.3, AS 2118.1:2017 Cl 14.10, AS 2419.1:2021 Cl 4.2.7.1.2. |
 | **Tanks** | 1–4 tanks, combined effective kL. Hydrants 4 h (AS 2419.1:2021 Cl 4.2.1 / Cl 4.2.6.3). Sprinklers 30/60/90 min (AS 2118.1:2017 Cl 9.3 / Cl 10.3 / Sec 11). 20 mm overflow (AS/NZS 3500.1:2021 Cl 8.3.2). Stays neutral until every tank has a size and a demand is entered. Autosave by site / job. **Save to device** writes the A4 PNG. |
-| **Flow** | Hydrant and sprinkler flow tests. Hydrants in **L/s**, sprinklers in **L/min**. Enter the measured flow and residual per outlet. A bar per requirement shows the lowest reading against what is required, and the chart pairs flow with residual per outlet. Every point must meet both. Autosave by site / job, A4 report. |
+| **Flow** | Hydrant and sprinkler flow tests. Hydrants in **L/s**, sprinklers in **L/min**. Enter the measured flow and residual per outlet. A bar per requirement shows the lowest reading against what is required, and the chart pairs horizontal flow and residual bars per outlet. Every point must meet both. Autosave by site / job, A4 report, visible in Fitter-Hub. |
 | **AS-1851** | Field lookup for AS 1851-2012 routine service. System and frequency are dropdowns. Not a substitute for the Standard. |
 
 ### Pipe
@@ -144,9 +144,9 @@ Hydrant and sprinkler flow tests. Pick **Hydrants** or **Sprinklers**, enter the
 
 - **Hydrants** measure in **L/s**. **Sprinklers** measure in **L/min**. Switching system converts the values so the same physical flow is kept.
 - Above the result, one bar per requirement shows the **lowest reading across the tested points** against what is required, in plain words: `7.2 of 8 L/s required`, `210 of 200 kPa required`. Green when met, red when short.
-- The chart shows two bars per outlet: **flow** on the left axis and **residual pressure** on the right, with dashed required lines.
+- The chart shows two horizontal bars per outlet: **flow** (lower) against the bottom axis in L/s or L/min, and **residual pressure** (upper) against the top axis in kPa. Dashed lines mark the required flow and required residual.
 
-Every tested point must meet both the required flow and the required residual for the test to pass. Tests autosave by site, appear in History, and produce the same A4 report as the pump tab.
+Every tested point must meet both the required flow and the required residual for the test to pass. The A4 report repeats the requirement as a bar beside the result, for flow and for residual. Tests autosave by site, appear in History, and open in Fitter-Hub alongside the pump, hydro and tank reports.
 
 <p align="center"><img src="docs/flow.png" width="320" alt="Flow tab — hydrant test against an 8 L/s requirement"></p>
 
