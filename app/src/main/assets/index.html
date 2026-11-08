@@ -552,35 +552,6 @@
       align-items: center;
     }
     .flow-calc small { color: var(--muted); font-weight: 600; margin-left: 6px; }
-    .req-bars { display: grid; gap: 8px; margin-bottom: 10px; }
-    .req-bar {
-      background: var(--card);
-      border: 1px solid var(--line);
-      border-radius: 12px;
-      padding: 10px 12px;
-    }
-    .req-head {
-      display: flex;
-      justify-content: space-between;
-      align-items: baseline;
-      gap: 10px;
-      flex-wrap: wrap;
-      font-size: 0.82rem;
-    }
-    .req-head b { font-size: 0.92rem; }
-    .req-head span { color: var(--muted); font-variant-numeric: tabular-nums; }
-    .req-track {
-      height: 12px;
-      border-radius: 99px;
-      background: #1a1613;
-      border: 1px solid var(--line);
-      margin-top: 8px;
-      overflow: hidden;
-    }
-    .req-fill { height: 100%; border-radius: 99px; }
-    .req-fill.ok { background: var(--ok); }
-    .req-fill.bad { background: var(--red); }
-    .req-note { color: var(--muted); font-size: 0.72rem; margin-top: 6px; }
     .flow-del {
       appearance: none;
       border: 1px solid var(--line);
@@ -1576,7 +1547,6 @@
     <section class="visual">
       <canvas id="flowChart" width="900" height="640" aria-label="Flow test chart"></canvas>
     </section>
-    <div id="flowReqBars" class="req-bars"></div>
     <div class="hc-out" id="flowVerdict"></div>
     <p class="notes" style="margin-top:0">One row per outlet or test point. Enter the measured flow and residual pressure; every point must meet the requirement.</p>
     <div id="flowRows"></div>
@@ -1795,7 +1765,7 @@
 <script src="fan-calc.js"></script>
 <script src="fan-ui.js"></script>
 <script>
-const APP_VERSION = "3.6.0";
+const APP_VERSION = "3.7.0";
 const APP_BUILD = 56;
 const FAN_KEY = "fittercalcs-ft";
 function fanOn() {
@@ -4683,26 +4653,17 @@ function flowWorst() {
     n: rows.length
   };
 }
-function renderFlowReqBars() {
-  const host = document.getElementById("flowReqBars");
-  if (!host) return;
+function flowCompare() {
   const req = readFlowReq();
   const worst = flowWorst();
-  if (!req || !worst) { host.innerHTML = ""; return; }
-  const items = [
-    { label: "Flow", value: worst.q, need: req.q, unit: flowUnit(), fmt: fmtFlow },
-    { label: "Residual", value: worst.p, need: req.p, unit: "kPa", fmt: v => String(Math.round(v)) }
+  if (!req || !worst) return [];
+  const unit = flowUnit();
+  return [
+    { label: "Flow required", value: req.q, unit: unit, need: true },
+    { label: "Flow result", value: worst.q, unit: unit, need: false, ok: worst.q + 1e-9 >= req.q },
+    { label: "Residual required", value: req.p, unit: "kPa", need: true },
+    { label: "Residual result", value: worst.p, unit: "kPa", need: false, ok: worst.p + 0.5 >= req.p }
   ];
-  host.innerHTML = items.map(item => {
-    const pct = item.need > 0 ? Math.max(0, Math.min(100, (item.value / item.need) * 100)) : 0;
-    const ok = item.value + (item.unit === "kPa" ? 0.5 : 1e-9) >= item.need;
-    return '<div class="req-bar">' +
-      '<div class="req-head"><b>' + item.label + '</b>' +
-      '<span>' + item.fmt(item.value) + ' of ' + item.fmt(item.need) + ' ' + item.unit + ' required</span></div>' +
-      '<div class="req-track"><div class="req-fill ' + (ok ? "ok" : "bad") + '" style="width:' + pct.toFixed(1) + '%"></div></div>' +
-      '<div class="req-note">lowest of ' + worst.n + ' point' + (worst.n === 1 ? "" : "s") + '</div>' +
-      '</div>';
-  }).join("");
 }
 function renderFlowVerdict() {
   const el = document.getElementById("flowVerdict");
@@ -4770,7 +4731,7 @@ function drawFlowChart(ctx, opt) {
   const hBar = forExport ? 110 : 0;
   const padL = forExport ? 210 : 150;
   const padR = 84;
-  const padT = hBar + 88;
+  const padT = hBar + 112;
   const padB = 64;
 
   ctx.fillStyle = forExport ? "#f7f1ea" : "#f4ede4";
@@ -4815,6 +4776,10 @@ function drawFlowChart(ctx, opt) {
   const sp = niceScale(maxP, 4);
   const plotW = w - padL - padR;
   const plotH = h - padT - padB;
+  const showCompare = opt.compare !== false;
+  const compare = showCompare
+    ? flowCompare().map(c => Object.assign({ scale: c.unit === "kPa" ? "p" : "q" }, c))
+    : [];
   const xOfQ = v => padL + (v / sq.max) * plotW;
   const xOfP = v => padL + (v / sp.max) * plotW;
 
@@ -4854,10 +4819,38 @@ function drawFlowChart(ctx, opt) {
   ctx.fillText("Residual (kPa)", padL + plotW / 2, padT - 28);
 
   // bars
-  const n = Math.max(rows.length, 1);
-  const rowH = plotH / n;
+  const totalRows = Math.max(compare.length + rows.length, 1);
+  const rowH = plotH / totalRows;
   const barH = Math.max(8, Math.min(16, rowH * 0.26));
-  rows.forEach((r, i) => {
+
+  compare.forEach((c, i) => {
+    const top = padT + rowH * i;
+    const y = top + rowH / 2 - barH / 2;
+    const xOf = c.scale === "q" ? xOfQ : xOfP;
+    const len = Math.max(0, xOf(c.value) - padL);
+    ctx.fillStyle = c.need ? "#d7cbbd" : (c.ok ? PASS_COL : FAIL_COL);
+    ctx.fillRect(padL, y, len, barH);
+    ctx.fillStyle = "#14110f";
+    ctx.font = "700 13px sans-serif";
+    ctx.textAlign = "right";
+    ctx.textBaseline = "middle";
+    ctx.fillText(c.label, padL - 12, y + barH / 2);
+    ctx.textAlign = "left";
+    ctx.fillStyle = c.need ? "#6a5d50" : "#14110f";
+    ctx.font = "700 12px sans-serif";
+    ctx.fillText((c.need ? "required " : "result ") + fmtFlow(c.value) + " " + c.unit, padL + len + 8, y + barH / 2);
+  });
+  if (compare.length) {
+    ctx.strokeStyle = "#d7cbbd";
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(padL, padT + rowH * compare.length - rowH * 0.1);
+    ctx.lineTo(w - padR, padT + rowH * compare.length - rowH * 0.1);
+    ctx.stroke();
+  }
+
+  rows.forEach((r, idx) => {
+    const i = idx + compare.length;
     const top = padT + rowH * i;
     const mid = top + rowH / 2;
     const okFlow = (req && Number.isFinite(r.q)) ? r.q + 1e-9 >= req.q : null;
@@ -4917,6 +4910,10 @@ function drawFlow() {
   if (!canvas) return;
   syncFlowUnitUi();
   const sys = flowSys();
+  const chartRows = flowChartRows();
+  const total = chartRows.length + (readFlowReq() ? 4 : 0);
+  canvas.width = 760;
+  canvas.height = Math.max(560, 120 + Math.max(total, 3) * 82);
   drawFlowChart(canvas.getContext("2d"), {
     w: canvas.width,
     h: canvas.height,
@@ -4927,7 +4924,6 @@ function drawFlow() {
     forExport: true,
     req: readFlowReq()
   });
-  renderFlowReqBars();
   renderFlowVerdict();
 }
 function currentFlowState() {
@@ -5071,6 +5067,7 @@ function flowChartCanvas() {
     subtitle: sys.label + " · lower bar flow · upper bar residual",
     unit: flowUnit(),
     forExport: true,
+    compare: false,
     req: readFlowReq()
   };
   skipBrandLogo = false;
@@ -6918,13 +6915,16 @@ function renderNamedJobs(hostId, jobs, activeId, emptyMsg, onOpen, onDel, draft,
         <button type="button" class="ghost" data-del="${escPump(j.id)}">Delete</button>
       </div>
     </div>`).join("");
-  const shareKind = { hydroJobs: "hydro", tankJobs: "tank", fanJobs: "fan" }[hostId] || "";
+  const shareKind = { hydroJobs: "hydro", tankJobs: "tank", fanJobs: "fan", flowJobs: "flow" }[hostId] || "";
   host.querySelectorAll("[data-open-draft]").forEach(b => b.onclick = () => {
     if (onDraft) onDraft();
   });
   host.querySelectorAll("[data-open]").forEach(b => b.onclick = () => onOpen(b.getAttribute("data-open")));
   host.querySelectorAll("[data-share]").forEach(b => b.onclick = () => {
-    if (!shareKind) return;
+    if (!shareKind) {
+      if (typeof nativeToast === "function") nativeToast("Share is not available for this report.");
+      return;
+    }
     const rec = jobs.find(j => j.id === b.getAttribute("data-share"));
     if (!rec) return;
     fcBeginShare(shareKind, rec.id, rec.title || rec.site || "Saved report");
