@@ -1,7 +1,7 @@
 {
-  "versionCode": 70,
-  "versionName": "3.5.0",
-  "apkUrl": "https://github.com/macski777/fittercalcs/releases/download/v3.5.0/FitterCalcs.apk",
+  "versionCode": 71,
+  "versionName": "3.6.0",
+  "apkUrl": "https://github.com/macski777/fittercalcs/releases/download/v3.6.0/FitterCalcs.apk",
   "winUrl": "",
-  "notes": "Flow saving is fixed on the server, so tests stay saved. Pitot buttons are gone: enter flow directly. New bars above the result show each requirement against your lowest reading."
+  "notes": "Flow chart bars are now horizontal, with flow along the bottom and residual along the top. The A4 report shows a requirement bar beside a result bar for L/s and for kPa. Fitter-Hub now lists flow tests and can email them."
 }
