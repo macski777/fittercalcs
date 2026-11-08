@@ -1531,7 +1531,7 @@
       <b>Required at the test point</b>
       <div class="lookup">
         <div class="field" style="margin:0">
-          <label for="flowReqQ">Required flow (L/min)</label>
+          <label for="flowReqQ" id="flowReqQLabel">Required flow (L/s)</label>
           <input id="flowReqQ" type="number" inputmode="decimal" step="10" placeholder="e.g. 600" />
         </div>
         <div class="field" style="margin:0">
@@ -1548,7 +1548,7 @@
       <canvas id="flowChart" width="900" height="640" aria-label="Flow test chart"></canvas>
     </section>
     <div class="hc-out" id="flowVerdict"></div>
-    <p class="notes" style="margin-top:0">One row per outlet or test point. <strong>Pitot</strong> uses nozzle size and pitot pressure to work out L/min; <strong>Meter</strong> takes a measured L/min.</p>
+    <p class="notes" style="margin-top:0">One row per outlet or test point. <strong>Pitot</strong> uses nozzle size and pitot pressure to work out the flow; <strong>Meter</strong> takes a measured flow.</p>
     <div id="flowRows"></div>
     <button type="button" class="addpt" id="addFlowPoint">+ Add test point</button>
     <div class="actions">
@@ -1765,7 +1765,7 @@
 <script src="fan-calc.js"></script>
 <script src="fan-ui.js"></script>
 <script>
-const APP_VERSION = "3.3.1";
+const APP_VERSION = "3.4.0";
 const APP_BUILD = 56;
 const FAN_KEY = "fittercalcs-ft";
 function fanOn() {
@@ -3368,7 +3368,7 @@ function showPage(page) {
     renderTanks();
     renderTankJobs();
   } else if (page === "flow") {
-    document.getElementById("appSub").innerHTML = "Hydrant and sprinkler flow tests<br>Flow L/min · residual kPa · autosave by site";
+    document.getElementById("appSub").innerHTML = "Hydrant and sprinkler flow tests<br>Flow L/s or L/min · residual kPa · autosave by site";
     renderFlowJobs();
     drawFlow();
   } else if (page === "as1851") {
@@ -4558,6 +4558,31 @@ function hydrantFlowLpm(dMm, pitotKpa) {
   return 0.0666 * dMm * dMm * Math.sqrt(pitotKpa);
 }
 function flowSys() { return FLOW_SYS[flowSystem] || FLOW_SYS.hydrant; }
+function flowUnitFor(sys) { return sys === "sprinkler" ? "L/min" : "L/s"; }
+function flowUnit() { return flowUnitFor(flowSystem); }
+function fromLpm(lpm) { return flowSystem === "sprinkler" ? lpm : lpm / 60; }
+function round2(v) { return Math.round(v * 100) / 100; }
+function fmtFlow(v) { return Number.isFinite(v) ? String(Math.round(v * 100) / 100) : "—"; }
+function syncFlowUnitUi() {
+  const u = flowUnit();
+  const lab = document.getElementById("flowReqQLabel");
+  if (lab) lab.textContent = "Required flow (" + u + ")";
+  const q = document.getElementById("flowReqQ");
+  if (q) q.placeholder = u === "L/s" ? "e.g. 10" : "e.g. 600";
+}
+function convertFlowUnits(fromSys, toSys) {
+  if (flowUnitFor(fromSys) === flowUnitFor(toSys)) return;
+  const factor = flowUnitFor(fromSys) === "L/s" ? 60 : 1 / 60;
+  const reqEl = document.getElementById("flowReqQ");
+  const rq = parseFloat(reqEl.value);
+  if (Number.isFinite(rq)) reqEl.value = String(round2(rq * factor));
+  const rows = readFlowPts();
+  flowPts = rows.map(r => {
+    const out = Object.assign({}, r);
+    if (Number.isFinite(r.q)) out.q = round2(r.q * factor);
+    return out;
+  });
+}
 function blankFlowRow() {
   return { name: "", mode: flowSystem === "sprinkler" ? "meter" : "pitot", d: "", pitot: "", q: "", residual: "", static: "" };
 }
@@ -4584,7 +4609,10 @@ function readFlowPts() {
     const qIn = parseFloat(qEl ? qEl.value : "");
     const residual = parseFloat(resEl ? resEl.value : "");
     const stat = parseFloat(statEl ? statEl.value : "");
-    const q = mode === "pitot" ? hydrantFlowLpm(d, pitot) : (Number.isFinite(qIn) ? qIn : null);
+    const lpm = mode === "pitot" ? hydrantFlowLpm(d, pitot) : null;
+    const q = mode === "pitot"
+      ? (lpm === null ? null : fromLpm(lpm))
+      : (Number.isFinite(qIn) ? qIn : null);
     out.push({
       name: (nameEl ? nameEl.value : "").trim(),
       mode: mode,
@@ -4597,37 +4625,50 @@ function readFlowPts() {
   });
   return out;
 }
-function flowCurve() {
-  const pts = readFlowPts()
-    .filter(r => Number.isFinite(r.q) && Number.isFinite(r.residual))
-    .map(r => ({ q: r.q, p: r.residual }));
-  return dedupeCurve(pts);
+function flowChartRows() {
+  const req = readFlowReq();
+  return readFlowPts().map((r, i) => ({
+    i: i,
+    name: r.name,
+    q: Number.isFinite(r.q) ? r.q : null,
+    residual: Number.isFinite(r.residual) ? r.residual : null,
+    ok: (req && Number.isFinite(r.q) && Number.isFinite(r.residual))
+      ? (r.q + 1e-9 >= req.q && r.residual + 0.5 >= req.p)
+      : null
+  }));
 }
 function flowVerdict() {
-  const pts = flowCurve();
+  const rows = readFlowPts();
   const req = readFlowReq();
-  if (!req || pts.length < 2) return null;
-  const gap = outOfRange(pts, req.q, "L/min");
-  if (gap) return { ok: null, tag: "OUT OF RANGE", detail: gap };
-  const at = curveAt(pts, req.q);
-  if (at === null) return null;
-  const margin = at - req.p;
-  if (at + 0.5 >= req.p) {
-    return { ok: true, tag: "PASS", detail: "Residual " + at.toFixed(0) + " kPa at " + req.q + " L/min (" + Math.abs(margin).toFixed(0) + " kPa above the " + req.p + " kPa required)." };
+  const entered = rows.filter(r => r.name || Number.isFinite(r.q) || Number.isFinite(r.residual) || Number.isFinite(r.pitot));
+  if (!req) return null;
+  if (!entered.length) return null;
+  const incomplete = entered
+    .map((r, i) => ({ r: r, i: i }))
+    .filter(x => !(Number.isFinite(x.r.q) && Number.isFinite(x.r.residual)));
+  if (incomplete.length) {
+    const n = rows.indexOf(incomplete[0].r) + 1;
+    return { ok: null, tag: "INCOMPLETE", detail: "Point " + n + " needs a flow and a residual before this can pass." };
   }
-  return { ok: false, tag: "FAIL", detail: "Residual " + at.toFixed(0) + " kPa at " + req.q + " L/min (" + Math.abs(margin).toFixed(0) + " kPa below the " + req.p + " kPa required)." };
+  const bad = entered.filter(r => !(r.q + 1e-9 >= req.q && r.residual + 0.5 >= req.p));
+  const unit = flowUnit();
+  if (!bad.length) {
+    return { ok: true, tag: "PASS", detail: "All " + entered.length + " point" + (entered.length === 1 ? "" : "s") + " meet " + fmtFlow(req.q) + " " + unit + " at " + req.p + " kPa." };
+  }
+  return { ok: false, tag: "FAIL", detail: bad.length + " of " + entered.length + " points do not meet " + fmtFlow(req.q) + " " + unit + " at " + req.p + " kPa." };
 }
 function renderFlowVerdict() {
   const el = document.getElementById("flowVerdict");
   if (!el) return;
-  const pts = flowCurve();
+  const pts = readFlowPts();
+  const hasAny = pts.some(r => r.name || Number.isFinite(r.q) || Number.isFinite(r.residual));
   const v = flowVerdict();
   el.innerHTML = verdictHtml(v || {
     ok: null,
-    tag: pts.length ? "ENTER REQUIREMENT" : "ENTER TEST READINGS",
-    detail: pts.length
+    tag: hasAny ? "ENTER REQUIREMENT" : "ENTER TEST READINGS",
+    detail: hasAny
       ? "Add the required flow and residual to check the test."
-      : "Add at least two test points with flow and residual."
+      : "Add a test point with flow and residual."
   });
 }
 function updateFlowCalc(rowEl) {
@@ -4636,8 +4677,8 @@ function updateFlowCalc(rowEl) {
   const p = parseFloat(rowEl.querySelector(".flow-pitot").value);
   const out = rowEl.querySelector(".flow-calc-q");
   if (!out) return;
-  const q = hydrantFlowLpm(d, p);
-  out.textContent = q === null ? "—" : q.toFixed(0);
+  const lpm = hydrantFlowLpm(d, p);
+  out.textContent = lpm === null ? "—" : fmtFlow(fromLpm(lpm));
 }
 function renderFlowRows() {
   const host = document.getElementById("flowRows");
@@ -4667,14 +4708,14 @@ function renderFlowRows() {
           <input class="flow-pitot" type="number" inputmode="decimal" step="1" value="${r.pitot}" placeholder="e.g. 100" />
         </div>
         <div class="field" style="margin:0">
-          <label>Flow (L/min)</label>
-          <div class="flow-calc"><span class="flow-calc-q">${calc === null ? "—" : calc.toFixed(0)}</span><small>calc</small></div>
+          <label>Flow (${flowUnit()})</label>
+          <div class="flow-calc"><span class="flow-calc-q">${calc === null ? "—" : fmtFlow(fromLpm(calc))}</span><small>calc</small></div>
         </div>
       </div>
       <div class="flow-grid ${mode === "meter" ? "" : "hidden"} flow-meter-grid">
         <div class="field" style="margin:0">
-          <label>Flow (L/min)</label>
-          <input class="flow-q" type="number" inputmode="decimal" step="10" value="${r.q}" placeholder="e.g. 600" />
+          <label>Flow (${flowUnit()})</label>
+          <input class="flow-q" type="number" inputmode="decimal" step="${flowSystem === "sprinkler" ? "10" : "0.1"}" value="${r.q}" placeholder="${flowSystem === "sprinkler" ? "e.g. 600" : "e.g. 10"}" />
         </div>
       </div>
       <div class="flow-grid">
@@ -4690,24 +4731,153 @@ function renderFlowRows() {
     </div>`;
   }).join("");
 }
+function niceScale(max, target) {
+  const m = Math.max(max, 1);
+  const raw = m / target;
+  const pow = Math.pow(10, Math.floor(Math.log10(raw)));
+  const n = raw / pow;
+  const step = n <= 1 ? pow : n <= 2 ? 2 * pow : n <= 5 ? 5 * pow : 10 * pow;
+  return { step: step, max: Math.ceil(m / step) * step };
+}
+function fitText(ctx, text, maxW) {
+  let t = String(text || "");
+  if (ctx.measureText(t).width <= maxW) return t;
+  while (t.length > 1 && ctx.measureText(t + "…").width > maxW) t = t.slice(0, -1);
+  return t + "…";
+}
+function drawFlowChart(ctx, opt) {
+  const w = opt.w, h = opt.h;
+  const forExport = !!opt.forExport;
+  const rows = opt.rows || [];
+  const req = opt.req;
+  const unit = opt.unit || "L/s";
+  const hBar = forExport ? 110 : 0;
+  const padL = 88, padR = 32, padB = 96;
+  const padT = forExport ? hBar + 60 : 36;
+
+  ctx.fillStyle = forExport ? "#f7f1ea" : "#f4ede4";
+  ctx.fillRect(0, 0, w, h);
+
+  if (forExport) {
+    drawBrandHeader(ctx, w, hBar);
+    ctx.textAlign = "left";
+    ctx.textBaseline = "alphabetic";
+    ctx.fillStyle = "#14110f";
+    ctx.font = "800 22px sans-serif";
+    ctx.fillText(opt.title || "Flow test", 88, hBar + 28);
+    ctx.font = "700 16px sans-serif";
+    ctx.fillText(opt.subtitle || "", 88, hBar + 50);
+    if (req) {
+      ctx.fillStyle = "#6a4208";
+      ctx.font = "800 16px sans-serif";
+      ctx.fillText("Requirement: " + fmtFlow(req.q) + " " + unit + " @ " + req.p + " kPa" + (req.note ? "    " + req.note : ""), 88, hBar + 74);
+    }
+  }
+
+  if (!rows.length && !req) {
+    ctx.fillStyle = "#14110f";
+    ctx.font = "700 20px sans-serif";
+    ctx.textAlign = "left";
+    ctx.fillText("Add flow and residual readings", padL, h / 2);
+    return;
+  }
+
+  let maxV = 0;
+  rows.forEach(r => { if (Number.isFinite(r.q)) maxV = Math.max(maxV, r.q); });
+  if (req && Number.isFinite(req.q)) maxV = Math.max(maxV, req.q);
+  if (!(maxV > 0)) maxV = unit === "L/s" ? 10 : 600;
+  const scale = niceScale(maxV, 5);
+  const ymax = scale.max;
+  const yTick = scale.step;
+  const yOf = v => padT + (1 - v / ymax) * (h - padT - padB);
+
+  ctx.strokeStyle = "#d7cbbd";
+  ctx.lineWidth = 1;
+  ctx.fillStyle = "#14110f";
+  ctx.font = "800 16px sans-serif";
+  for (let v = 0; v <= ymax + 1e-9; v += yTick) {
+    const y = yOf(v);
+    ctx.beginPath();
+    ctx.moveTo(padL, y);
+    ctx.lineTo(w - padR, y);
+    ctx.stroke();
+    ctx.textAlign = "right";
+    ctx.fillText(String(Math.round(v)), padL - 10, y + 6);
+  }
+  ctx.strokeStyle = "#14110f";
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.moveTo(padL, padT);
+  ctx.lineTo(padL, h - padB);
+  ctx.lineTo(w - padR, h - padB);
+  ctx.stroke();
+  ctx.save();
+  ctx.fillStyle = "#14110f";
+  ctx.font = "800 18px sans-serif";
+  ctx.textAlign = "center";
+  ctx.fillText("Test point", w / 2, h - 12);
+  ctx.translate(18, (padT + h - padB) / 2);
+  ctx.rotate(-Math.PI / 2);
+  ctx.fillText("Flow (" + unit + ")", 0, 0);
+  ctx.restore();
+
+  const n = Math.max(rows.length, 1);
+  const slot = (w - padL - padR) / n;
+  const bw = Math.min(72, slot * 0.62);
+  rows.forEach((r, i) => {
+    const cx = padL + slot * (i + 0.5);
+    const v = Number.isFinite(r.q) ? r.q : 0;
+    const y = yOf(v);
+    ctx.fillStyle = r.ok === null || r.ok === undefined
+      ? "#9aa8b5"
+      : (r.ok ? PASS_COL : FAIL_COL);
+    const bh = Math.max(0, h - padB - y);
+    if (bh > 0) ctx.fillRect(cx - bw / 2, y, bw, bh);
+    ctx.fillStyle = "#14110f";
+    ctx.font = "800 15px sans-serif";
+    ctx.textAlign = "center";
+    ctx.fillText(fmtFlow(r.q), cx, Math.max(padT + 16, y - 8));
+    ctx.font = "700 12px sans-serif";
+    const label = fitText(ctx, r.name || ("Point " + (i + 1)), slot - 6);
+    ctx.fillText(label, cx, h - padB + 20);
+    ctx.fillStyle = "#6a5d50";
+    ctx.font = "600 12px sans-serif";
+    ctx.fillText(Number.isFinite(r.residual) ? r.residual + " kPa" : "— kPa", cx, h - padB + 38);
+  });
+
+  if (req) {
+    const y = yOf(req.q);
+    ctx.save();
+    ctx.setLineDash([6, 5]);
+    ctx.strokeStyle = "#b8862a";
+    ctx.lineWidth = 1.6;
+    ctx.beginPath();
+    ctx.moveTo(padL, y);
+    ctx.lineTo(w - padR, y);
+    ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.fillStyle = "#6a4208";
+    ctx.font = "800 15px sans-serif";
+    ctx.textAlign = "right";
+    ctx.textBaseline = "bottom";
+    ctx.fillText("Required " + fmtFlow(req.q) + " " + unit, w - padR - 4, y - 6);
+    ctx.restore();
+  }
+}
 function drawFlow() {
   const canvas = document.getElementById("flowChart");
   if (!canvas) return;
-  const pts = flowCurve();
+  syncFlowUnitUi();
   const sys = flowSys();
-  drawCurveChart(canvas.getContext("2d"), {
+  drawFlowChart(canvas.getContext("2d"), {
     w: canvas.width,
     h: canvas.height,
-    series: pts.length ? [{ pts: pts, color: FLOW_COLOR, label: sys.label }] : [],
+    rows: flowChartRows(),
     title: document.getElementById("flowSite").value.trim() || (sys.label + " flow test"),
-    subtitle: sys.label + " · flow L/min vs residual kPa",
-    axisX: "Flow (L/min)",
-    axisY: "Residual pressure (kPa)",
-    unitX: "L/min",
-    xStep: 100,
+    subtitle: sys.label + " · flow " + flowUnit() + " · residual kPa",
+    unit: flowUnit(),
     forExport: true,
-    req: readFlowReq(),
-    emptyText: "Add flow and residual readings"
+    req: readFlowReq()
   });
   renderFlowVerdict();
 }
@@ -4723,10 +4893,10 @@ function currentFlowState() {
   };
 }
 function flowJobSummary() {
-  const pts = flowCurve();
+  const rows = readFlowPts().filter(r => Number.isFinite(r.q));
   const v = flowVerdict();
-  const last = pts[pts.length - 1];
-  return flowSys().label + " · " + (last ? last.q.toFixed(0) + " L/min" : "no readings") + (v ? " · " + v.tag : "");
+  const last = rows[rows.length - 1];
+  return flowSys().label + " · " + (last ? fmtFlow(last.q) + " " + flowUnit() : "no readings") + (v ? " · " + v.tag : "");
 }
 function applyFlowState(s, id) {
   applyingFlow = true;
@@ -4846,52 +5016,49 @@ function flowChartCanvas() {
   const c = document.createElement("canvas");
   c.width = A4_W; c.height = 980;
   const ctx = c.getContext("2d");
-  const pts = flowCurve();
   const sys = flowSys();
   const opt = {
-    w: c.width, h: c.height,
-    series: pts.length ? [{ pts: pts, color: FLOW_COLOR, label: sys.label }] : [],
+    w: c.width,
+    h: c.height,
+    rows: flowChartRows(),
     title: document.getElementById("flowSite").value.trim() || (sys.label + " flow test"),
-    subtitle: sys.label + " · L/min vs residual kPa",
-    axisX: "Flow (L/min)",
-    axisY: "Residual pressure (kPa)",
-    unitX: "L/min",
-    xStep: 100,
+    subtitle: sys.label + " · flow " + flowUnit() + " · residual kPa",
+    unit: flowUnit(),
     forExport: true,
-    req: readFlowReq(),
-    emptyText: "No test readings"
+    req: readFlowReq()
   };
   skipBrandLogo = false;
   try {
-    drawCurveChart(ctx, opt);
+    drawFlowChart(ctx, opt);
     c.toDataURL("image/png");
   } catch (err) {
     skipBrandLogo = true;
-    drawCurveChart(ctx, opt);
+    drawFlowChart(ctx, opt);
     skipBrandLogo = false;
   }
   return c;
 }
 function flowReportText() {
   const pts = readFlowPts();
-  const curve = flowCurve();
   const req = readFlowReq();
   const v = flowVerdict();
   const sys = flowSys();
+  const unit = flowUnit();
   const readingLines = pts.map((r, i) => {
     const bits = ["Point " + (i + 1) + (r.name ? " — " + r.name : "")];
     if (r.mode === "pitot" && Number.isFinite(r.d) && Number.isFinite(r.pitot)) {
       bits.push("nozzle " + r.d + " mm");
       bits.push("pitot " + r.pitot + " kPa");
     }
-    if (Number.isFinite(r.q)) bits.push("flow " + Number(r.q).toFixed(0) + " L/min");
+    if (Number.isFinite(r.q)) bits.push("flow " + fmtFlow(r.q) + " " + unit);
     if (Number.isFinite(r.residual)) bits.push("residual " + r.residual + " kPa");
     if (Number.isFinite(r.static)) bits.push("static " + r.static + " kPa");
     return bits.join("  ·  ");
   });
   let finding;
   if (!req) finding = "No required flow / residual was entered. This is a field record of measured points only.";
-  else if (!v) finding = "A requirement of " + req.q + " L/min at " + req.p + " kPa was entered. The readings could not be assessed at that flow.";
+  else if (!v) finding = "A requirement of " + fmtFlow(req.q) + " " + unit + " at " + req.p + " kPa was entered. Add flow and residual for every point.";
+  else if (v.ok === null) finding = v.detail;
   else if (v.ok) finding = "RESULT: PASS. " + v.detail;
   else finding = "RESULT: FAIL. " + v.detail;
   return emailLetter({
@@ -4906,7 +5073,7 @@ function flowReportText() {
         req && req.note ? "Note: " + req.note : "Note: (none)"
       ]},
       { title: "2. REQUIREMENT", lines: req
-        ? ["Required flow: " + req.q + " L/min", "Required residual: " + req.p + " kPa" + (req.note ? "  (" + req.note + ")" : "")]
+        ? ["Required flow: " + fmtFlow(req.q) + " " + unit, "Required residual: " + req.p + " kPa" + (req.note ? "  (" + req.note + ")" : "")]
         : ["No required flow / residual was entered."]
       },
       { title: "3. READINGS", lines: readingLines.length ? readingLines : ["No readings entered."] },
@@ -4933,6 +5100,7 @@ function composeFlowReportPng() {
   const req = readFlowReq();
   const v = flowVerdict();
   const pts = readFlowPts();
+  const unit = flowUnit();
   let y = chart.height + 28;
   ctx.textAlign = "left";
   if (v) {
@@ -4945,14 +5113,14 @@ function composeFlowReportPng() {
     ctx.font = "800 26px sans-serif";
     ctx.fillText("Finding", m + 18, y + 28);
     ctx.font = "700 20px sans-serif";
-    ctx.fillText(req ? ("Requirement  ·  " + req.q + " L/min @ " + req.p + " kPa") : "Field record — no requirement entered", m + 18, y + 56);
+    ctx.fillText(req ? ("Requirement  ·  " + fmtFlow(req.q) + " " + unit + " @ " + req.p + " kPa") : "Field record — no requirement entered", m + 18, y + 56);
     y += 90;
   }
   const rows = [
     { k: "Site / job", v: document.getElementById("flowSite").value.trim() || "(not stated)" },
     { k: "System", v: flowSys().label }
   ];
-  if (req) rows.push({ k: "Requirement", v: req.q + " L/min @ " + req.p + " kPa" });
+  if (req) rows.push({ k: "Requirement", v: fmtFlow(req.q) + " " + unit + " @ " + req.p + " kPa" });
   y = drawKvRows(ctx, rows, m, y, inner, 38);
   y += 12;
   ctx.fillStyle = "#6a5d50";
@@ -4963,7 +5131,7 @@ function composeFlowReportPng() {
   ctx.font = "700 20px sans-serif";
   pts.forEach((r, i) => {
     const bits = [(i + 1) + ". " + (r.name || "Point " + (i + 1))];
-    if (Number.isFinite(r.q)) bits.push(Number(r.q).toFixed(0) + " L/min");
+    if (Number.isFinite(r.q)) bits.push(fmtFlow(r.q) + " " + unit);
     if (Number.isFinite(r.residual)) bits.push(r.residual + " kPa");
     if (r.mode === "pitot" && Number.isFinite(r.d)) bits.push("nozzle " + r.d + " mm");
     if (r.mode === "pitot" && Number.isFinite(r.pitot)) bits.push("pitot " + r.pitot + " kPa");
@@ -4989,8 +5157,9 @@ function composeFlowReportPng() {
 }
 function exportFlow(mode) {
   try {
-    if (flowCurve().length < 2) {
-      nativeToast("Add at least two test points");
+    const usable = readFlowPts().filter(r => Number.isFinite(r.q) && Number.isFinite(r.residual));
+    if (!usable.length) {
+      nativeToast("Add a test point with flow and residual");
       return;
     }
     const site = document.getElementById("flowSite").value.trim();
@@ -5017,8 +5186,9 @@ function setupFlow() {
     { value: "hydrant", label: "Hydrants" },
     { value: "sprinkler", label: "Sprinklers" }
   ], () => flowSystem, (v) => {
-    flowSystem = v === "sprinkler" ? "sprinkler" : "hydrant";
-    flowPts = readFlowPts();
+    const next = v === "sprinkler" ? "sprinkler" : "hydrant";
+    convertFlowUnits(flowSystem, next);
+    flowSystem = next;
     renderFlowRows();
     drawFlow();
     scheduleFlowSave();
