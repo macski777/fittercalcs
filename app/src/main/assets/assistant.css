@@ -46,9 +46,8 @@
   height: 34px;
   flex-shrink: 0;
   display: block;
-  border-radius: 50%;
-  background: #fff;
   object-fit: contain;
+  filter: drop-shadow(0 3px 8px rgba(0, 0, 0, 0.45));
 }
 #fcaBtn .fca-fab-label { white-space: nowrap; }
 #fcaBtn[hidden] { display: none !important; }
@@ -148,9 +147,8 @@
   height: 24px;
   flex-shrink: 0;
   display: block;
-  border-radius: 50%;
-  background: #fff;
   object-fit: contain;
+  filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.45));
 }
 .fca-sub {
   margin-top: 3px;
@@ -455,13 +453,10 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 84px;
-  height: 84px;
-  padding: 4px;
-  border: 1px solid #6a5544;
-  border-radius: 26px;
-  background: #f7f2ea;
+  width: 96px;
+  height: 96px;
   color: var(--red, #d1243a);
+  filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.45));
 }
 .fca-empty-icon img {
   width: 100%;
@@ -482,13 +477,41 @@
   font-size: 0.78rem;
   line-height: 1.45;
 }
-.fca-suggest {
+.fca-suggest-wrap {
   display: flex;
   flex-direction: column;
   gap: 6px;
   width: 100%;
   max-width: 25rem;
   margin-top: 4px;
+}
+.fca-suggest-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+.fca-suggest-head span {
+  color: var(--muted, #a89b8c);
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.fca-suggest-clear {
+  appearance: none;
+  border: 0;
+  background: transparent;
+  color: var(--gold, #e8b86d);
+  font: inherit;
+  font-size: 0.72rem;
+  font-weight: 700;
+  padding: 2px 4px;
+}
+.fca-suggest {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
 }
 .fca-suggest button {
   padding: 8px 10px;

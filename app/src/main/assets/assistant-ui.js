@@ -687,11 +687,13 @@
             '<div class="fca-empty-icon"><img src="stillo.png" alt="Stillo" /></div>' +
             '<h2>Ask Stillo</h2>' +
             '<p>Answers come only from the documents in this PC\'s library. Every answer shows the clause and page it came from.</p>' +
-            '<div class="fca-suggest" id="fcaSuggest">' +
-              '<button type="button" data-q="What are the hydrant water supply requirements in AS 2419.1?">What does AS 2419.1 require for hydrant water supply?</button>' +
-              '<button type="button" data-q="What does AS 1851 require for monthly hose reel pumpset service?">What is required for monthly hose reel pump service?</button>' +
-              '<button type="button" data-q="What are the sprinkler system design requirements in AS 2118.1?">What does AS 2118.1 require for sprinkler systems?</button>' +
-            "</div>" +
+            '<div class="fca-suggest-wrap">' +
+              '<div class="fca-suggest-head">' +
+                '<span id="fcaSuggestTitle">Try asking</span>' +
+                '<button type="button" class="fca-suggest-clear" id="fcaSuggestClear" hidden>Clear</button>' +
+              '</div>' +
+              '<div class="fca-suggest" id="fcaSuggest"></div>' +
+            '</div>' +
           "</div>" +
         "</div>" +
         '<div class="fca-library" id="fcaLibrary" hidden>' +
@@ -770,6 +772,8 @@
   var messagesEl = document.getElementById("fcaMessages");
   var emptyEl = document.getElementById("fcaEmpty");
   var suggestEl = document.getElementById("fcaSuggest");
+  var suggestTitleEl = document.getElementById("fcaSuggestTitle");
+  var suggestClearEl = document.getElementById("fcaSuggestClear");
   var libraryEl = document.getElementById("fcaLibrary");
   var docsEl = document.getElementById("fcaDocs");
   var formEl = document.getElementById("fcaForm");
@@ -1175,6 +1179,78 @@
     return row;
   }
 
+  var FC_RECENT_MAX = 5;
+  var FC_RECENT_SHOW = 4;
+  var FC_DEFAULT_QUESTIONS = [
+    "What are the hydrant water supply requirements in AS 2419.1?",
+    "What does AS 1851 require for monthly hose reel pumpset service?",
+    "What are the sprinkler system design requirements in AS 2118.1?"
+  ];
+
+  function recentKey() {
+    var user = "";
+    try { user = localStorage.getItem("fc-user") || ""; } catch (e) {}
+    return "fc-assistant-recent:" + (user || "guest");
+  }
+
+  function loadRecentQuestions() {
+    try {
+      var raw = JSON.parse(localStorage.getItem(recentKey()) || "[]");
+      if (!Array.isArray(raw)) return [];
+      return raw
+        .filter(function (q) { return typeof q === "string" && q.replace(/\s+/g, " ").trim(); })
+        .slice(0, FC_RECENT_MAX);
+    } catch (e) {
+      return [];
+    }
+  }
+
+  function saveRecentQuestions(list) {
+    try {
+      localStorage.setItem(recentKey(), JSON.stringify((list || []).slice(0, FC_RECENT_MAX)));
+    } catch (e) {}
+  }
+
+  function rememberQuestion(question) {
+    var q = String(question || "").replace(/\s+/g, " ").trim();
+    if (!q) return;
+    var list = loadRecentQuestions().filter(function (x) {
+      return x.toLowerCase() !== q.toLowerCase();
+    });
+    list.unshift(q);
+    saveRecentQuestions(list);
+    renderSuggestions();
+  }
+
+  function renderSuggestions() {
+    if (!suggestEl) return;
+    var recent = loadRecentQuestions();
+    var useRecent = recent.length > 0;
+    var list = useRecent ? recent.slice(0, FC_RECENT_SHOW) : FC_DEFAULT_QUESTIONS;
+    suggestEl.innerHTML = "";
+    list.forEach(function (q) {
+      var btn = document.createElement("button");
+      btn.type = "button";
+      btn.setAttribute("data-q", q);
+      btn.textContent = q;
+      suggestEl.appendChild(btn);
+    });
+    if (suggestTitleEl) suggestTitleEl.textContent = useRecent ? "Recent questions" : "Try asking";
+    if (suggestClearEl) suggestClearEl.hidden = !useRecent;
+  }
+
+  function clearRecentQuestions() {
+    saveRecentQuestions([]);
+    renderSuggestions();
+  }
+
+  window.FCAssistantRecent = {
+    load: loadRecentQuestions,
+    remember: rememberQuestion,
+    clear: clearRecentQuestions,
+    key: recentKey
+  };
+
   function renderMessages() {
     messagesEl.innerHTML = "";
     if (!state.messages.length) {
@@ -1194,6 +1270,7 @@
         emptyEl.querySelector("p").textContent =
           "Answers come only from the documents in this PC's library. Every answer shows the clause and page it came from.";
         suggestEl.hidden = false;
+        renderSuggestions();
       }
       return;
     }
@@ -1353,6 +1430,7 @@
       addLocalError("DeepSeek is not configured yet. Add DEEPSEEK_API_KEY on the server.");
       return;
     }
+    rememberQuestion(question);
     var history = state.messages
       .filter(function (message) { return !message.error && !message.streaming && message.content; })
       .slice(-8)
@@ -1980,6 +2058,14 @@
   stopBtn.addEventListener("click", function () {
     if (state.controller) state.controller.abort();
   });
+  if (suggestClearEl) {
+    suggestClearEl.addEventListener("click", function (event) {
+      event.preventDefault();
+      event.stopPropagation();
+      clearRecentQuestions();
+    });
+  }
+  renderSuggestions();
   suggestEl.addEventListener("click", function (event) {
     var button = event.target.closest ? event.target.closest("button[data-q]") : null;
     if (!button) return;

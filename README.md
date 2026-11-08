@@ -12,7 +12,7 @@
 </p>
 
 <p align="center">
-  <strong>Current version: 4.2.0</strong><br>
+  <strong>Current version: 4.3.0</strong><br>
   <a href="https://github.com/macski777/fittercalcs/releases/latest">Download FitterCalcs.apk</a>
   ·
   <a href="https://github.com/macski777/fittercalcs/releases/tag/v2.46">Windows</a>
@@ -51,7 +51,7 @@ The app opens on a dashboard. Each tile opens a group, and each tool sits one ta
 
 ## Install on Android
 
-1. Download [FitterCalcs.apk](https://github.com/macski777/fittercalcs/releases/download/v4.2.0/FitterCalcs.apk).
+1. Download [FitterCalcs.apk](https://github.com/macski777/fittercalcs/releases/download/v4.3.0/FitterCalcs.apk).
 2. If this phone already has FitterCalcs and Android refuses the new file, uninstall the old app once, then install this one.
 3. Open the file on the phone.
 4. Allow install from this source if Android asks.
@@ -186,6 +186,7 @@ A floating **Ask Stillo** button opens a chat panel that answers questions from 
 - Click a source chip or a `[n]` citation to read the exact clause/table passage in the panel. **Open PDF at page** opens the original page; **Copy text** copies the passage.
 - On a phone, swipe right on the source reader to go back to the answer.
 - Android back (the system gesture/button or an inward edge swipe) closes the source reader first, then Ask Stillo.
+- The empty panel lists your last questions for that account. **Clear** wipes them; each name has its own list.
 - Tap the microphone to dictate a question. Tap **Read aloud** on an answer or source, or turn on **Read answers** in the footer. The native voice bridge is in the **3.2.x Android APK**; desktop Chrome uses browser speech. If device speech fails, the server provides a fallback voice.
 - Older editions are labelled; add the current edition to the library when you have it.
 
