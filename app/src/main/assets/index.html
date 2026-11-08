@@ -420,7 +420,7 @@
       box-shadow: 0 6px 18px rgba(0, 0, 0, 0.38);
       padding: 10px 12px;
     }
-    .home-tile { grid-template-columns: 72px 1fr auto; min-height: 80px; }
+    .home-tile { grid-template-columns: 84px 1fr auto; min-height: 88px; }
     .tool-tile { grid-template-columns: 44px 1fr; min-height: 64px; }
     .home-tile:active, .tool-tile:active {
       transform: scale(0.985);
@@ -432,8 +432,8 @@
       outline-offset: 2px;
     }
     .thumb {
-      width: 72px;
-      height: 56px;
+      width: 84px;
+      height: 64px;
       display: block;
       overflow: hidden;
       border-radius: 10px;
@@ -1982,7 +1982,7 @@
 <script src="fan-calc.js"></script>
 <script src="fan-ui.js"></script>
 <script>
-const APP_VERSION = "4.1.0";
+const APP_VERSION = "4.2.0";
 const APP_BUILD = 56;
 const FAN_KEY = "fittercalcs-ft";
 function fanOn() {
@@ -3577,77 +3577,107 @@ const SWIPE_SECTIONS = {
 const ALL_PAGES = ["home", "sizes", "calc", "flows", "pipe", "annubar", "flange",
   "pump", "hydro", "tanks", "flow", "as1851", "fantest"];
 
-function fcSvgClone(id) {
-  const src = document.getElementById(id);
-  if (!src) return null;
-  if (!src.querySelector("path, circle, rect, line, polyline, polygon, text")) return null;
-  const clone = src.cloneNode(true);
-  clone.removeAttribute("id");
-  clone.querySelectorAll("[id]").forEach(n => n.removeAttribute("id"));
-  clone.setAttribute("preserveAspectRatio", "xMidYMid meet");
-  clone.style.width = "100%";
-  clone.style.height = "100%";
-  clone.style.display = "block";
-  return clone;
-}
+const FC_THUMB_W = 288;
+const FC_THUMB_H = 224;
+let fcThumbCache = {};
+function fcThumbLabels() { return fcThumbCache; }
 
-function fcChartThumb(canvas, sx, sy, sw, sh) {
-  if (!canvas || !canvas.width || !canvas.height) return null;
-  sw = Math.max(1, Math.min(sw, canvas.width - sx));
-  sh = Math.max(1, Math.min(sh, canvas.height - sy));
+function fcThumbBase() {
   const c = document.createElement("canvas");
-  c.width = 144;
-  c.height = 112;
+  c.width = FC_THUMB_W;
+  c.height = FC_THUMB_H;
   const ctx = c.getContext("2d");
   ctx.fillStyle = "#f7f1ea";
-  ctx.fillRect(0, 0, c.width, c.height);
-  try {
-    ctx.drawImage(canvas, sx, sy, sw, sh, 0, 0, c.width, c.height);
-  } catch (e) {
-    return null;
+  ctx.fillRect(0, 0, FC_THUMB_W, FC_THUMB_H);
+  return { c: c, ctx: ctx };
+}
+
+function fcThumbText(ctx, text, x, y, size, color, align) {
+  ctx.font = "700 " + size + "px sans-serif";
+  ctx.fillStyle = color || "#1a1613";
+  ctx.textAlign = align || "center";
+  ctx.fillText(text, x, y);
+}
+
+function fcSizesThumb() {
+  const { c, ctx } = fcThumbBase();
+  const rows = (typeof DATA !== "undefined" && DATA[schedule]) ? DATA[schedule].rows : [];
+  const prow = rows.find(r => r.nps === nps) || rows[0] || null;
+  const plabel = prow ? sizeLabel(prow) : "DN100";
+  const pwall = (prow && Number.isFinite(prow.wall))
+    ? (metric ? "wall " + (prow.wall * 25.4).toFixed(1) + " mm" : "wall " + prow.wall.toFixed(3) + '"')
+    : "";
+
+  ctx.strokeStyle = "#4a5a68";
+  ctx.lineWidth = 7;
+  ctx.beginPath(); ctx.arc(72, 84, 50, 0, Math.PI * 2); ctx.stroke();
+  ctx.strokeStyle = "#d1243a";
+  ctx.lineWidth = 3;
+  ctx.beginPath(); ctx.arc(72, 84, 38, 0, Math.PI * 2); ctx.stroke();
+  ctx.strokeStyle = "#9aa8b5";
+  ctx.lineWidth = 2;
+  ctx.beginPath(); ctx.moveTo(132, 34); ctx.lineTo(132, 134); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(126, 34); ctx.lineTo(138, 34); ctx.moveTo(126, 134); ctx.lineTo(138, 134); ctx.stroke();
+  fcThumbText(ctx, plabel, 72, 178, 32);
+  if (pwall) fcThumbText(ctx, pwall, 72, 210, 24, "#4a5a68");
+
+  const std = (typeof FLANGE !== "undefined" && FLANGE[flStd]) ? FLANGE[flStd] : null;
+  const frow = std ? (std.rows[flDn] || Object.values(std.rows)[0]) : null;
+  const flabel = frow ? (frow.n + " × " + frow.bolt) : "4 × M16";
+  const fstd = std ? std.label : "Table D";
+
+  ctx.strokeStyle = "#4a5a68";
+  ctx.lineWidth = 6;
+  ctx.beginPath(); ctx.arc(216, 84, 50, 0, Math.PI * 2); ctx.stroke();
+  ctx.lineWidth = 2;
+  ctx.beginPath(); ctx.arc(216, 84, 34, 0, Math.PI * 2); ctx.stroke();
+  const bolts = frow ? Math.min(12, Math.max(1, frow.n)) : 4;
+  ctx.fillStyle = "#d1243a";
+  for (let i = 0; i < bolts; i++) {
+    const a = (Math.PI * 2 * i) / bolts - Math.PI / 2;
+    ctx.beginPath();
+    ctx.arc(216 + Math.cos(a) * 34, 84 + Math.sin(a) * 34, 5, 0, Math.PI * 2);
+    ctx.fill();
   }
+  ctx.strokeStyle = "#4a5a68";
+  ctx.lineWidth = 2;
+  ctx.beginPath(); ctx.arc(216, 84, 13, 0, Math.PI * 2); ctx.stroke();
+  fcThumbText(ctx, flabel, 216, 178, 30);
+  fcThumbText(ctx, fstd, 216, 210, 24, "#4a5a68");
+
+  fcThumbCache.sizes = plabel + (pwall ? " " + pwall : "") + " · " + flabel + " " + fstd;
   return c;
 }
 
 function fcTankThumb() {
-  const c = document.createElement("canvas");
-  c.width = 144;
-  c.height = 112;
-  const ctx = c.getContext("2d");
-  ctx.fillStyle = "#f7f1ea";
-  ctx.fillRect(0, 0, 144, 112);
+  const { c, ctx } = fcThumbBase();
   let shape = "cyl";
   let level = 0.62;
+  let kL = null;
+  let height = null;
   try {
     const st = tankState();
     if (st && st.tanks && st.tanks[0] && st.tanks[0].ok) {
       const t = st.tanks[0];
       shape = t.shape === "rect" ? "rect" : "cyl";
       if (t.H > 0) level = Math.max(0.1, Math.min(1, t.Heff / t.H));
+      kL = st.keff / 1000;
+      height = st.Heff;
     }
   } catch (e) {}
-  const top = 18, bottom = 96, left = 34, right = 110;
+  const left = 86, right = 202, top = 28, bottom = 176;
   const waterTop = bottom - (bottom - top) * level;
-  ctx.lineWidth = 2;
+  ctx.lineWidth = 5;
   ctx.strokeStyle = "#4a5a68";
   if (shape === "cyl") {
     ctx.fillStyle = "rgba(143,179,217,0.55)";
     ctx.fillRect(left, waterTop, right - left, bottom - waterTop);
+    ctx.beginPath(); ctx.ellipse((left + right) / 2, waterTop, (right - left) / 2, 10, 0, 0, Math.PI * 2); ctx.fill();
+    ctx.beginPath(); ctx.ellipse((left + right) / 2, top, (right - left) / 2, 10, 0, 0, Math.PI * 2); ctx.stroke();
+    ctx.beginPath(); ctx.ellipse((left + right) / 2, bottom, (right - left) / 2, 10, 0, 0, Math.PI * 2); ctx.stroke();
     ctx.beginPath();
-    ctx.ellipse((left + right) / 2, waterTop, (right - left) / 2, 7, 0, 0, Math.PI * 2);
-    ctx.fillStyle = "rgba(143,179,217,0.55)";
-    ctx.fill();
-    ctx.beginPath();
-    ctx.ellipse((left + right) / 2, top, (right - left) / 2, 7, 0, 0, Math.PI * 2);
-    ctx.stroke();
-    ctx.beginPath();
-    ctx.ellipse((left + right) / 2, bottom, (right - left) / 2, 7, 0, 0, Math.PI * 2);
-    ctx.stroke();
-    ctx.beginPath();
-    ctx.moveTo(left, top);
-    ctx.lineTo(left, bottom);
-    ctx.moveTo(right, top);
-    ctx.lineTo(right, bottom);
+    ctx.moveTo(left, top); ctx.lineTo(left, bottom);
+    ctx.moveTo(right, top); ctx.lineTo(right, bottom);
     ctx.stroke();
   } else {
     ctx.fillStyle = "rgba(143,179,217,0.55)";
@@ -3655,100 +3685,210 @@ function fcTankThumb() {
     ctx.strokeRect(left, top, right - left, bottom - top);
     ctx.strokeRect(left, waterTop, right - left, bottom - waterTop);
   }
+  ctx.save();
+  ctx.setLineDash([5, 4]);
+  ctx.lineWidth = 2;
+  ctx.beginPath(); ctx.moveTo(left - 8, waterTop); ctx.lineTo(right + 8, waterTop); ctx.stroke();
+  ctx.restore();
+  fcThumbText(ctx, kL === null ? "— kL" : kL.toFixed(1) + " kL", 202, 210, 30);
+  if (height !== null) fcThumbText(ctx, height.toFixed(2) + " m", 86, 210, 22, "#4a5a68");
+  fcThumbCache.calc = kL === null ? "— kL" : kL.toFixed(1) + " kL";
   return c;
 }
 
-function fcBookThumb() {
-  const wrap = document.createElement("div");
-  wrap.style.cssText = "display:flex;align-items:center;justify-content:center;height:100%;width:100%;color:#7a6a58";
-  wrap.innerHTML = '<svg viewBox="0 0 64 48" width="64" height="48" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true">' +
-    '<path d="M32 12v30"/><path d="M6 10c6-3 14-2 20 2v30c-6-4-14-5-20-2z"/>' +
-    '<path d="M58 10c-6-3-14-2-20 2v30c6-4 14-5 20-2z"/></svg>';
-  return wrap;
-}
-
-function fcPumpThumb() {
-  const curves = (typeof pumpCurves !== "undefined" && Array.isArray(pumpCurves)) ? pumpCurves : [];
-  const pts = (curves[0] && Array.isArray(curves[0].pts) ? curves[0].pts : [])
-    .filter(pt => Number.isFinite(pt.q) && Number.isFinite(pt.p));
-  if (pts.length < 2) return null;
-  const c = document.createElement("canvas");
-  c.width = 144;
-  c.height = 112;
-  const ctx = c.getContext("2d");
-  ctx.fillStyle = "#f7f1ea";
-  ctx.fillRect(0, 0, 144, 112);
+function fcDrawPump(ctx, x0, w) {
+  const pts = (typeof pumpCurves !== "undefined" && pumpCurves[0] && Array.isArray(pumpCurves[0].pts)
+    ? pumpCurves[0].pts : []).filter(p => Number.isFinite(p.q) && Number.isFinite(p.p));
+  const padL = x0 + 22;
+  const padR = x0 + w - 12;
+  const top = 24;
+  const bottom = FC_THUMB_H - 34;
   ctx.strokeStyle = "#c9bcab";
-  ctx.lineWidth = 1;
+  ctx.lineWidth = 2;
   ctx.beginPath();
-  ctx.moveTo(14, 96);
-  ctx.lineTo(132, 96);
-  ctx.moveTo(14, 12);
-  ctx.lineTo(14, 96);
+  ctx.moveTo(padL, top);
+  ctx.lineTo(padL, bottom);
+  ctx.lineTo(padR, bottom);
   ctx.stroke();
-  const maxQ = Math.max.apply(null, pts.map(pt => pt.q)) || 1;
-  const maxP = Math.max.apply(null, pts.map(pt => pt.p)) || 1;
-  const xOf = q => 14 + (q / maxQ) * 112;
-  const yOf = p => 96 - (p / maxP) * 80;
+  if (pts.length < 2) {
+    fcThumbText(ctx, "no points", x0 + w / 2, bottom - 6, 18, "#9aa8b5");
+    return "";
+  }
+  const maxQ = Math.max.apply(null, pts.map(p => p.q)) || 1;
+  const maxP = Math.max.apply(null, pts.map(p => p.p)) || 1;
+  const xOf = q => padL + (q / maxQ) * (padR - padL);
+  const yOf = p => bottom - (p / maxP) * (bottom - top - 6);
   ctx.strokeStyle = "#d1243a";
-  ctx.lineWidth = 2.5;
+  ctx.lineWidth = 4;
   ctx.beginPath();
-  pts.forEach((pt, i) => {
-    const X = xOf(pt.q), Y = yOf(pt.p);
+  pts.forEach((p, i) => {
+    const X = xOf(p.q), Y = yOf(p.p);
     if (i) ctx.lineTo(X, Y); else ctx.moveTo(X, Y);
   });
   ctx.stroke();
   ctx.fillStyle = "#d1243a";
-  pts.forEach(pt => {
+  pts.forEach(p => {
     ctx.beginPath();
-    ctx.arc(xOf(pt.q), yOf(pt.p), 2, 0, Math.PI * 2);
+    ctx.arc(xOf(p.q), yOf(p.p), 3.5, 0, Math.PI * 2);
     ctx.fill();
   });
+  const req = readReq();
+  const duty = req ? pumpDuty(pts, req) : null;
+  if (req && duty) {
+    const X = xOf(req.q);
+    const Y = yOf(duty.at);
+    ctx.save();
+    ctx.setLineDash([4, 4]);
+    ctx.strokeStyle = "#b8862a";
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.moveTo(padL, Y); ctx.lineTo(padR, Y);
+    ctx.moveTo(X, bottom); ctx.lineTo(X, top);
+    ctx.stroke();
+    ctx.restore();
+    ctx.fillStyle = duty.meets ? "#0f6a3a" : "#d1243a";
+    ctx.strokeStyle = "#1a1613";
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.arc(X, Y, 6, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.stroke();
+    const label = Math.round(duty.at) + " kPa";
+    fcThumbText(ctx, label, Math.min(padR - 4, X + 8), Math.max(top + 18, Y - 8), 22, "#1a1613", "left");
+    return label;
+  }
+  const label = Math.round(maxP) + " kPa";
+  fcThumbText(ctx, label, padR - 4, top + 20, 22, "#4a5a68", "right");
+  return label;
+}
+
+function fcDrawFlowBars(ctx, x0, w) {
+  const rows = (typeof flowChartRows === "function" ? flowChartRows() : [])
+    .filter(r => Number.isFinite(r.q) && Number.isFinite(r.residual))
+    .slice(0, 3);
+  const req = (typeof readFlowReq === "function") ? readFlowReq() : null;
+  const padL = x0 + 14;
+  const padR = x0 + w - 12;
+  const top = 26;
+  const bottom = FC_THUMB_H - 34;
+  if (!rows.length) {
+    fcThumbText(ctx, "no test", x0 + w / 2, bottom - 6, 18, "#9aa8b5");
+    return "";
+  }
+  let maxQ = 0, maxP = 0;
+  rows.forEach(r => {
+    maxQ = Math.max(maxQ, r.q);
+    maxP = Math.max(maxP, r.residual);
+  });
+  if (req) {
+    maxQ = Math.max(maxQ, req.q);
+    maxP = Math.max(maxP, req.p);
+  }
+  maxQ = maxQ || 1;
+  maxP = maxP || 1;
+  const slot = (padR - padL) / rows.length;
+  const bw = Math.min(16, slot * 0.32);
+  rows.forEach((r, i) => {
+    const cx = padL + slot * (i + 0.5);
+    const qH = (r.q / maxQ) * (bottom - top);
+    const pH = (r.residual / maxP) * (bottom - top);
+    ctx.fillStyle = "#7dcea0";
+    ctx.fillRect(cx - bw - 1, bottom - pH, bw, pH);
+    ctx.fillStyle = r.ok ? "#0f6a3a" : "#d1243a";
+    ctx.fillRect(cx + 1, bottom - qH, bw, qH);
+  });
+  if (req) {
+    const x = padL + (req.q / maxQ) * (padR - padL);
+    ctx.save();
+    ctx.setLineDash([4, 4]);
+    ctx.strokeStyle = "#b8862a";
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.moveTo(x, top);
+    ctx.lineTo(x, bottom);
+    ctx.stroke();
+    ctx.restore();
+  }
+  return rows.length + " pts";
+}
+
+function fcFlowThumb() {
+  const { c, ctx } = fcThumbBase();
+  const hasBars = (typeof flowChartRows === "function") &&
+    flowChartRows().some(r => Number.isFinite(r.q) && Number.isFinite(r.residual));
+  let pumpLabel = "";
+  let barsLabel = "";
+  if (hasBars) {
+    pumpLabel = fcDrawPump(ctx, 0, 144);
+    ctx.strokeStyle = "#e2d6c7";
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(144, 18);
+    ctx.lineTo(144, FC_THUMB_H - 18);
+    ctx.stroke();
+    barsLabel = fcDrawFlowBars(ctx, 144, 144);
+  } else {
+    pumpLabel = fcDrawPump(ctx, 0, 288);
+  }
+  fcThumbCache.flows = [pumpLabel, barsLabel].filter(Boolean).join(" · ");
+  return c;
+}
+
+function fcDocsThumb() {
+  const { c, ctx } = fcThumbBase();
+  ctx.save();
+  ctx.translate(140, 106);
+  ctx.rotate(-0.08);
+  ctx.fillStyle = "#e7dccb";
+  ctx.strokeStyle = "#c9bcab";
+  ctx.lineWidth = 2;
+  ctx.fillRect(-58, -70, 116, 140);
+  ctx.strokeRect(-58, -70, 116, 140);
+  ctx.restore();
+
+  ctx.save();
+  ctx.translate(150, 112);
+  ctx.rotate(0.04);
+  ctx.fillStyle = "#fbf6ee";
+  ctx.strokeStyle = "#b8a58e";
+  ctx.lineWidth = 2;
+  ctx.fillRect(-58, -70, 116, 140);
+  ctx.strokeRect(-58, -70, 116, 140);
+  ctx.strokeStyle = "#c9bcab";
+  ctx.lineWidth = 2;
+  for (let i = 0; i < 5; i++) {
+    ctx.beginPath();
+    ctx.moveTo(-40, -40 + i * 18);
+    ctx.lineTo(40, -40 + i * 18);
+    ctx.stroke();
+  }
+  ctx.restore();
+
+  fcThumbText(ctx, "AS 1851", 150, 208, 24, "#4a5a68");
+  fcThumbCache.ref = "AS 1851";
   return c;
 }
 
 function fcRenderHomeThumbs() {
+  fcThumbCache = {};
   const sizes = document.getElementById("thumb-sizes");
   if (!sizes) return;
-
-  try { if (typeof render === "function") render(); } catch (e) {}
-  try { if (typeof renderFlange === "function") renderFlange(); } catch (e) {}
-  const split = document.createElement("div");
-  split.className = "thumb-split";
-  const pipe = fcSvgClone("pipe");
-  const flange = fcSvgClone("flSvg");
-  if (pipe) split.appendChild(pipe);
-  if (flange) split.appendChild(flange);
   sizes.innerHTML = "";
-  sizes.appendChild(split.children.length ? split : fcBookThumb());
-
+  sizes.appendChild(fcSizesThumb());
   const calc = document.getElementById("thumb-calc");
   if (calc) {
     calc.innerHTML = "";
     calc.appendChild(fcTankThumb());
   }
-
   const flows = document.getElementById("thumb-flows");
   if (flows) {
-    const row = document.createElement("div");
-    row.className = "thumb-split";
-    const flowCanvas = document.getElementById("flowChart");
-    const pump = fcPumpThumb();
-    const hasFlow = typeof flowChartRows === "function" &&
-      flowChartRows().some(r => Number.isFinite(r.q) && Number.isFinite(r.residual));
-    const flow = (hasFlow && flowCanvas)
-      ? fcChartThumb(flowCanvas, 210, 222, flowCanvas.width - 294, flowCanvas.height - 286)
-      : null;
-    if (pump) row.appendChild(pump);
-    if (flow) row.appendChild(flow);
     flows.innerHTML = "";
-    flows.appendChild(row.children.length ? row : fcBookThumb());
+    flows.appendChild(fcFlowThumb());
   }
-
   const ref = document.getElementById("thumb-as1851");
   if (ref) {
     ref.innerHTML = "";
-    ref.appendChild(fcBookThumb());
+    ref.appendChild(fcDocsThumb());
   }
 }
 

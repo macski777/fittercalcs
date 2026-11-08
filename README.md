@@ -12,7 +12,7 @@
 </p>
 
 <p align="center">
-  <strong>Current version: 4.1.0</strong><br>
+  <strong>Current version: 4.2.0</strong><br>
   <a href="https://github.com/macski777/fittercalcs/releases/latest">Download FitterCalcs.apk</a>
   ·
   <a href="https://github.com/macski777/fittercalcs/releases/tag/v2.46">Windows</a>
@@ -43,7 +43,7 @@ The app opens on a dashboard. Each tile opens a group, and each tool sits one ta
 
 <p align="center"><img src="docs/home.png" width="320" alt="FitterCalcs home dashboard"></p>
 
-- Each tile carries a live preview: your pipe and flange drawings, the current tank level, your pump curve, and the AS-1851 library.
+- Each tile carries a live drawing with callouts: pipe size and wall, flange bolt size, tank level in kL, and your pump curve with its duty pressure.
 - The back arrow returns one level; Android back does the same, then exits from the dashboard.
 - The app reopens the last tool you used.
 - **Swipe left or right** to move between tools in the same group (Pipe ↔ Flange, Pump → Hydrant flow → Sprinkler flow) and between groups. Swipes stop at the ends.
@@ -51,7 +51,7 @@ The app opens on a dashboard. Each tile opens a group, and each tool sits one ta
 
 ## Install on Android
 
-1. Download [FitterCalcs.apk](https://github.com/macski777/fittercalcs/releases/download/v4.1.0/FitterCalcs.apk).
+1. Download [FitterCalcs.apk](https://github.com/macski777/fittercalcs/releases/download/v4.2.0/FitterCalcs.apk).
 2. If this phone already has FitterCalcs and Android refuses the new file, uninstall the old app once, then install this one.
 3. Open the file on the phone.
 4. Allow install from this source if Android asks.
