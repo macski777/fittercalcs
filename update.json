@@ -1,7 +1,7 @@
 {
-  "versionCode": 72,
-  "versionName": "3.7.0",
-  "apkUrl": "https://github.com/macski777/fittercalcs/releases/download/v3.7.0/FitterCalcs.apk",
+  "versionCode": 73,
+  "versionName": "3.7.1",
+  "apkUrl": "https://github.com/macski777/fittercalcs/releases/download/v3.7.1/FitterCalcs.apk",
   "winUrl": "",
-  "notes": "Flow chart now compares requirement and result side by side, for L/s and for kPa, on the chart itself. Share works on flow tests and reports when a share is not available."
+  "notes": "Emailed and saved flow reports now use the same chart as the app, with the requirement and result bars included."
 }
