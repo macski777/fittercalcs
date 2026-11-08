@@ -1,7 +1,7 @@
 {
-  "versionCode": 71,
-  "versionName": "3.6.0",
-  "apkUrl": "https://github.com/macski777/fittercalcs/releases/download/v3.6.0/FitterCalcs.apk",
+  "versionCode": 72,
+  "versionName": "3.7.0",
+  "apkUrl": "https://github.com/macski777/fittercalcs/releases/download/v3.7.0/FitterCalcs.apk",
   "winUrl": "",
-  "notes": "Flow chart bars are now horizontal, with flow along the bottom and residual along the top. The A4 report shows a requirement bar beside a result bar for L/s and for kPa. Fitter-Hub now lists flow tests and can email them."
+  "notes": "Flow chart now compares requirement and result side by side, for L/s and for kPa, on the chart itself. Share works on flow tests and reports when a share is not available."
 }
