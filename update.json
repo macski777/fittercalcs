@@ -1,7 +1,7 @@
 {
-  "versionCode": 79,
-  "versionName": "4.5.0",
-  "apkUrl": "https://github.com/macski777/fittercalcs/releases/download/v4.5.0/FitterCalcs.apk",
+  "versionCode": 80,
+  "versionName": "4.5.1",
+  "apkUrl": "https://github.com/macski777/fittercalcs/releases/download/v4.5.1/FitterCalcs.apk",
   "winUrl": "",
-  "notes": "Ask Stillo now has a red tile on the home dashboard for accounts with assistant access."
+  "notes": "4.5.1 is a clean rebuild of the Ask Stillo home tile release."
 }
