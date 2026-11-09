@@ -12,7 +12,7 @@
 </p>
 
 <p align="center">
-  <strong>Current version: 4.5.0</strong><br>
+  <strong>Current version: 4.5.1</strong><br>
   <a href="https://github.com/macski777/fittercalcs/releases/latest">Download FitterCalcs.apk</a>
   ·
   <a href="https://github.com/macski777/fittercalcs/releases/tag/v2.46">Windows</a>
@@ -52,7 +52,7 @@ The app opens on a dashboard. Each tile opens a group, and each tool sits one ta
 
 ## Install on Android
 
-1. Download [FitterCalcs.apk](https://github.com/macski777/fittercalcs/releases/download/v4.5.0/FitterCalcs.apk).
+1. Download [FitterCalcs.apk](https://github.com/macski777/fittercalcs/releases/download/v4.5.1/FitterCalcs.apk).
 2. If this phone already has FitterCalcs and Android refuses the new file, uninstall the old app once, then install this one.
 3. Open the file on the phone.
 4. Allow install from this source if Android asks.
