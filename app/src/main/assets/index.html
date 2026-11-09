@@ -395,6 +395,27 @@
     .acc-calc { --acc: #e8b86d; }
     .acc-flows { --acc: #e08a4a; }
     .acc-ref { --acc: #cbb79a; }
+    .acc-stillo { --acc: #d1243a; }
+    .acc-stillo .pill {
+      background: rgba(209, 36, 58, 0.16);
+      border-color: rgba(209, 36, 58, 0.45);
+      color: #ff8f9d;
+    }
+    .thumb.thumb-stillo {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 4px;
+      background: linear-gradient(160deg, #d1243a, #a51c30);
+      border-color: #e0455a;
+    }
+    .thumb-stillo img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      display: block;
+      filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.35));
+    }
     .home-grid {
       display: grid;
       grid-template-columns: 1fr;
@@ -1266,6 +1287,14 @@
         </span>
         <span class="pill">Reference</span>
       </button>
+      <button type="button" class="home-tile acc-stillo hidden" id="fcaHomeTile">
+        <span class="thumb thumb-stillo" aria-hidden="true"><img src="stillo.png" alt="" /></span>
+        <span class="tile-text">
+          <b>Ask Stillo</b>
+          <span>Search your documents, or the web with permission</span>
+        </span>
+        <span class="pill">Assistant</span>
+      </button>
     </div>
   </div>
 
@@ -1982,7 +2011,7 @@
 <script src="fan-calc.js"></script>
 <script src="fan-ui.js"></script>
 <script>
-const APP_VERSION = "4.4.0";
+const APP_VERSION = "4.5.0";
 const APP_BUILD = 56;
 const FAN_KEY = "fittercalcs-ft";
 function fanOn() {

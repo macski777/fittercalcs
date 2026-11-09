@@ -12,7 +12,7 @@
 </p>
 
 <p align="center">
-  <strong>Current version: 4.4.0</strong><br>
+  <strong>Current version: 4.5.0</strong><br>
   <a href="https://github.com/macski777/fittercalcs/releases/latest">Download FitterCalcs.apk</a>
   ·
   <a href="https://github.com/macski777/fittercalcs/releases/tag/v2.46">Windows</a>
@@ -45,13 +45,14 @@ The app opens on a dashboard. Each tile opens a group, and each tool sits one ta
 
 - Each tile carries a live drawing with callouts: pipe size and wall, flange bolt size, tank level in kL, and your pump curve with its duty pressure.
 - The back arrow returns one level; Android back does the same, then exits from the dashboard.
+- A red **Ask Stillo** tile opens the document assistant; it appears only for accounts with assistant access.
 - The app reopens the last tool you used.
 - **Swipe left or right** to move between tools in the same group (Pipe ↔ Flange, Pump → Hydrant flow → Sprinkler flow) and between groups. Swipes stop at the ends.
 - Tap a chart to enlarge it; back closes the chart before leaving the page.
 
 ## Install on Android
 
-1. Download [FitterCalcs.apk](https://github.com/macski777/fittercalcs/releases/download/v4.4.0/FitterCalcs.apk).
+1. Download [FitterCalcs.apk](https://github.com/macski777/fittercalcs/releases/download/v4.5.0/FitterCalcs.apk).
 2. If this phone already has FitterCalcs and Android refuses the new file, uninstall the old app once, then install this one.
 3. Open the file on the phone.
 4. Allow install from this source if Android asks.

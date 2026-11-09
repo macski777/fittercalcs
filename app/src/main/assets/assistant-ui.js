@@ -836,6 +836,8 @@
 
   function showButton(show) {
     btn.hidden = !show;
+    var tile = document.getElementById("fcaHomeTile");
+    if (tile) tile.classList.toggle("hidden", !show);
     if (!show) closePanel();
   }
 
@@ -1918,6 +1920,8 @@
   }
 
   btn.addEventListener("click", openPanel);
+  var homeTile = document.getElementById("fcaHomeTile");
+  if (homeTile) homeTile.addEventListener("click", openPanel);
   closeBtn.addEventListener("click", closePanel);
   backdrop.addEventListener("click", closePanel);
   newBtn.addEventListener("click", newChat);
