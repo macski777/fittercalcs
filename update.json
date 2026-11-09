@@ -1,7 +1,7 @@
 {
-  "versionCode": 78,
-  "versionName": "4.4.0",
-  "apkUrl": "https://github.com/macski777/fittercalcs/releases/download/v4.4.0/FitterCalcs.apk",
+  "versionCode": 79,
+  "versionName": "4.5.0",
+  "apkUrl": "https://github.com/macski777/fittercalcs/releases/download/v4.5.0/FitterCalcs.apk",
   "winUrl": "",
-  "notes": "Ask Stillo now offers a web search when the answer is not in your documents, using DeepSeek Search. Nothing leaves the server until you agree, and web answers are clearly labelled with their sources."
+  "notes": "Ask Stillo now has a red tile on the home dashboard for accounts with assistant access."
 }
