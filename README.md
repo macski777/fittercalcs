@@ -179,7 +179,7 @@ Every tested point must meet both the required flow and the required residual fo
 
 A floating **Ask Stillo** button opens a chat panel that answers questions from the documents in `~/Documents/FitterDocs` on the server. It uses DeepSeek (`deepseek-flash`) with a local full-text index; only the matching passages and the question are sent.
 
-- Access is limited to the names in `~/.config/fittercalcs/assistant.json`; admins always have access.
+- Access is granted per person in **Fitter-Hub → Accounts**: select a name and tick **Allow Ask Stillo**. New accounts can be granted in the create dialog. Changes apply immediately; admins always have access. The list lives in `~/.config/fittercalcs/assistant.json`.
 - The DeepSeek key lives in `~/.config/fittercalcs/assistant.env` (mode 600). Never commit it.
 - Admins get a gear button in the panel to upload, rescan, or remove documents. PDFs, Word, Excel, PowerPoint, text, Markdown, CSV, HTML, email and scanned images are supported.
 - Answers cite the document, clause or table, and page. If the answer is not in the library, the assistant says so instead of guessing.

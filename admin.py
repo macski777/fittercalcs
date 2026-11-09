@@ -30,6 +30,61 @@ PAGE = Path(__file__).resolve().parent / "app" / "src" / "main" / "assets" / "in
 LOGO = PAGE.parent / "logo.png"
 PICTURES = Path.home() / "Pictures" / "FitterCalcs"
 EMAIL_RE = re.compile(r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
+STILLO_CONFIG = Path.home() / ".config" / "fittercalcs" / "assistant.json"
+
+
+def assistant_config_path():
+    override = (os.environ.get("FITTERCALCS_ASSISTANT_CONFIG") or "").strip()
+    return Path(override).expanduser() if override else STILLO_CONFIG
+
+
+def load_stillo_users(path=None):
+    path = path or assistant_config_path()
+    try:
+        data = json.loads(path.read_text("utf-8"))
+    except (OSError, ValueError):
+        return set()
+    names = data.get("allowed_users") if isinstance(data, dict) else None
+    if not isinstance(names, list):
+        return set()
+    return {str(name).strip().lower() for name in names if str(name).strip()}
+
+
+def stillo_allowed(username, path=None):
+    return str(username or "").strip().lower() in load_stillo_users(path)
+
+
+def set_stillo_access(username, enabled, path=None):
+    """Add or remove one name in assistant.json, preserving every other key."""
+    name = str(username or "").strip()
+    if not name:
+        raise ValueError("No such account.")
+    path = path or assistant_config_path()
+    if not enabled and not path.is_file():
+        return []
+    data = {}
+    if path.is_file():
+        try:
+            loaded = json.loads(path.read_text("utf-8"))
+            if isinstance(loaded, dict):
+                data = loaded
+        except (OSError, ValueError):
+            data = {}
+    names = data.get("allowed_users")
+    names = [str(item).strip() for item in names if str(item).strip()] if isinstance(names, list) else []
+    kept = [item for item in names if item.lower() != name.lower()]
+    if enabled:
+        kept.append(name)
+    data["allowed_users"] = kept
+    data.setdefault("allow_all_admins", True)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    tmp = path.with_name(path.name + ".tmp")
+    tmp.write_text(json.dumps(data, indent=2, ensure_ascii=False) + "\n", "utf-8")
+    os.chmod(tmp, 0o600)
+    os.replace(tmp, path)
+    return kept
+
+
 APP_CSS = b"""
 .fittercalcs {
     background-color: #14110f;
@@ -576,7 +631,7 @@ def clean_email(value):
     return text
 
 
-def create_person(username, password, email, confirm):
+def create_person(username, password, email, confirm, stillo=False):
     if password != confirm:
         raise ValueError("The two passwords do not match.")
     address = clean_email(email)
@@ -588,12 +643,17 @@ def create_person(username, password, email, confirm):
         conn.execute("UPDATE users SET email = ? WHERE id = ?", (address, created["id"]))
         conn.commit()
         created["email"] = address
-        return created
     except Exception:
         conn.rollback()
         raise
     finally:
         conn.close()
+    if stillo:
+        try:
+            set_stillo_access(created["username"], True)
+        except OSError as exc:
+            raise ValueError("Account created, but Ask Stillo access could not be saved: %s" % exc) from exc
+    return created
 
 
 def reset_person(user_id, password, confirm):
@@ -616,6 +676,10 @@ def delete_person(user_id):
             raise ValueError("The first account can't be removed.")
         conn.execute("DELETE FROM users WHERE id = ?", (user_id,))
         conn.commit()
+        try:
+            set_stillo_access(row["username"], False)
+        except OSError:
+            pass
         return row["username"]
     except Exception:
         conn.rollback()
@@ -853,11 +917,14 @@ def load_people():
         conn.close()
 
 
-def person_summary(person):
+def person_summary(person, stillo=None):
     saved = sum(1 for item in person["files"] if not item["draft"])
     drafts = sum(1 for item in person["files"] if item["draft"])
     role = "Admin" if person["admin"] else "Person"
     bits = [role]
+    username = str(person.get("username") or "").strip().lower()
+    if person["admin"] or (stillo is not None and username in stillo):
+        bits.append("Stillo")
     if person.get("email"):
         bits.append(person["email"])
     bits.append("%d saved" % saved)
@@ -1080,6 +1147,13 @@ class AdminWindow(Gtk.Window):
         people_box.pack_start(people_scroll, True, True, 0)
         people_box.pack_start(people_actions, False, False, 0)
         people_box.pack_start(self.reset_btn, False, False, 0)
+        self.stillo_check = Gtk.CheckButton(label="Allow Ask Stillo")
+        self.stillo_check.set_sensitive(False)
+        self.stillo_check.connect("toggled", self.on_stillo_toggle)
+        self.stillo_note = Gtk.Label(label="", xalign=0)
+        self.stillo_note.get_style_context().add_class("dim")
+        people_box.pack_start(self.stillo_check, False, False, 0)
+        people_box.pack_start(self.stillo_note, False, False, 0)
 
         files_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=6)
         files_box.set_margin_top(12)
@@ -1226,6 +1300,7 @@ class AdminWindow(Gtk.Window):
                 chosen = None
             else:
                 chosen = None
+                stillo_users = load_stillo_users()
                 for person in self.people:
                     row = Gtk.ListBoxRow()
                     row.person = person
@@ -1236,7 +1311,7 @@ class AdminWindow(Gtk.Window):
                     box.set_margin_end(10)
                     name = Gtk.Label(label=person["username"], xalign=0)
                     name.get_style_context().add_class("title")
-                    sub = Gtk.Label(label=person_summary(person), xalign=0)
+                    sub = Gtk.Label(label=person_summary(person, stillo_users), xalign=0)
                     sub.get_style_context().add_class("dim")
                     sub.set_line_wrap(True)
                     box.pack_start(name, False, False, 0)
@@ -1264,12 +1339,48 @@ class AdminWindow(Gtk.Window):
                 return person
         return None
 
+    def update_stillo_control(self, person):
+        check = getattr(self, "stillo_check", None)
+        note = getattr(self, "stillo_note", None)
+        if check is None:
+            return
+        check.handler_block_by_func(self.on_stillo_toggle)
+        try:
+            if not person:
+                check.set_active(False)
+                check.set_sensitive(False)
+                check.set_tooltip_text("Select a person.")
+            elif person["admin"]:
+                check.set_active(True)
+                check.set_sensitive(False)
+                check.set_tooltip_text("Admins always have access.")
+            else:
+                check.set_active(stillo_allowed(person["username"]))
+                check.set_sensitive(True)
+                check.set_tooltip_text("")
+        finally:
+            check.handler_unblock_by_func(self.on_stillo_toggle)
+        if note is not None:
+            note.set_text("Admins always have access" if person and person["admin"] else "")
+
+    def on_stillo_toggle(self, check):
+        person = self.current_person()
+        if not person or person["admin"]:
+            return
+        try:
+            set_stillo_access(person["username"], check.get_active())
+        except OSError as exc:
+            self.notice("Could not save Ask Stillo access: %s" % exc)
+        self.update_stillo_control(person)
+        self.reload()
+
     def on_person(self, _list, row):
         person = getattr(row, "person", None) if row else None
         self._selected_user = person["id"] if person else None
         self.remove_btn.set_sensitive(bool(person) and not person["admin"])
         self.reset_btn.set_sensitive(bool(person))
         self.show_files(person)
+        self.update_stillo_control(person)
         self.request_calculator()
 
     def _build_calculator(self):
@@ -1879,18 +1990,20 @@ class AdminWindow(Gtk.Window):
         confirm = Gtk.Entry()
         confirm.set_visibility(False)
         confirm.set_placeholder_text("Password again")
+        stillo = Gtk.CheckButton(label="Allow Ask Stillo")
         error = Gtk.Label(label="", xalign=0)
         error.get_style_context().add_class("dim")
-        for widget in (name, email, password, confirm, error):
+        for widget in (name, email, password, confirm, stillo, error):
             box.pack_start(widget, False, False, 0)
         dialog.show_all()
-        dialog.set_default_size(360, 220)
+        dialog.set_default_size(360, 260)
         while True:
             if dialog.run() != Gtk.ResponseType.OK:
                 break
             try:
                 created = create_person(
-                    name.get_text(), password.get_text(), email.get_text(), confirm.get_text()
+                    name.get_text(), password.get_text(), email.get_text(), confirm.get_text(),
+                    stillo.get_active()
                 )
             except ValueError as exc:
                 error.set_text(str(exc))
@@ -1916,7 +2029,8 @@ class AdminWindow(Gtk.Window):
             text="Remove %s?" % person["username"],
         ))
         dialog.format_secondary_text(
-            "Their saved pump, hydro, tank, fan, and flow jobs will be deleted from this server."
+            "Their saved pump, hydro, tank, fan, and flow jobs will be deleted from this server, "
+            "and their Ask Stillo access will be removed."
         )
         dialog.add_button("Cancel", Gtk.ResponseType.CANCEL)
         dialog.add_button("Remove", Gtk.ResponseType.OK)
