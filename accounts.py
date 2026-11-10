@@ -126,11 +126,33 @@ def _clear_fails(ip):
     _fails.pop(ip, None)
 
 
-def _too_many_reg(ip):
+REG_WINDOW = 600
+
+
+def reg_limit() -> int:
+    try:
+        value = int(os.environ.get("FITTERCALCS_REG_LIMIT") or 20)
+    except ValueError:
+        value = 20
+    return max(1, value)
+
+
+def _reg_recent(ip):
     now = time.time()
-    recent = [t for t in _regs.get(ip, []) if now - t < 600]
+    recent = [t for t in _regs.get(ip, []) if now - t < REG_WINDOW]
     _regs[ip] = recent
-    return len(recent) >= 8
+    return recent
+
+
+def _too_many_reg(ip):
+    return len(_reg_recent(ip)) >= reg_limit()
+
+
+def _reg_wait(ip):
+    recent = _reg_recent(ip)
+    if not recent:
+        return 0
+    return max(0, int(REG_WINDOW - (time.time() - min(recent))) + 1)
 
 
 def _note_reg(ip):
@@ -796,8 +818,12 @@ def handle(method, path, data, token, ip, origin="", host=""):
         )
     if path == "/api/register" and method == "POST":
         if _too_many_reg(ip):
-            return _err(429, "Too many new accounts. Wait a few minutes.")
-        _note_reg(ip)
+            minutes = max(1, (_reg_wait(ip) + 59) // 60)
+            return _err(
+                429,
+                "Too many new accounts. Try again in %d minute%s."
+                % (minutes, "" if minutes == 1 else "s"),
+            )
         conn = connect()
         try:
             conn.execute("BEGIN IMMEDIATE")
@@ -813,6 +839,7 @@ def handle(method, path, data, token, ip, origin="", host=""):
             conn.commit()
         finally:
             conn.close()
+        _note_reg(ip)
         return _ok(
             {"username": created["username"], "admin": False},
             session=session,
