@@ -875,6 +875,20 @@ def file_record(kind, payload, updated_at, draft, job_id=""):
     }
 
 
+def accounts_signature():
+    """Cheap fingerprint of the jobs table, used to spot external syncs."""
+    conn = open_db()
+    if conn is None:
+        return None
+    try:
+        row = conn.execute(
+            "SELECT COUNT(*), COALESCE(MAX(updated_at), 0) FROM jobs"
+        ).fetchone()
+        return (int(row[0]), int(row[1]))
+    finally:
+        conn.close()
+
+
 def load_people():
     conn = open_db()
     if conn is None:
@@ -1123,8 +1137,15 @@ class AdminWindow(Gtk.Window):
         people_box.set_margin_bottom(12)
         people_box.set_margin_start(12)
         people_box.set_margin_end(6)
+        people_head = Gtk.Box(spacing=6)
         people_label = Gtk.Label(label="People", xalign=0)
         people_label.get_style_context().add_class("heading")
+        people_label.set_hexpand(True)
+        people_refresh = Gtk.Button.new_with_label("Refresh")
+        people_refresh.set_tooltip_text("Reload accounts and reports from the server")
+        people_refresh.connect("clicked", lambda _button: self.reload())
+        people_head.pack_start(people_label, True, True, 0)
+        people_head.pack_end(people_refresh, False, False, 0)
         self.people_list = Gtk.ListBox()
         self.people_list.set_selection_mode(Gtk.SelectionMode.BROWSE)
         self.people_list.connect("row-selected", self.on_person)
@@ -1143,7 +1164,7 @@ class AdminWindow(Gtk.Window):
         self.reset_btn = Gtk.Button.new_with_label("Reset password")
         self.reset_btn.set_sensitive(False)
         self.reset_btn.connect("clicked", lambda _button: self.reset_password_dialog())
-        people_box.pack_start(people_label, False, False, 0)
+        people_box.pack_start(people_head, False, False, 0)
         people_box.pack_start(people_scroll, True, True, 0)
         people_box.pack_start(people_actions, False, False, 0)
         people_box.pack_start(self.reset_btn, False, False, 0)
@@ -1285,11 +1306,21 @@ class AdminWindow(Gtk.Window):
         self.add(self.stack)
         self.reload()
         self.calc_timer = GLib.timeout_add(800, self.poll_calculator)
+        self.accounts_timer = GLib.timeout_add(4000, self.auto_refresh_accounts)
         self.connect("map", self.on_map)
         self.connect("destroy", self.on_window_destroy)
 
+    def auto_refresh_accounts(self):
+        if self.stack.get_visible_child_name() == "accounts":
+            current = accounts_signature()
+            if current != getattr(self, "_accounts_sig", None):
+                self._accounts_sig = current
+                self.reload()
+        return True
+
     def reload(self):
         keep = self._selected_user
+        self._accounts_sig = accounts_signature()
         self.people = load_people()
         self.people_list.handler_block_by_func(self.on_person)
         try:
